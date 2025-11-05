@@ -1,0 +1,121 @@
+@import '../setting/common';
+
+.Home_wrap.container2 {
+  background-color: #ffebeb;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  box-sizing: border-box;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+/* ===== Header ===== */
+.home-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+
+  .greeting {
+    h2 {
+      font-size: 18px;
+      color: #c86d7e;
+      margin-bottom: 4px;
+      .username {
+        font-weight: 700;
+        color: #b23a4b;
+      }
+    }
+    p {
+      font-size: 13px;
+      color: #d58b97;
+    }
+  }
+
+  .menu-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: #a66e75;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+}
+
+/* ===== Card Swiper ===== */
+.card-section {
+  width: 100%;
+  max-width: 340px;
+  margin-bottom: 50px;
+
+  .home-swiper {
+    width: 100%;
+    .swiper-pagination-bullet {
+      background-color: #f5b2ba;
+      opacity: 0.6;
+    }
+    .swiper-pagination-bullet-active {
+      background-color: #e06378;
+      opacity: 1;
+    }
+  }
+
+  .card {
+    background: #ffe6e9;
+    border-radius: 20px;
+    padding: 26px;
+    border: 3px solid #ffbfc8;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+    text-align: center;
+
+    .card-logo {
+      width: 100%;
+      max-width: 260px;
+      height: auto;
+      margin: 0 auto;
+      display: block;
+    }
+  }
+}
+
+/* ===== Buttons ===== */
+.button-area {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+
+  .btn {
+    width: 270px;
+    height: 52px;
+    border-radius: 14px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    color: white;
+  }
+
+  .btn-face {
+    background: linear-gradient(90deg, #f4899d, #ee6d7d);
+  }
+
+  .btn-product {
+    background: linear-gradient(90deg, #f8c8c8, #f3a6b4);
+    color: #5a4c4c;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .btn:active {
+    transform: scale(0.98);
+  }
+}
