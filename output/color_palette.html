@@ -1,0 +1,3204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>제품 색상 팔레트</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        h1 { text-align: center; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .card { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .swatch { width: 100%; height: 100px; border-radius: 4px; margin-bottom: 10px; }
+        .info { font-size: 12px; }
+        .brand { font-weight: bold; color: #333; }
+        .shade { color: #666; margin: 5px 0; }
+        .lab { color: #999; font-family: monospace; font-size: 11px; }
+    </style>
+</head>
+<body>
+    <h1>제품 색상 팔레트 검증</h1>
+    <div class="grid">
+
+        <div class="card">
+            <div class="swatch" style="background-color: #edf1f2;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">팔레트 케이스</div>
+                <div class="lab">LAB: 242.5, 127.8, 127.2</div>
+                <div class="lab">#edf1f2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e8f2f8;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">00 아이프라이머</div>
+                <div class="lab">LAB: 242.2, 126.2, 125.0</div>
+                <div class="lab">#e8f2f8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #eeeff1;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">롬앤 슬라이드 인 싱글 케이스</div>
+                <div class="lab">LAB: 241.6, 128.1, 127.9</div>
+                <div class="lab">#eeeff1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f2e7ea;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">17 베리크림</div>
+                <div class="lab">LAB: 236.1, 132.3, 128.1</div>
+                <div class="lab">#f2e7ea · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e9e7e7;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">섀도우 케이스</div>
+                <div class="lab">LAB: 234.7, 129.6, 128.1</div>
+                <div class="lab">#e9e7e7 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e2e4e8;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">4구 공용기 케이스</div>
+                <div class="lab">LAB: 231.1, 128.0, 126.8</div>
+                <div class="lab">#e2e4e8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #eee0db;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">18 두유럽미</div>
+                <div class="lab">LAB: 230.9, 132.3, 132.2</div>
+                <div class="lab">#eee0db · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e7e0e0;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PK03 눈꽃 딸기 소르베</div>
+                <div class="lab">LAB: 229.3, 130.8, 129.1</div>
+                <div class="lab">#e7e0e0 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e7dee5;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">17 라일락 샤워</div>
+                <div class="lab">LAB: 228.6, 132.3, 126.8</div>
+                <div class="lab">#e7dee5 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e1e1e1;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">01 소금리터</div>
+                <div class="lab">LAB: 228.5, 128.7, 128.9</div>
+                <div class="lab">#e1e1e1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d9e2ec;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">스플래시</div>
+                <div class="lab">LAB: 228.3, 128.0, 122.6</div>
+                <div class="lab">#d9e2ec · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dfe0e1;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">G01 스노이</div>
+                <div class="lab">LAB: 227.6, 128.4, 127.9</div>
+                <div class="lab">#dfe0e1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ecdbd1;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M01 웜 볼류머</div>
+                <div class="lab">LAB: 226.2, 132.5, 135.7</div>
+                <div class="lab">#ecdbd1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ebdbcb;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">18 샴페인 샤워</div>
+                <div class="lab">LAB: 225.6, 131.8, 138.8</div>
+                <div class="lab">#ebdbcb · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e4dad9;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">얼리 샤인</div>
+                <div class="lab">LAB: 224.8, 131.8, 130.9</div>
+                <div class="lab">#e4dad9 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #efd7d5;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M02 쿨 볼류머</div>
+                <div class="lab">LAB: 224.4, 136.5, 132.1</div>
+                <div class="lab">#efd7d5 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e9dbbc;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">16 시트론</div>
+                <div class="lab">LAB: 224.1, 128.9, 145.5</div>
+                <div class="lab">#e9dbbc · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #edd6db;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">08 여쿨핑베</div>
+                <div class="lab">LAB: 223.9, 137.5, 128.9</div>
+                <div class="lab">#edd6db · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d6dce1;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S03 블루 베일</div>
+                <div class="lab">LAB: 223.0, 127.0, 125.2</div>
+                <div class="lab">#d6dce1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #efd4d3;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">02 봄브웜베</div>
+                <div class="lab">LAB: 222.8, 138.0, 132.8</div>
+                <div class="lab">#efd4d3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ecd4d8;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">07 쿨플러팅</div>
+                <div class="lab">LAB: 222.3, 137.8, 129.1</div>
+                <div class="lab">#ecd4d8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e4dabe;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S02 리치 레몬</div>
+                <div class="lab">LAB: 222.2, 127.6, 143.2</div>
+                <div class="lab">#e4dabe · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f2d2cc;"></div>
+            <div class="info">
+                <div class="brand">데이지크</div>
+                <div class="shade">01 코랄 밀크</div>
+                <div class="lab">LAB: 221.8, 138.9, 135.7</div>
+                <div class="lab">#f2d2cc · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f2d2cc;"></div>
+            <div class="info">
+                <div class="brand">에뛰</div>
+                <div class="shade">01 코랄 밀크</div>
+                <div class="lab">LAB: 221.8, 138.9, 135.7</div>
+                <div class="lab">#f2d2cc · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #edd4c4;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">01 린넨</div>
+                <div class="lab">LAB: 221.6, 134.0, 139.1</div>
+                <div class="lab">#edd4c4 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ddd8d5;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">WH02 입덕주의 스노우</div>
+                <div class="lab">LAB: 221.5, 129.6, 130.3</div>
+                <div class="lab">#ddd8d5 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f8d2b4;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">엑셀런트</div>
+                <div class="lab">LAB: 221.3, 137.1, 148.5</div>
+                <div class="lab">#f8d2b4 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f7d0d2;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">13 피오니 로즈</div>
+                <div class="lab">LAB: 221.1, 142.5, 132.6</div>
+                <div class="lab">#f7d0d2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ead1d3;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S01 글레이즈</div>
+                <div class="lab">LAB: 219.9, 137.0, 130.7</div>
+                <div class="lab">#ead1d3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #efcfd3;"></div>
+            <div class="info">
+                <div class="brand">데이지크</div>
+                <div class="shade">08 블루밍 캔디</div>
+                <div class="lab">LAB: 219.3, 140.9, 130.3</div>
+                <div class="lab">#efcfd3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #efcfd3;"></div>
+            <div class="info">
+                <div class="brand">에뛰</div>
+                <div class="shade">08 블루밍 캔디</div>
+                <div class="lab">LAB: 219.3, 140.9, 130.3</div>
+                <div class="lab">#efcfd3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d6d6dc;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">23 블루둥이</div>
+                <div class="lab">LAB: 219.2, 129.4, 126.0</div>
+                <div class="lab">#d6d6dc · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e4d0dd;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S04 베어 타로</div>
+                <div class="lab">LAB: 218.8, 137.0, 124.0</div>
+                <div class="lab">#e4d0dd · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f2cfba;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">소프티</div>
+                <div class="lab">LAB: 218.4, 137.2, 143.9</div>
+                <div class="lab">#f2cfba · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f5cccb;"></div>
+            <div class="info">
+                <div class="brand">데이지크</div>
+                <div class="shade">02 사쿠라 크림</div>
+                <div class="lab">LAB: 218.0, 143.0, 134.5</div>
+                <div class="lab">#f5cccb · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f5cccb;"></div>
+            <div class="info">
+                <div class="brand">에뛰</div>
+                <div class="shade">02 사쿠라 크림</div>
+                <div class="lab">LAB: 218.0, 143.0, 134.5</div>
+                <div class="lab">#f5cccb · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #edcec4;"></div>
+            <div class="info">
+                <div class="brand">데이지크</div>
+                <div class="shade">06 페탈 스프링클</div>
+                <div class="lab">LAB: 217.7, 137.3, 138.0</div>
+                <div class="lab">#edcec4 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #edcec4;"></div>
+            <div class="info">
+                <div class="brand">에뛰</div>
+                <div class="shade">06 페탈 스프링클</div>
+                <div class="lab">LAB: 217.7, 137.3, 138.0</div>
+                <div class="lab">#edcec4 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #efcdcd;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">03 알콩달코랄</div>
+                <div class="lab">LAB: 217.1, 140.9, 132.6</div>
+                <div class="lab">#efcdcd · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #eecdbd;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">01웜착+공용기&키링 브러쉬</div>
+                <div class="lab">LAB: 216.0, 138.0, 140.9</div>
+                <div class="lab">#eecdbd · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #efcac8;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">20 휘핑피치</div>
+                <div class="lab">LAB: 216.0, 141.1, 134.3</div>
+                <div class="lab">#efcac8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e8ccc7;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">06 애교베이지</div>
+                <div class="lab">LAB: 215.8, 137.9, 134.6</div>
+                <div class="lab">#e8ccc7 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f0cac0;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">CR02 입덕주의 살구</div>
+                <div class="lab">LAB: 215.0, 140.0, 138.3</div>
+                <div class="lab">#f0cac0 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ebc9d0;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">09 쿨트로베리</div>
+                <div class="lab">LAB: 215.0, 141.4, 129.3</div>
+                <div class="lab">#ebc9d0 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #decfbb;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">24 분유베이지</div>
+                <div class="lab">LAB: 214.8, 130.9, 140.2</div>
+                <div class="lab">#decfbb · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d9d0c4;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">908 바닐라</div>
+                <div class="lab">LAB: 214.8, 129.7, 135.6</div>
+                <div class="lab">#d9d0c4 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ebcbbd;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">19 살구톡핑</div>
+                <div class="lab">LAB: 214.6, 137.1, 139.3</div>
+                <div class="lab">#ebcbbd · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c4d4da;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M06 소다 팝</div>
+                <div class="lab">LAB: 214.3, 124.5, 124.0</div>
+                <div class="lab">#c4d4da · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f3c8b9;"></div>
+            <div class="info">
+                <div class="brand">삐아</div>
+                <div class="shade">06 모태청순</div>
+                <div class="lab">LAB: 214.2, 141.2, 141.6</div>
+                <div class="lab">#f3c8b9 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d7cfd1;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">WH01 생크림 화이트</div>
+                <div class="lab">LAB: 214.1, 131.1, 128.1</div>
+                <div class="lab">#d7cfd1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #cbd1d6;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">WH01 물기 머금은 다이아</div>
+                <div class="lab">LAB: 213.5, 127.7, 125.8</div>
+                <div class="lab">#cbd1d6 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #edc8bc;"></div>
+            <div class="info">
+                <div class="brand">삐아</div>
+                <div class="shade">07 모태매력</div>
+                <div class="lab">LAB: 213.3, 139.2, 139.7</div>
+                <div class="lab">#edc8bc · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f2c6c2;"></div>
+            <div class="info">
+                <div class="brand">데이지크</div>
+                <div class="shade">03 체리 블라썸</div>
+                <div class="lab">LAB: 213.0, 143.5, 136.9</div>
+                <div class="lab">#f2c6c2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f2c6c2;"></div>
+            <div class="info">
+                <div class="brand">에뛰</div>
+                <div class="shade">03 체리 블라썸</div>
+                <div class="lab">LAB: 213.0, 143.5, 136.9</div>
+                <div class="lab">#f2c6c2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ebc7c8;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">02쿨착+공용기&키링 브러쉬</div>
+                <div class="lab">LAB: 212.9, 141.6, 132.1</div>
+                <div class="lab">#ebc7c8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e4cac2;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">08 어니스티</div>
+                <div class="lab">LAB: 212.7, 136.4, 135.3</div>
+                <div class="lab">#e4cac2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e4c9ca;"></div>
+            <div class="info">
+                <div class="brand">데이지크</div>
+                <div class="shade">07 미스틱 블라썸</div>
+                <div class="lab">LAB: 212.5, 138.8, 131.5</div>
+                <div class="lab">#e4c9ca · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e4c9ca;"></div>
+            <div class="info">
+                <div class="brand">에뛰</div>
+                <div class="shade">07 미스틱 블라썸</div>
+                <div class="lab">LAB: 212.5, 138.8, 131.5</div>
+                <div class="lab">#e4c9ca · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #edc5c3;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M28 키튼 젤리</div>
+                <div class="lab">LAB: 212.0, 142.7, 135.0</div>
+                <div class="lab">#edc5c3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d1cdcc;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">WH02 살결st 바닐라</div>
+                <div class="lab">LAB: 211.9, 129.6, 129.1</div>
+                <div class="lab">#d1cdcc · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f4c0d6;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M30 캔디드 베리</div>
+                <div class="lab">LAB: 211.4, 150.1, 124.4</div>
+                <div class="lab">#f4c0d6 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e0c9c7;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">22 밀크티</div>
+                <div class="lab">LAB: 211.3, 136.6, 132.8</div>
+                <div class="lab">#e0c9c7 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dec9d2;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">07 메모러블</div>
+                <div class="lab">LAB: 211.2, 138.0, 126.4</div>
+                <div class="lab">#dec9d2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e7c6bc;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">04 호두둥탁</div>
+                <div class="lab">LAB: 210.8, 138.1, 137.4</div>
+                <div class="lab">#e7c6bc · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #eec4b7;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">클린솝</div>
+                <div class="lab">LAB: 210.7, 141.8, 140.9</div>
+                <div class="lab">#eec4b7 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d2ccc2;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">922 스노우</div>
+                <div class="lab">LAB: 210.7, 128.7, 134.8</div>
+                <div class="lab">#d2ccc2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e3c8b3;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">02 리플렉션</div>
+                <div class="lab">LAB: 210.6, 134.0, 142.5</div>
+                <div class="lab">#e3c8b3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d0cccf;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">CR01 꿀자몽 젤리</div>
+                <div class="lab">LAB: 210.4, 130.1, 127.0</div>
+                <div class="lab">#d0cccf · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #efc3bd;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">05 펄리 피치</div>
+                <div class="lab">LAB: 210.3, 143.7, 137.6</div>
+                <div class="lab">#efc3bd · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d6cac1;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PICK1</div>
+                <div class="lab">LAB: 209.9, 131.7, 134.6</div>
+                <div class="lab">#d6cac1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f4c0b4;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M08 페일 피오니</div>
+                <div class="lab">LAB: 209.9, 145.3, 141.6</div>
+                <div class="lab">#f4c0b4 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c4cdd3;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">BL01 윈터버블 젤리</div>
+                <div class="lab">LAB: 209.8, 126.7, 124.9</div>
+                <div class="lab">#c4cdd3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d6c9ca;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PICK2</div>
+                <div class="lab">LAB: 209.7, 133.9, 130.0</div>
+                <div class="lab">#d6c9ca · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #cdce98;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M05 멜론 듀</div>
+                <div class="lab">LAB: 208.7, 119.4, 155.4</div>
+                <div class="lab">#cdce98 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d1c9c5;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">WH01 입덕주의 화이트</div>
+                <div class="lab">LAB: 208.3, 130.5, 131.6</div>
+                <div class="lab">#d1c9c5 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e8bfca;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M07 스프링 라벤더</div>
+                <div class="lab">LAB: 208.0, 144.1, 128.0</div>
+                <div class="lab">#e8bfca · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d0c9c0;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">25 해삐햇빔</div>
+                <div class="lab">LAB: 207.6, 129.2, 133.8</div>
+                <div class="lab">#d0c9c0 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e3c2c3;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">21 밀키윙크</div>
+                <div class="lab">LAB: 207.5, 140.2, 132.5</div>
+                <div class="lab">#e3c2c3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e9bfb8;"></div>
+            <div class="info">
+                <div class="brand">데이지크</div>
+                <div class="shade">04 스프링 피크닉</div>
+                <div class="lab">LAB: 206.8, 142.0, 138.0</div>
+                <div class="lab">#e9bfb8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e9bfb8;"></div>
+            <div class="info">
+                <div class="brand">에뛰</div>
+                <div class="shade">04 스프링 피크닉</div>
+                <div class="lab">LAB: 206.8, 142.0, 138.0</div>
+                <div class="lab">#e9bfb8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ecbdc4;"></div>
+            <div class="info">
+                <div class="brand">데이지크</div>
+                <div class="shade">09 플라워 소다</div>
+                <div class="lab">LAB: 206.5, 146.6, 131.5</div>
+                <div class="lab">#ecbdc4 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ecbdc4;"></div>
+            <div class="info">
+                <div class="brand">에뛰</div>
+                <div class="shade">09 플라워 소다</div>
+                <div class="lab">LAB: 206.5, 146.6, 131.5</div>
+                <div class="lab">#ecbdc4 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #eabfaf;"></div>
+            <div class="info">
+                <div class="brand">데이지크</div>
+                <div class="shade">05 피치 컨페티</div>
+                <div class="lab">LAB: 206.5, 141.7, 142.6</div>
+                <div class="lab">#eabfaf · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #eabfaf;"></div>
+            <div class="info">
+                <div class="brand">에뛰</div>
+                <div class="shade">05 피치 컨페티</div>
+                <div class="lab">LAB: 206.5, 141.7, 142.6</div>
+                <div class="lab">#eabfaf · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e6bfc5;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">10 쿨팅데이</div>
+                <div class="lab">LAB: 206.4, 143.5, 130.6</div>
+                <div class="lab">#e6bfc5 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e4c1aa;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">크림릿</div>
+                <div class="lab">LAB: 205.6, 137.9, 144.9</div>
+                <div class="lab">#e4c1aa · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e6bebd;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">12 소프티</div>
+                <div class="lab">LAB: 205.4, 142.2, 134.4</div>
+                <div class="lab">#e6bebd · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dcc0cd;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">13 이노센트</div>
+                <div class="lab">LAB: 205.3, 140.3, 125.6</div>
+                <div class="lab">#dcc0cd · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e9bca1;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M11 커스터드</div>
+                <div class="lab">LAB: 203.9, 140.5, 148.2</div>
+                <div class="lab">#e9bca1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d8c0bc;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">909 솝</div>
+                <div class="lab">LAB: 203.9, 136.4, 133.1</div>
+                <div class="lab">#d8c0bc · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e5bdac;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">04 진저 티</div>
+                <div class="lab">LAB: 203.8, 140.1, 142.1</div>
+                <div class="lab">#e5bdac · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ecbba3;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M03 요거트 크림</div>
+                <div class="lab">LAB: 203.7, 142.7, 147.4</div>
+                <div class="lab">#ecbba3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dcbec6;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">03 벚꽃</div>
+                <div class="lab">LAB: 203.7, 140.5, 128.3</div>
+                <div class="lab">#dcbec6 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d3c1c9;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">26 당연보라</div>
+                <div class="lab">LAB: 203.5, 136.8, 126.2</div>
+                <div class="lab">#d3c1c9 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ebbbaa;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S07 포슬린</div>
+                <div class="lab">LAB: 203.1, 143.3, 143.9</div>
+                <div class="lab">#ebbbaa · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e2bcb2;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">03 실크 핑크</div>
+                <div class="lab">LAB: 202.8, 140.0, 138.6</div>
+                <div class="lab">#e2bcb2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d2bfc8;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">05 타로밀크</div>
+                <div class="lab">LAB: 202.7, 136.8, 126.7</div>
+                <div class="lab">#d2bfc8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #debdb8;"></div>
+            <div class="info">
+                <div class="brand">삐아</div>
+                <div class="shade">08 모태지적</div>
+                <div class="lab">LAB: 202.6, 139.3, 135.9</div>
+                <div class="lab">#debdb8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #fab56a;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M04 쥬시 망고</div>
+                <div class="lab">LAB: 202.0, 145.4, 176.1</div>
+                <div class="lab">#fab56a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ddbdab;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M10 토피 라떼</div>
+                <div class="lab">LAB: 201.9, 137.8, 141.8</div>
+                <div class="lab">#ddbdab · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e4baad;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">917 메이</div>
+                <div class="lab">LAB: 201.7, 141.7, 140.9</div>
+                <div class="lab">#e4baad · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dabcb8;"></div>
+            <div class="info">
+                <div class="brand">데이지크</div>
+                <div class="shade">10 베리 토프</div>
+                <div class="lab">LAB: 201.5, 138.3, 134.6</div>
+                <div class="lab">#dabcb8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dabcb8;"></div>
+            <div class="info">
+                <div class="brand">에뛰</div>
+                <div class="shade">10 베리 토프</div>
+                <div class="lab">LAB: 201.5, 138.3, 134.6</div>
+                <div class="lab">#dabcb8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e0b9c5;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">펄리</div>
+                <div class="lab">LAB: 201.4, 144.4, 127.6</div>
+                <div class="lab">#e0b9c5 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ddbdad;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">아이보릿</div>
+                <div class="lab">LAB: 201.1, 137.6, 140.7</div>
+                <div class="lab">#ddbdad · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e2b8b7;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">12 펄리 페탈</div>
+                <div class="lab">LAB: 201.0, 143.5, 134.0</div>
+                <div class="lab">#e2b8b7 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #debab4;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M09 비 헤이지</div>
+                <div class="lab">LAB: 200.5, 140.4, 136.1</div>
+                <div class="lab">#debab4 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e8b5bb;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S05 버블리</div>
+                <div class="lab">LAB: 200.4, 147.5, 132.9</div>
+                <div class="lab">#e8b5bb · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f9b0a9;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">피치오트</div>
+                <div class="lab">LAB: 200.3, 154.5, 142.8</div>
+                <div class="lab">#f9b0a9 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f5b1ad;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M14 토 슈즈</div>
+                <div class="lab">LAB: 200.1, 152.4, 140.5</div>
+                <div class="lab">#f5b1ad · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dfb7c0;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">드리미 듀</div>
+                <div class="lab">LAB: 199.9, 144.9, 129.9</div>
+                <div class="lab">#dfb7c0 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e4b7ad;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">06 포멜 로즈</div>
+                <div class="lab">LAB: 199.7, 143.9, 139.9</div>
+                <div class="lab">#e4b7ad · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dcb8be;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">08 투투</div>
+                <div class="lab">LAB: 199.4, 142.0, 130.5</div>
+                <div class="lab">#dcb8be · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dbb8b0;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">916 베베</div>
+                <div class="lab">LAB: 198.3, 139.2, 137.6</div>
+                <div class="lab">#dbb8b0 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f4b09a;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">소다</div>
+                <div class="lab">LAB: 198.3, 150.8, 149.5</div>
+                <div class="lab">#f4b09a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e0b5bb;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">02 복숭아</div>
+                <div class="lab">LAB: 198.3, 144.0, 131.2</div>
+                <div class="lab">#e0b5bb · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c2bec1;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">G05 누 메테오</div>
+                <div class="lab">LAB: 197.5, 130.0, 127.3</div>
+                <div class="lab">#c2bec1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d5b9b2;"></div>
+            <div class="info">
+                <div class="brand">삐아</div>
+                <div class="shade">09 모태분위기</div>
+                <div class="lab">LAB: 197.5, 137.8, 135.1</div>
+                <div class="lab">#d5b9b2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dfb5b2;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">918 플로리스트</div>
+                <div class="lab">LAB: 197.3, 143.4, 135.0</div>
+                <div class="lab">#dfb5b2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dab99e;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M12 마가렛</div>
+                <div class="lab">LAB: 197.2, 136.2, 146.4</div>
+                <div class="lab">#dab99e · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d5b8b6;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">15 얼루어 인 모션</div>
+                <div class="lab">LAB: 197.1, 138.5, 133.9</div>
+                <div class="lab">#d5b8b6 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e5b1ac;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">슈가리스</div>
+                <div class="lab">LAB: 197.0, 146.9, 138.1</div>
+                <div class="lab">#e5b1ac · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d8b6b3;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">09 모먼트 살몬</div>
+                <div class="lab">LAB: 196.8, 140.5, 134.0</div>
+                <div class="lab">#d8b6b3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c4bcb8;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">910 포그</div>
+                <div class="lab">LAB: 196.7, 130.9, 131.0</div>
+                <div class="lab">#c4bcb8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e5aec8;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M13 포도 크림</div>
+                <div class="lab">LAB: 196.6, 152.3, 123.3</div>
+                <div class="lab">#e5aec8 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ddb5a6;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">07 앤티크 피치</div>
+                <div class="lab">LAB: 196.6, 141.0, 141.3</div>
+                <div class="lab">#ddb5a6 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #fca99a;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">피치 멜바</div>
+                <div class="lab">LAB: 196.4, 157.6, 148.6</div>
+                <div class="lab">#fca99a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f1ada5;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M29 피치 슈</div>
+                <div class="lab">LAB: 196.2, 152.3, 142.8</div>
+                <div class="lab">#f1ada5 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dcb5ae;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">슈가코트</div>
+                <div class="lab">LAB: 196.2, 141.9, 138.0</div>
+                <div class="lab">#dcb5ae · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d4b7a9;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">BE02 입덕주의 누가</div>
+                <div class="lab">LAB: 195.9, 136.8, 139.1</div>
+                <div class="lab">#d4b7a9 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #faa4bc;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">핑카부</div>
+                <div class="lab">LAB: 195.8, 163.6, 129.4</div>
+                <div class="lab">#faa4bc · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #deb3af;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">CR02 구아바 젤리</div>
+                <div class="lab">LAB: 195.4, 143.1, 136.1</div>
+                <div class="lab">#deb3af · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dbb3b6;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">06 로즈니</div>
+                <div class="lab">LAB: 195.2, 143.2, 132.5</div>
+                <div class="lab">#dbb3b6 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d9b3c1;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">04 실루엣</div>
+                <div class="lab">LAB: 195.2, 144.0, 126.6</div>
+                <div class="lab">#d9b3c1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #deb0b3;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">19 로지 스파클</div>
+                <div class="lab">LAB: 194.8, 145.8, 133.0</div>
+                <div class="lab">#deb0b3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e0b1a4;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">애프리콧듀</div>
+                <div class="lab">LAB: 194.8, 143.8, 141.7</div>
+                <div class="lab">#e0b1a4 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e5b27f;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">256 믹싱</div>
+                <div class="lab">LAB: 194.7, 140.6, 161.2</div>
+                <div class="lab">#e5b27f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e8adae;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">스트로베리 오트</div>
+                <div class="lab">LAB: 194.1, 150.4, 136.1</div>
+                <div class="lab">#e8adae · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dfaeb6;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">919 써머</div>
+                <div class="lab">LAB: 193.9, 147.0, 131.7</div>
+                <div class="lab">#dfaeb6 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #eca9af;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S10 잠봉 핑크</div>
+                <div class="lab">LAB: 193.7, 153.0, 135.8</div>
+                <div class="lab">#eca9af · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d5b4a7;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">907 진저</div>
+                <div class="lab">LAB: 193.3, 138.3, 139.3</div>
+                <div class="lab">#d5b4a7 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e6aaaf;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">핑키드</div>
+                <div class="lab">LAB: 192.7, 151.1, 134.5</div>
+                <div class="lab">#e6aaaf · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c8b6ad;"></div>
+            <div class="info">
+                <div class="brand">삐아</div>
+                <div class="shade">03 율무</div>
+                <div class="lab">LAB: 192.6, 133.7, 135.6</div>
+                <div class="lab">#c8b6ad · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #eea8a3;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">슈가 클라우드</div>
+                <div class="lab">LAB: 192.6, 153.5, 141.0</div>
+                <div class="lab">#eea8a3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #deaea4;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">이너프</div>
+                <div class="lab">LAB: 192.6, 144.1, 140.4</div>
+                <div class="lab">#deaea4 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #eea99d;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">스트로베리 크림</div>
+                <div class="lab">LAB: 192.5, 152.6, 144.8</div>
+                <div class="lab">#eea99d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dcaea7;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">환타스틱</div>
+                <div class="lab">LAB: 191.9, 144.9, 139.0</div>
+                <div class="lab">#dcaea7 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d2b2a3;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">09 토프 라떼</div>
+                <div class="lab">LAB: 191.8, 137.0, 140.4</div>
+                <div class="lab">#d2b2a3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f0a693;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M15 낫띵 피치</div>
+                <div class="lab">LAB: 191.6, 153.8, 149.2</div>
+                <div class="lab">#f0a693 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d3b0b1;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">14 미스티 모브</div>
+                <div class="lab">LAB: 191.5, 141.4, 133.0</div>
+                <div class="lab">#d3b0b1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #efa3bd;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">슬리피 버니</div>
+                <div class="lab">LAB: 191.4, 160.4, 126.7</div>
+                <div class="lab">#efa3bd · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d5b0a7;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">05 진저웜브</div>
+                <div class="lab">LAB: 191.2, 140.2, 138.5</div>
+                <div class="lab">#d5b0a7 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c2b5b0;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">BE01 뉴트럴리 베이지</div>
+                <div class="lab">LAB: 190.8, 132.3, 132.9</div>
+                <div class="lab">#c2b5b0 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f8a09f;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">피치포지</div>
+                <div class="lab">LAB: 190.6, 161.8, 142.4</div>
+                <div class="lab">#f8a09f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f6a19d;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">오버 더 피치</div>
+                <div class="lab">LAB: 190.4, 159.5, 143.8</div>
+                <div class="lab">#f6a19d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dcaca2;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">굿 이너프</div>
+                <div class="lab">LAB: 190.0, 144.5, 140.3</div>
+                <div class="lab">#dcaca2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #daabaa;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">핑크 시어링</div>
+                <div class="lab">LAB: 189.1, 145.7, 136.0</div>
+                <div class="lab">#daabaa · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dea9ac;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">베이비 타로</div>
+                <div class="lab">LAB: 189.1, 148.7, 134.1</div>
+                <div class="lab">#dea9ac · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d3aca5;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">22 얼루어 로즈</div>
+                <div class="lab">LAB: 188.5, 141.0, 137.8</div>
+                <div class="lab">#d3aca5 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d8aaa7;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">11 데이즈</div>
+                <div class="lab">LAB: 188.4, 144.5, 136.9</div>
+                <div class="lab">#d8aaa7 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #daab9a;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">졸리</div>
+                <div class="lab">LAB: 188.2, 143.0, 143.1</div>
+                <div class="lab">#daab9a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ed9fb6;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">오버 더 핑크</div>
+                <div class="lab">LAB: 188.2, 160.2, 128.4</div>
+                <div class="lab">#ed9fb6 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d2ad96;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">237 살몬글로우</div>
+                <div class="lab">LAB: 188.0, 138.2, 145.7</div>
+                <div class="lab">#d2ad96 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c4afb3;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PK01 입덕주의 샤이</div>
+                <div class="lab">LAB: 187.8, 136.5, 129.9</div>
+                <div class="lab">#c4afb3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e8a1ae;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">수퍼핑크</div>
+                <div class="lab">LAB: 187.5, 156.4, 132.7</div>
+                <div class="lab">#e8a1ae · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ceada2;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">911 테라피치</div>
+                <div class="lab">LAB: 187.4, 138.2, 138.4</div>
+                <div class="lab">#ceada2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ceabac;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">11 앙금로즈</div>
+                <div class="lab">LAB: 186.5, 141.7, 133.0</div>
+                <div class="lab">#ceabac · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c8ae9f;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">906 토니</div>
+                <div class="lab">LAB: 186.4, 135.7, 139.2</div>
+                <div class="lab">#c8ae9f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e7a1a2;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">윈터베리</div>
+                <div class="lab">LAB: 186.4, 154.0, 138.6</div>
+                <div class="lab">#e7a1a2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e7a29c;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M16 피그 휘핑</div>
+                <div class="lab">LAB: 186.1, 153.1, 141.1</div>
+                <div class="lab">#e7a29c · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f498aa;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">츄</div>
+                <div class="lab">LAB: 185.8, 165.7, 133.3</div>
+                <div class="lab">#f498aa · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e99ea6;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">베리휘그</div>
+                <div class="lab">LAB: 185.1, 157.1, 135.9</div>
+                <div class="lab">#e99ea6 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c3ad9f;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">912 샌달우드</div>
+                <div class="lab">LAB: 185.0, 134.4, 138.1</div>
+                <div class="lab">#c3ad9f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #f39a85;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">수퍼피치</div>
+                <div class="lab">LAB: 184.8, 159.6, 153.6</div>
+                <div class="lab">#f39a85 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bcadb6;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PP01 입덕주의 자스민</div>
+                <div class="lab">LAB: 184.7, 135.6, 125.3</div>
+                <div class="lab">#bcadb6 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d3a894;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">255 라넌큘러스</div>
+                <div class="lab">LAB: 184.7, 141.9, 144.7</div>
+                <div class="lab">#d3a894 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d9a3aa;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">10 피크</div>
+                <div class="lab">LAB: 184.3, 149.9, 132.1</div>
+                <div class="lab">#d9a3aa · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c5aab1;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PK01 생딸기 젤리</div>
+                <div class="lab">LAB: 184.2, 140.0, 128.1</div>
+                <div class="lab">#c5aab1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e89aaf;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">타로튜튜</div>
+                <div class="lab">LAB: 183.9, 160.7, 129.1</div>
+                <div class="lab">#e89aaf · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d4a5a2;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">그레이프 오트</div>
+                <div class="lab">LAB: 183.8, 145.8, 136.3</div>
+                <div class="lab">#d4a5a2 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #cca8a0;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">28 장꾸코랄</div>
+                <div class="lab">LAB: 183.8, 140.6, 137.0</div>
+                <div class="lab">#cca8a0 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d2a4b0;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">헤더</div>
+                <div class="lab">LAB: 183.2, 147.2, 128.5</div>
+                <div class="lab">#d2a4b0 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #dda387;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">버니</div>
+                <div class="lab">LAB: 183.1, 146.4, 151.2</div>
+                <div class="lab">#dda387 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e49ba1;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">하이퍼핑크</div>
+                <div class="lab">LAB: 182.9, 156.4, 136.9</div>
+                <div class="lab">#e49ba1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e89d83;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">쥬시 모닝</div>
+                <div class="lab">LAB: 182.9, 153.6, 153.1</div>
+                <div class="lab">#e89d83 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #baad99;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">151 스파클릴리</div>
+                <div class="lab">LAB: 182.4, 129.9, 140.6</div>
+                <div class="lab">#baad99 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d0a59d;"></div>
+            <div class="info">
+                <div class="brand">삐아</div>
+                <div class="shade">02 팥</div>
+                <div class="lab">LAB: 182.4, 143.5, 138.2</div>
+                <div class="lab">#d0a59d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c7a990;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">224 리얼스킨</div>
+                <div class="lab">LAB: 182.3, 135.5, 145.8</div>
+                <div class="lab">#c7a990 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #caa6ac;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PK01 울먹이는 핑크</div>
+                <div class="lab">LAB: 182.3, 142.1, 130.7</div>
+                <div class="lab">#caa6ac · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c7a798;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">219 발레리나</div>
+                <div class="lab">LAB: 181.2, 137.3, 140.0</div>
+                <div class="lab">#c7a798 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c6a7a0;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">265 허쉬핑크</div>
+                <div class="lab">LAB: 181.1, 138.2, 136.9</div>
+                <div class="lab">#c6a7a0 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #eb987d;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S06 소르베 휩</div>
+                <div class="lab">LAB: 180.8, 156.5, 155.8</div>
+                <div class="lab">#eb987d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e4999a;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">치키구아바</div>
+                <div class="lab">LAB: 180.7, 156.8, 139.6</div>
+                <div class="lab">#e4999a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c1a79e;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">901 테디</div>
+                <div class="lab">LAB: 180.5, 136.7, 136.7</div>
+                <div class="lab">#c1a79e · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e29990;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">허니드피치</div>
+                <div class="lab">LAB: 180.0, 154.5, 144.2</div>
+                <div class="lab">#e29990 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c0a798;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">190 엔젤블러드</div>
+                <div class="lab">LAB: 179.7, 135.9, 139.7</div>
+                <div class="lab">#c0a798 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ee948b;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">피치우롱티</div>
+                <div class="lab">LAB: 179.6, 161.2, 147.8</div>
+                <div class="lab">#ee948b · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c2a49e;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">CR02 물기어린 복숭아</div>
+                <div class="lab">LAB: 178.1, 138.8, 135.2</div>
+                <div class="lab">#c2a49e · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d59d96;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">벨로</div>
+                <div class="lab">LAB: 178.1, 148.3, 140.9</div>
+                <div class="lab">#d59d96 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #cb9f9c;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M19 모브 도우</div>
+                <div class="lab">LAB: 177.3, 144.3, 136.1</div>
+                <div class="lab">#cb9f9c · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #cb9f89;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M17 포니</div>
+                <div class="lab">LAB: 176.9, 141.3, 146.8</div>
+                <div class="lab">#cb9f89 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c2a19a;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PK02 입덕주의 피그</div>
+                <div class="lab">LAB: 176.9, 139.7, 136.2</div>
+                <div class="lab">#c2a19a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #baa593;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">243 마카롱그레이</div>
+                <div class="lab">LAB: 176.7, 133.0, 140.3</div>
+                <div class="lab">#baa593 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b0a7a5;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">BR01 고능소비 애쉬</div>
+                <div class="lab">LAB: 176.6, 131.2, 130.7</div>
+                <div class="lab">#b0a7a5 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c99f95;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">앙고라</div>
+                <div class="lab">LAB: 176.2, 142.6, 139.0</div>
+                <div class="lab">#c99f95 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c69f8f;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M18 플레인 모카</div>
+                <div class="lab">LAB: 175.9, 140.1, 142.1</div>
+                <div class="lab">#c69f8f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d298a1;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">핑크어텐션</div>
+                <div class="lab">LAB: 175.6, 151.5, 132.2</div>
+                <div class="lab">#d298a1 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c2a192;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">913 시나몬</div>
+                <div class="lab">LAB: 175.5, 138.1, 140.3</div>
+                <div class="lab">#c2a192 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c2a18b;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">222 코코아베이지</div>
+                <div class="lab">LAB: 175.3, 137.7, 144.6</div>
+                <div class="lab">#c2a18b · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b9a19c;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">BR05 뮤어리한 초코</div>
+                <div class="lab">LAB: 174.9, 136.5, 134.7</div>
+                <div class="lab">#b9a19c · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bea18a;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">182 올댓누드</div>
+                <div class="lab">LAB: 174.8, 135.8, 144.3</div>
+                <div class="lab">#bea18a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c99b9c;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">20 비 마이 얼루어</div>
+                <div class="lab">LAB: 174.6, 145.7, 134.7</div>
+                <div class="lab">#c99b9c · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d49790;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">오뜨휘그</div>
+                <div class="lab">LAB: 174.5, 150.6, 141.7</div>
+                <div class="lab">#d49790 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #baa0a3;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">905 모더니스트</div>
+                <div class="lab">LAB: 174.3, 138.2, 130.5</div>
+                <div class="lab">#baa0a3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bda18d;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">514 바닐라쇼크</div>
+                <div class="lab">LAB: 174.0, 135.2, 142.5</div>
+                <div class="lab">#bda18d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b6a19d;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">BE01 입덕주의 슈가</div>
+                <div class="lab">LAB: 173.9, 135.7, 133.3</div>
+                <div class="lab">#b6a19d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #cd9a82;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">113 피치오렌지</div>
+                <div class="lab">LAB: 173.8, 144.9, 148.1</div>
+                <div class="lab">#cd9a82 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d5968a;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">돌체 피치</div>
+                <div class="lab">LAB: 173.8, 150.6, 144.9</div>
+                <div class="lab">#d5968a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #da929a;"></div>
+            <div class="info">
+                <div class="brand">투크</div>
+                <div class="shade">01 스트로베리</div>
+                <div class="lab">LAB: 173.8, 156.1, 135.2</div>
+                <div class="lab">#da929a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c19c9f;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">904 피오니</div>
+                <div class="lab">LAB: 173.5, 142.6, 132.9</div>
+                <div class="lab">#c19c9f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b1a19b;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">BR02 기강잡는 토프</div>
+                <div class="lab">LAB: 172.7, 133.4, 133.5</div>
+                <div class="lab">#b1a19b · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d0987f;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">925 글로리</div>
+                <div class="lab">LAB: 172.7, 146.9, 149.0</div>
+                <div class="lab">#d0987f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d592a3;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">팬지</div>
+                <div class="lab">LAB: 172.3, 156.1, 129.4</div>
+                <div class="lab">#d592a3 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d6966a;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">504 오렌지환타</div>
+                <div class="lab">LAB: 172.3, 147.1, 161.4</div>
+                <div class="lab">#d6966a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d5947f;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S09 솔티 바닐라</div>
+                <div class="lab">LAB: 171.8, 150.9, 149.9</div>
+                <div class="lab">#d5947f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e08f74;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">키티</div>
+                <div class="lab">LAB: 171.3, 156.5, 155.2</div>
+                <div class="lab">#e08f74 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bf9b84;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">158 코랄베이지</div>
+                <div class="lab">LAB: 170.9, 139.0, 145.2</div>
+                <div class="lab">#bf9b84 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bc9b8d;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">921 얼루어</div>
+                <div class="lab">LAB: 170.6, 138.5, 140.3</div>
+                <div class="lab">#bc9b8d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b89c9a;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">902 얼스</div>
+                <div class="lab">LAB: 170.6, 138.4, 133.9</div>
+                <div class="lab">#b89c9a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c09994;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">CR01 입덕주의 포멜로</div>
+                <div class="lab">LAB: 170.2, 142.4, 136.9</div>
+                <div class="lab">#c09994 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d88e9a;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">러비</div>
+                <div class="lab">LAB: 170.0, 158.6, 133.5</div>
+                <div class="lab">#d88e9a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c8958c;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">179 체리블라썸</div>
+                <div class="lab">LAB: 169.5, 146.3, 140.4</div>
+                <div class="lab">#c8958c · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c49599;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">위스테리아</div>
+                <div class="lab">LAB: 169.3, 146.5, 133.6</div>
+                <div class="lab">#c49599 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b89a9a;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">12 모브쿨브</div>
+                <div class="lab">LAB: 169.1, 140.0, 132.9</div>
+                <div class="lab">#b89a9a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ba979d;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">27 초코핑</div>
+                <div class="lab">LAB: 169.0, 142.6, 130.3</div>
+                <div class="lab">#ba979d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a7a175;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">150 프레쉬라임</div>
+                <div class="lab">LAB: 168.5, 123.9, 152.7</div>
+                <div class="lab">#a7a175 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bd968e;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M31 슈가 프레즐</div>
+                <div class="lab">LAB: 167.2, 141.1, 138.6</div>
+                <div class="lab">#bd968e · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ae9a8c;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">10 빌드 온</div>
+                <div class="lab">LAB: 166.8, 133.7, 138.5</div>
+                <div class="lab">#ae9a8c · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #cd8e86;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">크림드 베리</div>
+                <div class="lab">LAB: 166.8, 151.7, 142.9</div>
+                <div class="lab">#cd8e86 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bb977e;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M20 데일리 메밀</div>
+                <div class="lab">LAB: 166.1, 138.6, 146.3</div>
+                <div class="lab">#bb977e · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d58991;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">엔젤릭</div>
+                <div class="lab">LAB: 166.0, 158.6, 136.2</div>
+                <div class="lab">#d58991 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a59c89;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">508 엔젤윙스</div>
+                <div class="lab">LAB: 165.3, 128.9, 139.4</div>
+                <div class="lab">#a59c89 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #e47f81;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">블러쉬 데이즈</div>
+                <div class="lab">LAB: 164.5, 167.0, 144.1</div>
+                <div class="lab">#e47f81 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d4868f;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">G03 버니 챗</div>
+                <div class="lab">LAB: 164.5, 159.8, 136.3</div>
+                <div class="lab">#d4868f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ba9294;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">903 튤립</div>
+                <div class="lab">LAB: 164.5, 143.8, 133.4</div>
+                <div class="lab">#ba9294 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d384a6;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">퍼플릿</div>
+                <div class="lab">LAB: 164.1, 163.1, 123.9</div>
+                <div class="lab">#d384a6 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bf917d;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">그릴드 피치</div>
+                <div class="lab">LAB: 163.5, 143.8, 145.7</div>
+                <div class="lab">#bf917d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bf8f8d;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">RD01 썸머 수박 젤리</div>
+                <div class="lab">LAB: 163.4, 146.6, 136.4</div>
+                <div class="lab">#bf8f8d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b29485;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">21 모카 프레소</div>
+                <div class="lab">LAB: 162.6, 137.2, 140.9</div>
+                <div class="lab">#b29485 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c28c90;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">15 앙마레드</div>
+                <div class="lab">LAB: 162.6, 149.3, 134.5</div>
+                <div class="lab">#c28c90 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b1929a;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PP01 페어리 젤리</div>
+                <div class="lab">LAB: 162.4, 141.2, 128.3</div>
+                <div class="lab">#b1929a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b09487;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">221 로즈브라운</div>
+                <div class="lab">LAB: 162.2, 136.7, 139.8</div>
+                <div class="lab">#b09487 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b88f99;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PK03 체리 루비 젤리</div>
+                <div class="lab">LAB: 162.2, 145.2, 129.1</div>
+                <div class="lab">#b88f99 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bc8f7f;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">폴인</div>
+                <div class="lab">LAB: 162.0, 143.2, 143.1</div>
+                <div class="lab">#bc8f7f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ba8f84;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">244 빈티지발렌타인</div>
+                <div class="lab">LAB: 161.2, 143.1, 140.4</div>
+                <div class="lab">#ba8f84 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c18b7e;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">172 웨딩부케</div>
+                <div class="lab">LAB: 160.6, 147.6, 143.6</div>
+                <div class="lab">#c18b7e · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c38a82;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">위티</div>
+                <div class="lab">LAB: 160.4, 149.3, 141.4</div>
+                <div class="lab">#c38a82 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bd8c87;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">920 칸나</div>
+                <div class="lab">LAB: 160.2, 146.6, 138.9</div>
+                <div class="lab">#bd8c87 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b29085;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">180 로즈로코코</div>
+                <div class="lab">LAB: 160.0, 139.1, 139.1</div>
+                <div class="lab">#b29085 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a39393;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PP01 사방트임 모브</div>
+                <div class="lab">LAB: 159.6, 134.9, 130.6</div>
+                <div class="lab">#a39393 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b38e8e;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PK02 백도 말랑 젤리</div>
+                <div class="lab">LAB: 159.1, 142.1, 133.7</div>
+                <div class="lab">#b38e8e · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a49489;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">915 헤이즐</div>
+                <div class="lab">LAB: 159.1, 132.8, 136.8</div>
+                <div class="lab">#a49489 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c38689;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">14 코랄포풍</div>
+                <div class="lab">LAB: 158.7, 152.0, 136.7</div>
+                <div class="lab">#c38689 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c1887a;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">멜로즈</div>
+                <div class="lab">LAB: 158.6, 148.5, 144.8</div>
+                <div class="lab">#c1887a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a9927b;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">215 시나몬더스트</div>
+                <div class="lab">LAB: 158.3, 133.3, 143.5</div>
+                <div class="lab">#a9927b · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #de796f;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">튤</div>
+                <div class="lab">LAB: 158.2, 166.4, 151.7</div>
+                <div class="lab">#de796f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a39091;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">PP02 뮤어리한 바인</div>
+                <div class="lab">LAB: 157.8, 135.8, 130.5</div>
+                <div class="lab">#a39091 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c38488;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">베리</div>
+                <div class="lab">LAB: 157.1, 153.5, 136.7</div>
+                <div class="lab">#c38488 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a28f8f;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">BR04 필승조합 브라운</div>
+                <div class="lab">LAB: 156.5, 135.3, 131.3</div>
+                <div class="lab">#a28f8f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #9f918f;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">914 코코아</div>
+                <div class="lab">LAB: 156.2, 133.6, 131.0</div>
+                <div class="lab">#9f918f · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ba877b;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M23 레드 빈즈</div>
+                <div class="lab">LAB: 156.0, 146.1, 142.0</div>
+                <div class="lab">#ba877b · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ac8b83;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">그레이캣</div>
+                <div class="lab">LAB: 156.0, 139.0, 137.9</div>
+                <div class="lab">#ac8b83 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b88874;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">515 레드쏠트핑크칙촉</div>
+                <div class="lab">LAB: 155.6, 144.9, 146.8</div>
+                <div class="lab">#b88874 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #cc7f66;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">베베</div>
+                <div class="lab">LAB: 155.2, 155.4, 154.7</div>
+                <div class="lab">#cc7f66 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ba8774;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">924 클리프</div>
+                <div class="lab">LAB: 155.1, 145.2, 146.1</div>
+                <div class="lab">#ba8774 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ce7d5c;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S15 생강</div>
+                <div class="lab">LAB: 154.0, 156.5, 159.8</div>
+                <div class="lab">#ce7d5c · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a68a88;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">CR01 트임갱신 로즈</div>
+                <div class="lab">LAB: 153.9, 138.1, 133.6</div>
+                <div class="lab">#a68a88 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b28687;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">923 챈스</div>
+                <div class="lab">LAB: 153.8, 145.1, 134.7</div>
+                <div class="lab">#b28687 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a68a88;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">블러쉬그레이</div>
+                <div class="lab">LAB: 153.3, 138.7, 133.0</div>
+                <div class="lab">#a68a88 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c07f76;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">레이지 듀</div>
+                <div class="lab">LAB: 152.5, 152.4, 143.7</div>
+                <div class="lab">#c07f76 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #c08163;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">G02 버터 링</div>
+                <div class="lab">LAB: 152.3, 149.5, 154.4</div>
+                <div class="lab">#c08163 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #be7f74;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S08 핑크 샤</div>
+                <div class="lab">LAB: 151.3, 151.2, 144.7</div>
+                <div class="lab">#be7f74 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #988b85;"></div>
+            <div class="info">
+                <div class="brand">더샘</div>
+                <div class="shade">BR03 추구미는 모카</div>
+                <div class="lab">LAB: 150.6, 132.2, 133.1</div>
+                <div class="lab">#988b85 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #9d8987;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">13 동굴브라운</div>
+                <div class="lab">LAB: 150.2, 135.5, 132.7</div>
+                <div class="lab">#9d8987 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bc7a79;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">돌체 그레이프</div>
+                <div class="lab">LAB: 148.3, 154.3, 140.0</div>
+                <div class="lab">#bc7a79 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b58061;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M22 미드 마롱</div>
+                <div class="lab">LAB: 148.3, 145.9, 153.7</div>
+                <div class="lab">#b58061 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a68281;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">로즈토프</div>
+                <div class="lab">LAB: 147.3, 142.2, 134.6</div>
+                <div class="lab">#a68281 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bd7864;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">디뮤어</div>
+                <div class="lab">LAB: 146.4, 153.4, 151.0</div>
+                <div class="lab">#bd7864 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #bf7569;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">프랄린</div>
+                <div class="lab">LAB: 145.8, 156.7, 147.5</div>
+                <div class="lab">#bf7569 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #998375;"></div>
+            <div class="info">
+                <div class="brand">힌스</div>
+                <div class="shade">11 카페인</div>
+                <div class="lab">LAB: 144.6, 134.1, 139.8</div>
+                <div class="lab">#998375 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a0807a;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">522 퍼플엔젤티얼스</div>
+                <div class="lab">LAB: 144.0, 139.1, 136.4</div>
+                <div class="lab">#a0807a · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #8d8580;"></div>
+            <div class="info">
+                <div class="brand">라카</div>
+                <div class="shade">926 리버티</div>
+                <div class="lab">LAB: 143.2, 130.2, 132.1</div>
+                <div class="lab">#8d8580 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #ac7a55;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M21 웜 캐러멜</div>
+                <div class="lab">LAB: 141.2, 143.2, 156.3</div>
+                <div class="lab">#ac7a55 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #9c7b70;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M24 먼지</div>
+                <div class="lab">LAB: 139.7, 139.7, 139.3</div>
+                <div class="lab">#9c7b70 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a97368;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">시나몬 스파이스</div>
+                <div class="lab">LAB: 137.8, 148.2, 143.4</div>
+                <div class="lab">#a97368 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #a17860;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">문샤인</div>
+                <div class="lab">LAB: 137.1, 141.4, 147.9</div>
+                <div class="lab">#a17860 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #927b69;"></div>
+            <div class="info">
+                <div class="brand">아멜리</div>
+                <div class="shade">226 세피아</div>
+                <div class="lab">LAB: 136.8, 134.3, 141.2</div>
+                <div class="lab">#927b69 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b8696c;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S14 배디</div>
+                <div class="lab">LAB: 136.3, 160.0, 140.9</div>
+                <div class="lab">#b8696c · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #b26d63;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S11 매쉬드 자몽</div>
+                <div class="lab">LAB: 136.1, 154.1, 145.6</div>
+                <div class="lab">#b26d63 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #af6e49;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">플레어</div>
+                <div class="lab">LAB: 134.2, 150.1, 159.5</div>
+                <div class="lab">#af6e49 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #d1476d;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S13 레이지 마젠타</div>
+                <div class="lab">LAB: 130.7, 185.7, 137.2</div>
+                <div class="lab">#d1476d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #9b6e70;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">수티 위스테리아</div>
+                <div class="lab">LAB: 130.0, 146.1, 134.6</div>
+                <div class="lab">#9b6e70 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #777779;"></div>
+            <div class="info">
+                <div class="brand">컬러그램</div>
+                <div class="shade">16 아라블랙</div>
+                <div class="lab">LAB: 128.7, 128.5, 127.5</div>
+                <div class="lab">#777779 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #946c5e;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S16 얼그레이</div>
+                <div class="lab">LAB: 126.5, 142.4, 142.5</div>
+                <div class="lab">#946c5e · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #9a6770;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">모브 시즈닝</div>
+                <div class="lab">LAB: 125.3, 150.2, 131.2</div>
+                <div class="lab">#9a6770 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #946a5b;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">테일러</div>
+                <div class="lab">LAB: 124.9, 143.1, 143.6</div>
+                <div class="lab">#946a5b · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #9b617d;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">G04 퍼플 릿</div>
+                <div class="lab">LAB: 123.6, 156.2, 122.6</div>
+                <div class="lab">#9b617d · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #7d4958;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S12 카프리 바이올렛</div>
+                <div class="lab">LAB: 96.0, 152.9, 129.1</div>
+                <div class="lab">#7d4958 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #6c5245;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M27 콜드 브루</div>
+                <div class="lab">LAB: 95.0, 137.0, 140.1</div>
+                <div class="lab">#6c5245 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #704f46;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M26 블렌딩 코코</div>
+                <div class="lab">LAB: 94.0, 141.2, 139.0</div>
+                <div class="lab">#704f46 · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #674c3c;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">M25 처비 초코</div>
+                <div class="lab">LAB: 89.7, 137.9, 142.9</div>
+                <div class="lab">#674c3c · 매우 밝은</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #52382e;"></div>
+            <div class="info">
+                <div class="brand">롬앤</div>
+                <div class="shade">S17 퍼지</div>
+                <div class="lab">LAB: 67.6, 138.3, 139.6</div>
+                <div class="lab">#52382e · 오렌지</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #44352f;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">다크 에스프레소</div>
+                <div class="lab">LAB: 60.0, 134.8, 134.5</div>
+                <div class="lab">#44352f · 오렌지</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #442428;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">아로마에스프레소</div>
+                <div class="lab">LAB: 47.3, 144.5, 132.8</div>
+                <div class="lab">#442428 · 오렌지</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #3b251e;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">투샷 아메리카노</div>
+                <div class="lab">LAB: 44.6, 137.1, 137.5</div>
+                <div class="lab">#3b251e · 오렌지</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #33211d;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">코코아 브륄레</div>
+                <div class="lab">LAB: 38.3, 136.4, 134.3</div>
+                <div class="lab">#33211d · 오렌지</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #251b18;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">우드스모크</div>
+                <div class="lab">LAB: 28.8, 132.3, 132.7</div>
+                <div class="lab">#251b18 · 매우 어두운</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="swatch" style="background-color: #2c1713;"></div>
+            <div class="info">
+                <div class="brand">홀리카홀리카</div>
+                <div class="shade">몰튼 아메리카노</div>
+                <div class="lab">LAB: 27.3, 138.5, 135.0</div>
+                <div class="lab">#2c1713 · 매우 어두운</div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
