@@ -1,36 +1,42 @@
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const RefreshToken = require("../models/RefreshToken");
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRE = process.env.JWT_EXPIRE || "7d";
-const JWT_REFRESH_EXPIRE = process.env.JWT_REFRESH_EXPIRE || "30d";
+require("dotenv").config();
 
-// JWT 생성 함수
-const generateTokens = (user) => {
-  const payload = { id: user.id, email: user.email };
-  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRE });
-  const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_REFRESH_EXPIRE });
+function generateTokens(user) {
+  const accessToken = jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRE || "7d" }
+  );
+
+  const refreshToken = jwt.sign(
+    { id: user.id },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_REFRESH_EXPIRE || "30d" }
+  );
+
   return { accessToken, refreshToken };
-};
+}
 
 exports.register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    if (!username || !email || !password)
-      return res.status(400).json({ success: false, message: "Missing required fields" });
-
-    // 이메일 중복 체크
-    const existingUser = await User.findByEmail(email);
-    if (existingUser)
+    const existingEmail = await User.findByEmail(email);
+    if (existingEmail) {
       return res.status(400).json({ success: false, message: "Email already exists" });
+    }
 
-    // 새 유저 생성
-    const newUser = await User.create({ username, email, password });
-    const { accessToken, refreshToken } = generateTokens(newUser);
-    await RefreshToken.saveToken(newUser.id, refreshToken);
+    const existingUsername = await User.findByUsername(username);
+    if (existingUsername) {
+      return res.status(400).json({ success: false, message: "Username already exists" });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const newUser = await User.create(username, email, passwordHash); // ✅ 이 부분이 핵심
 
     res.status(201).json({
       success: true,
@@ -40,11 +46,9 @@ exports.register = async (req, res) => {
         username: newUser.username,
         email: newUser.email,
       },
-      accessToken,
-      refreshToken,
     });
-  } catch (err) {
-    console.error("Register error:", err);
+  } catch (error) {
+    console.error("Register error:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -52,16 +56,23 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findByEmail(email);
-    if (!user) return res.status(400).json({ success: false, message: "User not found" });
 
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid password" });
+    const user = await User.findByEmail(email);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: "Invalid password" });
+    }
 
     const { accessToken, refreshToken } = generateTokens(user);
-    await RefreshToken.saveToken(user.id, refreshToken);
 
-    res.json({
+    await RefreshToken.saveToken(user.id, refreshToken);
+    await User.updateLastLogin(user.id);
+
+    res.status(200).json({
       success: true,
       message: "Login successful",
       user: {
@@ -72,8 +83,8 @@ exports.login = async (req, res) => {
       accessToken,
       refreshToken,
     });
-  } catch (err) {
-    console.error("Login error:", err);
+  } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -81,22 +92,22 @@ exports.login = async (req, res) => {
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
 
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "User profile retrieved successfully",
-      profile: {
+      user: {
         id: user.id,
         username: user.username,
         email: user.email,
         created_at: user.created_at,
         last_login: user.last_login,
-        is_active: user.is_active,
       },
     });
-  } catch (err) {
-    console.error("Profile error:", err);
+  } catch (error) {
+    console.error("Profile error:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
