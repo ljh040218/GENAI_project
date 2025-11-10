@@ -1,4 +1,4 @@
-const baseURL = 'http://localhost:3000';
+const baseURL = 'https://genuine-warmth.up.railway.app';
 
 const testRegister = async () => {
   console.log('\n=== 회원가입 테스트 ===');
