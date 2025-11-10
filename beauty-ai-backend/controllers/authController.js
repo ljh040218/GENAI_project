@@ -1,106 +1,102 @@
-// controllers/authController.js
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const User = require('../models/User');
-const RefreshToken = require('../models/RefreshToken');
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const User = require("../models/User");
+const RefreshToken = require("../models/RefreshToken");
 
-const generateAccessToken = (user) => {
-  return jwt.sign(
-    { id: user.id, email: user.email },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE || '7d' }
-  );
-};
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRE = process.env.JWT_EXPIRE || "7d";
+const JWT_REFRESH_EXPIRE = process.env.JWT_REFRESH_EXPIRE || "30d";
 
-const generateRefreshToken = (user) => {
-  return jwt.sign(
-    { id: user.id, email: user.email },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_REFRESH_EXPIRE || '30d' }
-  );
+// JWT 생성 함수
+const generateTokens = (user) => {
+  const payload = { id: user.id, email: user.email };
+  const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRE });
+  const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_REFRESH_EXPIRE });
+  return { accessToken, refreshToken };
 };
 
 exports.register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    if (!username || !email || !password) {
-      return res.status(400).json({ success: false, message: 'All fields are required' });
-    }
+    if (!username || !email || !password)
+      return res.status(400).json({ success: false, message: "Missing required fields" });
 
-    const existingByEmail = await User.findByEmail(email);
-    if (existingByEmail) {
-      return res.status(400).json({ success: false, message: 'Email already in use' });
-    }
+    // 이메일 중복 체크
+    const existingUser = await User.findByEmail(email);
+    if (existingUser)
+      return res.status(400).json({ success: false, message: "Email already exists" });
 
-    const existingByUsername = await User.findByUsername(username);
-    if (existingByUsername) {
-      return res.status(400).json({ success: false, message: 'Username already in use' });
-    }
-
+    // 새 유저 생성
     const newUser = await User.create({ username, email, password });
+    const { accessToken, refreshToken } = generateTokens(newUser);
+    await RefreshToken.saveToken(newUser.id, refreshToken);
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: "User registered successfully",
       user: {
         id: newUser.id,
         username: newUser.username,
-        email: newUser.email
-      }
+        email: newUser.email,
+      },
+      accessToken,
+      refreshToken,
     });
-  } catch (error) {
-    console.error('Register error:', error.stack || error);
-    return res.status(500).json({ success: false, message: 'Internal server error' });
+  } catch (err) {
+    console.error("Register error:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email and password are required' });
-    }
-
     const user = await User.findByEmail(email);
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
+    if (!user) return res.status(400).json({ success: false, message: "User not found" });
 
-    if (!user.password_hash) {
-      console.error('password_hash missing for user:', email);
-      return res.status(500).json({ success: false, message: 'User data invalid' });
-    }
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid password" });
 
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) {
-      return res.status(401).json({ success: false, message: 'Invalid password' });
-    }
-
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
+    const { accessToken, refreshToken } = generateTokens(user);
     await RefreshToken.saveToken(user.id, refreshToken);
-    await User.updateLastLogin(user.id);
 
-    return res.status(200).json({
+    res.json({
       success: true,
-      message: 'Login successful',
+      message: "Login successful",
       user: {
         id: user.id,
         username: user.username,
-        email: user.email
+        email: user.email,
       },
       accessToken,
-      refreshToken
+      refreshToken,
     });
-  } catch (error) {
-  console.error('Login error:', error);
-  return res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    detail: error.message || String(error)
-  });
-}
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+exports.getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    res.json({
+      success: true,
+      message: "User profile retrieved successfully",
+      profile: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        created_at: user.created_at,
+        last_login: user.last_login,
+        is_active: user.is_active,
+      },
+    });
+  } catch (err) {
+    console.error("Profile error:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
 };
