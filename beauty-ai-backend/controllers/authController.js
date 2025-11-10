@@ -1,3 +1,4 @@
+// controllers/authController.js
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
@@ -27,16 +28,30 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, message: 'All fields are required' });
     }
 
-    const existingUser = await User.findByEmail(email);
-    if (existingUser) {
+    const existingByEmail = await User.findByEmail(email);
+    if (existingByEmail) {
       return res.status(400).json({ success: false, message: 'Email already in use' });
     }
 
+    const existingByUsername = await User.findByUsername(username);
+    if (existingByUsername) {
+      return res.status(400).json({ success: false, message: 'Username already in use' });
+    }
+
     const newUser = await User.create({ username, email, password });
-    return res.status(201).json({ success: true, user: newUser });
+
+    return res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email
+      }
+    });
   } catch (error) {
     console.error('Register error:', error.stack || error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
@@ -44,31 +59,44 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findByEmail(email);
-    if (!user) {
-      return res.status(400).json({ success: false, message: 'User not found' });
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
 
-    const validPassword = await bcrypt.compare(password, user.password_hash);
-    if (!validPassword) {
-      return res.status(400).json({ success: false, message: 'Invalid password' });
+    const user = await User.findByEmail(email);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    if (!user.password_hash) {
+      console.error('password_hash missing for user:', email);
+      return res.status(500).json({ success: false, message: 'User data invalid' });
+    }
+
+    const valid = await bcrypt.compare(password, user.password_hash);
+    if (!valid) {
+      return res.status(401).json({ success: false, message: 'Invalid password' });
     }
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    await RefreshToken.saveToken(user.id, refreshToken, expiresAt);
+    await RefreshToken.saveToken(user.id, refreshToken);
     await User.updateLastLogin(user.id);
 
     return res.status(200).json({
       success: true,
       message: 'Login successful',
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email
+      },
       accessToken,
       refreshToken
     });
   } catch (error) {
     console.error('Login error:', error.stack || error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };

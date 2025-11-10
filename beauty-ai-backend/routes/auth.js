@@ -7,7 +7,6 @@ const RefreshToken = require('../models/RefreshToken');
 const authMiddleware = require('../middleware/authMiddleware');
 const validateRefreshToken = require('../middleware/validateRefreshToken');
 require('dotenv').config();
-
 function generateTokens(user) {
   const accessToken = jwt.sign(
     { id: user.id, email: user.email },
