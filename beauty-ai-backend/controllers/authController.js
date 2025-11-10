@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const RefreshToken = require('../models/RefreshToken');
 require('dotenv').config();
+console.log("JWT_SECRET exists:", !!process.env.JWT_SECRET);
+console.log("JWT_SECRET length:", process.env.JWT_SECRET ? process.env.JWT_SECRET.length : 0);
 
 const generateTokens = (user) => {
   const accessToken = jwt.sign(
