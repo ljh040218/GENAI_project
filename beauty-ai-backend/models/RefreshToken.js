@@ -1,20 +1,24 @@
-// models/RefreshToken.js
 const db = require('../config/database');
 
 class RefreshToken {
-  // 유저당 1개의 리프레시 토큰만 유지 (user_id UNIQUE 기준)
+  // 리프레시 토큰 저장 (user_id 기준으로 1개만 유지)
   static async saveToken(userId, token) {
     try {
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30일 후 만료
+
       const query = `
-        INSERT INTO refresh_tokens (user_id, token)
-        VALUES ($1, $2)
+        INSERT INTO refresh_tokens (user_id, token, expires_at)
+        VALUES ($1, $2, $3)
         ON CONFLICT (user_id)
-        DO UPDATE SET token = EXCLUDED.token, created_at = CURRENT_TIMESTAMP;
+        DO UPDATE 
+        SET token = EXCLUDED.token,
+            expires_at = EXCLUDED.expires_at,
+            created_at = CURRENT_TIMESTAMP;
       `;
-      await db.query(query, [userId, token]);
-    } catch (err) {
-      console.error('Error saving refresh token:', err);
-      throw err;
+      await db.query(query, [userId, token, expiresAt]);
+    } catch (error) {
+      console.error('Error saving refresh token:', error);
+      throw error;
     }
   }
 
@@ -23,9 +27,9 @@ class RefreshToken {
       const query = 'SELECT * FROM refresh_tokens WHERE token = $1';
       const result = await db.query(query, [token]);
       return result.rows[0];
-    } catch (err) {
-      console.error('Error finding refresh token:', err);
-      throw err;
+    } catch (error) {
+      console.error('Error finding refresh token:', error);
+      throw error;
     }
   }
 
@@ -33,9 +37,9 @@ class RefreshToken {
     try {
       const query = 'DELETE FROM refresh_tokens WHERE token = $1';
       await db.query(query, [token]);
-    } catch (err) {
-      console.error('Error deleting refresh token:', err);
-      throw err;
+    } catch (error) {
+      console.error('Error deleting refresh token:', error);
+      throw error;
     }
   }
 }
