@@ -1,4 +1,4 @@
-const baseURL = 'https://genuine-warmth.up.railway.app';
+const baseURL = 'https://genaiproject-production.up.railway.app';
 
 const testRegister = async () => {
   console.log('\n=== 회원가입 테스트 ===');
@@ -72,7 +72,7 @@ const testLogout = async (refreshToken) => {
 };
 
 const runTests = async () => {
-  console.log('서버가 실행 중인지 확인하세요: http://localhost:3000');
+  console.log('서버가 실행 중인지 확인하세요.');
   console.log('테스트를 시작합니다...\n');
 
   const registerTokens = await testRegister();
