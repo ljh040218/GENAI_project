@@ -62,3 +62,4 @@ app.listen(PORT, '0.0.0.0', () => {
 });
 
 module.exports = app;
+app.set('trust proxy', 1);
