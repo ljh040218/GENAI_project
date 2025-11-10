@@ -96,7 +96,11 @@ exports.login = async (req, res) => {
       refreshToken
     });
   } catch (error) {
-    console.error('Login error:', error.stack || error);
-    return res.status(500).json({ success: false, message: 'Internal server error' });
-  }
+  console.error('Login error:', error);
+  return res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    detail: error.message || String(error)
+  });
+}
 };
