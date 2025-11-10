@@ -12,13 +12,19 @@ if (!connectionString) {
 const pool = new Pool({
   connectionString,
   ssl: {
-    rejectUnauthorized: false, // Railway PostgreSQL requires SSL
+    rejectUnauthorized: false, // Railway requires SSL
   },
 });
 
-pool.on('connect', () => {
-  console.log('Connected to PostgreSQL via Railway');
-});
+(async () => {
+  try {
+    const client = await pool.connect();
+    console.log('Connected to PostgreSQL via Railway');
+    client.release();
+  } catch (err) {
+    console.error('Database connection failed:', err.message);
+  }
+})();
 
 pool.on('error', (err) => {
   console.error('Unexpected error on idle PostgreSQL client:', err);
