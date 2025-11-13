@@ -1,0 +1,233 @@
+@use "../setting/common";
+
+.FaceResult_wrap.container2 {
+  background-color: #ffebeb;
+  text-align: center;
+  font-family: "Pretendard Variable", sans-serif;
+  color: #a85565;
+
+  /* 상단바 */
+  .fr-topbar {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    padding: 16px 20px;
+
+    .fr-back-btn {
+      background: none;
+      border: none;
+      font-size: 26px;
+      color: #c05b6d;
+      cursor: pointer;
+    }
+  }
+  .fr-title {
+    margin: 0;
+    text-align: center;
+    color: #b86b78;
+    font-weight: 800;
+    margin-bottom: 30px;
+  }
+
+  /* 카드 */
+  .fr-card {
+    margin: 15px 30px;
+    width: min(360px, 92vw);
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 30px;
+  }
+  .fr-photo {
+    margin: 30px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  }
+  .fr-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* 세그먼트 버튼 */
+  .fr-segment {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 12px;
+  }
+  .seg-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1.5px solid #e7c6cf;
+    background: #fff;
+    color: #3b1f27;
+    font-weight: 800;
+    font-size: 13px;
+    transition: all 0.15s ease;
+  }
+  .seg-btn .seg-ic {
+    font-size: 16px;
+    line-height: 1;
+  }
+  .seg-btn.active {
+    background: #f091a0;
+    box-shadow: 0 4px 10px rgba(255, 122, 168, 0.25);
+  }
+  .seg-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  /* 힌트 */
+  .fr-hint {
+    text-align: center;
+    color: #444444;
+    opacity: 0.7;
+    font-size: 13px;
+    margin: 20px 0;
+  }
+
+  /* 제품 영역 (UI만, 탭에 따라 색만 바뀌는 더미) */
+  .fr-product {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(360px, 92vw);
+    margin: 22px;
+    text-align: center;
+  }
+  .prod-img {
+    width: 140px;
+    height: 140px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: var(--shadow);
+  }
+  .prod-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .prod-name {
+    color: #444444;
+    font-weight: 800;
+    margin-top: 12px;
+  }
+
+  /* ===== Bottom Sheet ===== */
+  .bsheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 75vh; /* 시트 높이 */
+    background: rgba(255, 123, 144, 0.6);
+    border-top-left-radius: 32px;
+    border-top-right-radius: 32px;
+    box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.15);
+    /* 기본은 핸들만 보이도록 접힘 상태로! (HANDLE=72px 과 일치) */
+    --handle-h: 72px;
+    transform: translateY(calc(100% - var(--handle-h)));
+    transition: transform 0.18s ease-out;
+    backdrop-filter: blur(16px);
+    touch-action: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 999;
+  }
+
+  /* 핸들 드래그 영역 */
+  .bs-handle-area {
+    height: var(--handle-h);
+    padding: 0;
+    display: grid;
+    place-items: center;
+    cursor: grab;
+  }
+  .bs-handle {
+    width: 96px;
+    height: 6px;
+    border-radius: 999px;
+    background: #fff;
+    opacity: 0.9;
+  }
+
+  /* 시트 내부 내용 */
+  .bs-content {
+    flex: 1;
+    overflow: auto;
+    padding: 10px 30px 15px;
+    margin-top: 10px;
+  }
+
+  /* 내용 카드 */
+  .bs-card {
+    width: min(360px, 92vw);
+    margin: 0 auto;
+    background: #eaeaea;
+    border-radius: 18px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    width: min(340px, 88vw);
+    padding-top: 25px;
+    text-align: center;
+  }
+  .bs-prod-img {
+    width: 160px;
+    height: 160px;
+    margin: 15px auto 30px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .bs-prod-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .bs-info {
+    text-align: center;
+    color: #444444;
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 18px;
+  }
+  .bs-info h3 {
+    margin: 6px 0 25px;
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .spec {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 30px;
+    color: #444;
+  }
+  .spec li {
+    margin: 8px 0;
+  }
+  .desc {
+    color: #000;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* 페이지 스크롤과 겹침 방지: 페이지 컨테이너에는 overflow:hidden 권장 */
+  .FaceResult_wrap {
+    overflow: hidden;
+  }
+}
