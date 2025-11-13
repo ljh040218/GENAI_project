@@ -1,5 +1,5 @@
 // src/pages/Home.jsx
-import React from "react";
+import React, { useEffect, useState } from "react"; 
 import "../assets/sass/home/home.scss";
 import { FiMenu } from "react-icons/fi";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -15,14 +15,27 @@ import Card3 from "../../src/assets/img/card3.svg";
 
 const Home = () => {
   const navigate = useNavigate();
-  
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setUsername(user.username);
+      } catch (e) {
+        console.error("유저 파싱 실패:", e);
+      }
+    }
+  }, []);
+
   return (
     <div className="Home_wrap container2">
       {/* 상단 인사 영역 */}
       <header className="home-header">
         <div className="greeting">
           <h2>
-            <span className="username">OOO</span>님 안녕하세요!
+            <span className="username">{username || "사용자"}</span>님 안녕하세요!
           </h2>
           <p>VIZY가 오늘의 메이크업 컬러를 찾아드릴게요 ✨</p>
         </div>
