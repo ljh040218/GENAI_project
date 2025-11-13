@@ -1,7 +1,7 @@
 import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation , useNavigate} from "react-router-dom";
 import "../assets/sass/mainface/faceresult.scss";
-import { FiChevronLeft } from "react-icons/fi";
+import { FiChevronLeft , FiHome } from "react-icons/fi";
 
 import yujinImg from "../assets/img/mainface/yujin.png";
 import romandImg from "../assets/img/mainface/romand.png";
@@ -13,6 +13,7 @@ const TABS = [
 
 const FaceResult = () => {
   const { state } = useLocation();
+  const navigate = useNavigate();
   const imageUrl = state?.imageUrl;
 
   const [active, setActive] = useState("LIPS");
@@ -34,6 +35,9 @@ const FaceResult = () => {
       <header className="fr-topbar">
         <button className="fr-back-btn" onClick={() => window.history.back()}>
           <FiChevronLeft />
+        </button>
+        <button className="fr-home-btn" onClick={() => navigate("/home")}>
+          <FiHome />
         </button>
       </header>
 

@@ -83,7 +83,10 @@ const Home = () => {
           <span role="img" aria-label="face">👱‍♀️</span> 얼굴 이미지로 제품 찾기
         </button>
 
-        <button className="btn btn-product">
+        <button
+          className="btn btn-product"
+          onClick={() => navigate("/mainproduct")}
+        >
           <span role="img" aria-label="chat">💬</span> 제품 이미지로 추천받기
         </button>
       </div>

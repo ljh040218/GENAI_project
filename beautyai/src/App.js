@@ -5,13 +5,17 @@ import Sign from "./pages/login/signup";
 import Home from './components/Home';
 import MainFace from './components/MainFace'; 
 import FaceResult from './components/FaceResult';  
+import ProductResult from './components/ProductResult';
+import MainProduct from './components/MainProduct';
 
 const App = () => {
     return (
         <BrowserRouter>
             <Routes>
                 <Route path='/mainface' element={<MainFace />} />
+                <Route path='/mainproduct' element={<MainProduct />} />
                 <Route path='/faceresult' element={<FaceResult />} />
+                <Route path='/productresult' element={<ProductResult />} />
                 <Route path='/home' element={<Home />} />
                 <Route path='/login' element={<Login />} />
                 <Route path='/signup' element={<Sign />} />
