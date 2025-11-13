@@ -6,6 +6,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
+import { useNavigate } from "react-router-dom";
 
 // 카드 이미지들
 import Card1 from "../../src/assets/img/card1.svg"
@@ -13,6 +14,8 @@ import Card2 from "../../src/assets/img/card2.svg";
 import Card3 from "../../src/assets/img/card3.svg";
 
 const Home = () => {
+  const navigate = useNavigate();
+  
   return (
     <div className="Home_wrap container2">
       {/* 상단 인사 영역 */}
@@ -58,10 +61,12 @@ const Home = () => {
           </SwiperSlide>
         </Swiper>
       </section>
-
-      {/* 버튼 영역 */}
+{/* 버튼 */}
       <div className="button-area">
-        <button className="btn btn-face">
+        <button 
+          className="btn btn-face"
+          onClick={() => navigate("/mainface")}  
+        >
           <span role="img" aria-label="face">👱‍♀️</span> 얼굴 이미지로 제품 찾기
         </button>
 

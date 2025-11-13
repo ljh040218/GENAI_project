@@ -1,10 +1,11 @@
-@use "../setting/common";
 
 .MainFace_wrap {
   background-color: #ffebeb;
   text-align: center;
   font-family: "Pretendard Variable", sans-serif;
   color: #a85565;
+  padding-top: 30px;
+  margin-top: 10px;
 
   /* 상단바 */
   .topbar {

@@ -1,50 +1,77 @@
-import React, { useState } from "react";
+// MainFace.jsx
+import React, { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../assets/sass/mainface/mainface.scss";
 import { FiChevronLeft } from "react-icons/fi";
 import { FaUserCircle } from "react-icons/fa";
 
 const MainFace = () => {
-  const [showPopup, setShowPopup] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
-  const handleUpload = async () => {
-    setShowPopup(true);
-    setIsUploading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsUploading(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // ▣ 1) 버튼 → 파일 선택창 열기
+  const openFilePicker = () => {
+    fileInputRef.current.click();
   };
 
-  const handleCancel = () => {
-    setShowPopup(false);
-    setIsUploading(false);
+  // ▣ 2) 파일 선택 후 실행
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return; // 사용자가 파일 선택 안 하면 중단
+
+    const imgURL = URL.createObjectURL(file);
+
+    // 팝업 켜기 + 로딩 시작
+    setShowPopup(true);
+    setIsLoading(true);
+
+    // ▣ 3초 AI 분석 연출 후 결과 페이지 이동
+    setTimeout(() => {
+      setIsLoading(false);
+
+      setTimeout(() => {
+        navigate("/faceresult", {
+          state: { imageUrl: imgURL },
+        });
+      }, 500);
+    }, 2000);
   };
 
   return (
     <div className="MainFace_wrap container2">
-      {/* 상단 뒤로가기 */}
+      {/* 상단바 */}
       <header className="topbar">
         <button className="back-btn" onClick={() => window.history.back()}>
           <FiChevronLeft />
         </button>
       </header>
 
-      {/* 텍스트 + 아이콘 + 버튼을 하나로 */}
+      {/* 업로드 섹션 */}
       <section className="upload-section">
         <h2 className="upload-title">
-          원하는 인물의 사진을
-          <br />
-          업로드해주세요
+          원하는 인물의 사진을<br />업로드해주세요
         </h2>
 
         <div className="face-upload-icon">
           <FaUserCircle />
         </div>
 
-        <button className="upload-btn" onClick={handleUpload}>
+        {/* 숨겨진 file input */}
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          style={{ display: "none" }} // 완전 숨김
+          onChange={handleFileChange}
+        />
+
+        <button className="upload-btn" onClick={openFilePicker}>
           사진 업로드하기
         </button>
       </section>
-
       {/* 주의사항 */}
       <div className="notice-box">
         <div className="notice-title">
@@ -72,23 +99,26 @@ const MainFace = () => {
           </li>
         </ul>
       </div>
-
-      {/* 팝업 모달 */}
+      {/* 로딩 팝업 */}
       {showPopup && (
         <div className="popup-overlay">
           <div className="popup">
             <div className="popup-icon">
               <FaUserCircle />
             </div>
-            <h3>{isUploading ? "이미지 업로드 중..." : "업로드 완료"}</h3>
+
+            <h3>{isLoading ? "이미지 분석 중..." : "완료!"}</h3>
             <p>
-              {isUploading
-                ? "AI가 얼굴 부위를 인식 중입니다... 잠시만 기다려주세요."
+              {isLoading
+                ? "AI가 얼굴을 분석하고 있습니다..."
                 : "얼굴 인식이 완료되었습니다!"}
             </p>
-            <button className="popup-btn" onClick={handleCancel}>
-              {isUploading ? "업로드 취소" : "확인"}
-            </button>
+
+            {!isLoading && (
+              <button className="popup-btn" onClick={() => setShowPopup(false)}>
+                확인
+              </button>
+            )}
           </div>
         </div>
       )}

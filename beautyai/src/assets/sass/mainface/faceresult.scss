@@ -1,0 +1,173 @@
+
+.FaceResult_wrap {
+  width: 100%;
+  background-color: #ffebeb;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100vh + 100px); 
+  padding-bottom: 160px;  
+
+  /* 🔥 화면의 위에서부터 바로 시작하도록 */
+  justify-content: flex-start;
+  padding-top: 30px;
+  margin-top: 10px;
+
+  .fr-topbar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  padding: 16px 20px;   // MainFace와 동일
+
+  .fr-back-btn {
+    background: none;
+    border: none;
+    font-size: 26px;   
+    margin-left: 22px;
+    color: #c05b6d;
+    cursor: pointer;
+  }
+}
+
+  .fr-title {
+    font-size: 25px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: #e4657f;
+    width: 90%;
+    text-align: center;
+  }
+
+  .fr-card {
+    background: #fff;
+    border-radius: 20px;
+    width: 90%;
+    margin: 0 auto;
+    padding-bottom: 20px;
+  }
+
+  .fr-photo img {
+    width: 100%;
+    border-radius: 14px;
+    margin-top: 24px;
+  }
+
+  .fr-segment {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 14px;
+  }
+
+  .seg-btn {
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: white;
+    font-weight: 700;
+    border: 1px solid #e0c2c9;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .seg-btn.active {
+    background: #f091a0;
+    color: white;
+  }
+
+  .fr-hint {
+    font-size: 12px;
+    margin-top: 14px;
+    opacity: 0.7;
+    text-align: center;
+  }
+
+  .fr-product {
+    margin-top: 24px;
+    width: 90%;
+    margin: 0 auto;
+    text-align: center;
+
+    .prod-img img {
+      width: 110px;
+      height: 110px;
+      object-fit: contain;
+    }
+
+    .prod-name {
+      margin-top: 12px;
+      font-weight: 800;
+    }
+  }
+
+  /* BottomSheet */
+  .bsheet {
+  position: fixed;   // 📌 absolute → fixed 로 변경해야 화면 바깥으로 안 밀림!
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(65vh)); 
+  width: 100%;
+  max-width: 420px;
+  height: 75vh;
+
+  background: rgba(255, 157, 173, 0.55);
+  backdrop-filter: blur(18px);
+  border-top-left-radius: 32px;
+  border-top-right-radius: 32px;
+  box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.2);
+
+  transition: transform 0.35s ease-out;
+
+  display: flex;
+  flex-direction: column;
+  z-index: 99;   // 📌 위에 올라오도록
+}
+
+.bsheet.open {
+  transform: translateX(-50%) translateY(0);  
+}
+
+
+  .bs-handle-area {
+    height: 70px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+
+    .bs-handle {
+      width: 90px;
+      height: 6px;
+      background: #fff;
+      border-radius: 999px;
+      opacity: 0.9;
+    }
+  }
+
+  .bs-content {
+    flex: 1;
+    padding-bottom: 30px;
+    overflow-y: auto;
+  }
+
+  .bs-card {
+    width: 90%;
+    margin: 0 auto;
+    padding-top: 20px;
+    text-align: center;
+  }
+
+  .bs-prod-img img {
+    width: 160px;
+    height: 160px;
+    object-fit: contain;
+  }
+
+  .bs-info {
+    background: #fff;
+    padding: 26px;
+    border-radius: 18px;
+    margin-top: 20px;
+    text-align: center;
+  }
+}
