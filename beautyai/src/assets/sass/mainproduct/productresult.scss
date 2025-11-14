@@ -57,11 +57,25 @@
     padding-bottom: 20px;
   }
 
-  .pr-photo img {
-    width: 100%;
-    border-radius: 14px;
-    margin-top: 24px;
-  }
+  /* 업로드한 제품 사진 */
+.pr-photo {
+  width: 100%;
+  max-width: 360px;
+  max-height: 360px;
+  overflow: hidden;
+  margin: 24px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pr-photo img {
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 14px;
+}
 
   /* segment */
   .pr-segment {
