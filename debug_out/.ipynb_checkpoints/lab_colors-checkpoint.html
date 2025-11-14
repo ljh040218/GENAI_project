@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>얼굴 메이크업 ROI 색상 분석</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+        }
+        h1 { 
+            text-align: center; 
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+        .stats {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stats h2 {
+            margin-top: 0;
+            color: #34495e;
+        }
+        .image-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .image-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .regions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .region-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        .region-card.lips { border-left-color: #e74c3c; }
+        .region-card.cheeks { border-left-color: #f39c12; }
+        .region-card.eyeshadow { border-left-color: #9b59b6; }
+        .region-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            text-transform: uppercase;
+        }
+        .color-swatch {
+            width: 100%;
+            height: 80px;
+            border-radius: 6px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: 1px solid #ddd;
+        }
+        .color-info {
+            font-size: 0.85em;
+            color: #555;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .color-desc {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        .legend {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>얼굴 메이크업 ROI 색상 분석</h1>
+    <div class="subtitle">MediaPipe 얼굴 파싱을 통한 립, 치크, 아이섀도우 영역 LAB 색상 추출</div>
+    
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #e74c3c;"></div>
+            <span>립 (Lips)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #f39c12;"></div>
+            <span>치크 (Cheeks)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #9b59b6;"></div>
+            <span>아이섀도우 (Eyeshadow)</span>
+        </div>
+    </div>
+
+</body>
+</html>

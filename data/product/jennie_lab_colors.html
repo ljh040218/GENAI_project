@@ -1,0 +1,1959 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>JENNIE 메이크업 ROI 색상 분석</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+        }
+        h1 { 
+            text-align: center; 
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+        .image-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .image-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .regions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .region-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        .region-card.lips { border-left-color: #e74c3c; }
+        .region-card.cheeks { border-left-color: #f39c12; }
+        .region-card.eyeshadow { border-left-color: #9b59b6; }
+        .region-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            text-transform: uppercase;
+        }
+        .color-swatch {
+            width: 100%;
+            height: 80px;
+            border-radius: 6px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: 1px solid #ddd;
+        }
+        .color-info {
+            font-size: 0.85em;
+            color: #555;
+            margin: 5px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .color-desc {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        .legend {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>JENNIE 메이크업 ROI 색상 분석</h1>
+    <div class="subtitle">MediaPipe 얼굴 파싱을 통한 립, 치크, 아이섀도우 영역 LAB 색상 추출</div>
+    
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #e74c3c;"></div>
+            <span>립 (Lips)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #f39c12;"></div>
+            <span>치크 (Cheeks)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #9b59b6;"></div>
+            <span>아이섀도우 (Eyeshadow)</span>
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">1. 1.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b26d67;"></div>
+                <div class="color-info">LAB: L=136.8, a=155.2, b=143.7</div>
+                <div class="color-info">RGB: (178, 109, 103)</div>
+                <div class="color-info">HEX: #b26d67</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #c79989;"></div>
+                <div class="color-info">LAB: L=171.9, a=143.0, b=143.4</div>
+                <div class="color-info">RGB: (199, 153, 137)</div>
+                <div class="color-info">HEX: #c79989</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b18679;"></div>
+                <div class="color-info">LAB: L=152.7, a=143.6, b=141.6</div>
+                <div class="color-info">RGB: (177, 134, 121)</div>
+                <div class="color-info">HEX: #b18679</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">2. 10.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b16961;"></div>
+                <div class="color-info">LAB: L=133.1, a=156.1, b=145.4</div>
+                <div class="color-info">RGB: (177, 105, 97)</div>
+                <div class="color-info">HEX: #b16961</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #e1b99c;"></div>
+                <div class="color-info">LAB: L=199.7, a=138.7, b=148.3</div>
+                <div class="color-info">RGB: (225, 185, 156)</div>
+                <div class="color-info">HEX: #e1b99c</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b38e78;"></div>
+                <div class="color-info">LAB: L=158.1, a=139.1, b=145.8</div>
+                <div class="color-info">RGB: (179, 142, 120)</div>
+                <div class="color-info">HEX: #b38e78</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">3. 11.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #e0afae;"></div>
+                <div class="color-info">LAB: L=193.3, a=146.2, b=135.7</div>
+                <div class="color-info">RGB: (224, 175, 174)</div>
+                <div class="color-info">HEX: #e0afae</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #e2cdc4;"></div>
+                <div class="color-info">LAB: L=214.9, a=134.6, b=135.4</div>
+                <div class="color-info">RGB: (226, 205, 196)</div>
+                <div class="color-info">HEX: #e2cdc4</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b5a8a3;"></div>
+                <div class="color-info">LAB: L=178.9, a=132.8, b=132.8</div>
+                <div class="color-info">RGB: (181, 168, 163)</div>
+                <div class="color-info">HEX: #b5a8a3</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">4. 12.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #9b5848;"></div>
+                <div class="color-info">LAB: L=114.7, a=154.6, b=149.1</div>
+                <div class="color-info">RGB: (155, 88, 72)</div>
+                <div class="color-info">HEX: #9b5848</div>
+                <div class="color-desc">중간 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #bf927e;"></div>
+                <div class="color-info">LAB: L=164.3, a=142.1, b=145.9</div>
+                <div class="color-info">RGB: (191, 146, 126)</div>
+                <div class="color-info">HEX: #bf927e</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #ab826c;"></div>
+                <div class="color-info">LAB: L=147.8, a=141.8, b=146.2</div>
+                <div class="color-info">RGB: (171, 130, 108)</div>
+                <div class="color-info">HEX: #ab826c</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">5. 13.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b48375;"></div>
+                <div class="color-info">LAB: L=151.7, a=145.8, b=143.1</div>
+                <div class="color-info">RGB: (180, 131, 117)</div>
+                <div class="color-info">HEX: #b48375</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #c8b09e;"></div>
+                <div class="color-info">LAB: L=187.2, a=134.9, b=140.3</div>
+                <div class="color-info">RGB: (200, 176, 158)</div>
+                <div class="color-info">HEX: #c8b09e</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #a08c82;"></div>
+                <div class="color-info">LAB: L=152.5, a=134.2, b=136.8</div>
+                <div class="color-info">RGB: (160, 140, 130)</div>
+                <div class="color-info">HEX: #a08c82</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">6. 14.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #995c55;"></div>
+                <div class="color-info">LAB: L=117.6, a=153.0, b=143.8</div>
+                <div class="color-info">RGB: (153, 92, 85)</div>
+                <div class="color-info">HEX: #995c55</div>
+                <div class="color-desc">중간 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #c29d8a;"></div>
+                <div class="color-info">LAB: L=173.0, a=139.9, b=143.0</div>
+                <div class="color-info">RGB: (194, 157, 138)</div>
+                <div class="color-info">HEX: #c29d8a</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #a68479;"></div>
+                <div class="color-info">LAB: L=148.0, a=139.5, b=139.2</div>
+                <div class="color-info">RGB: (166, 132, 121)</div>
+                <div class="color-info">HEX: #a68479</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">7. 15.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #cb494e;"></div>
+                <div class="color-info">LAB: L=126.5, a=180.6, b=153.3</div>
+                <div class="color-info">RGB: (203, 73, 78)</div>
+                <div class="color-info">HEX: #cb494e</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #dda898;"></div>
+                <div class="color-info">LAB: L=187.8, a=145.4, b=144.5</div>
+                <div class="color-info">RGB: (221, 168, 152)</div>
+                <div class="color-info">HEX: #dda898</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #cb9584;"></div>
+                <div class="color-info">LAB: L=169.8, a=146.9, b=145.8</div>
+                <div class="color-info">RGB: (203, 149, 132)</div>
+                <div class="color-info">HEX: #cb9584</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">8. 16.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #c66863;"></div>
+                <div class="color-info">LAB: L=140.7, a=165.9, b=148.4</div>
+                <div class="color-info">RGB: (198, 104, 99)</div>
+                <div class="color-info">HEX: #c66863</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #dba58f;"></div>
+                <div class="color-info">LAB: L=184.5, a=145.1, b=147.8</div>
+                <div class="color-info">RGB: (219, 165, 143)</div>
+                <div class="color-info">HEX: #dba58f</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b27a66;"></div>
+                <div class="color-info">LAB: L=144.9, a=147.0, b=148.7</div>
+                <div class="color-info">RGB: (178, 122, 102)</div>
+                <div class="color-info">HEX: #b27a66</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">9. 17.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #bc584b;"></div>
+                <div class="color-info">LAB: L=127.2, a=167.1, b=155.8</div>
+                <div class="color-info">RGB: (188, 88, 75)</div>
+                <div class="color-info">HEX: #bc584b</div>
+                <div class="color-desc">밝은 빨강+노랑</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #cb9f8e;"></div>
+                <div class="color-info">LAB: L=176.1, a=142.6, b=143.4</div>
+                <div class="color-info">RGB: (203, 159, 142)</div>
+                <div class="color-info">HEX: #cb9f8e</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b27d69;"></div>
+                <div class="color-info">LAB: L=146.1, a=146.1, b=147.9</div>
+                <div class="color-info">RGB: (178, 125, 105)</div>
+                <div class="color-info">HEX: #b27d69</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">10. 18.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #9d594f;"></div>
+                <div class="color-info">LAB: L=116.7, a=155.3, b=146.9</div>
+                <div class="color-info">RGB: (157, 89, 79)</div>
+                <div class="color-info">HEX: #9d594f</div>
+                <div class="color-desc">중간 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #b69885;"></div>
+                <div class="color-info">LAB: L=166.4, a=136.4, b=142.6</div>
+                <div class="color-info">RGB: (182, 152, 133)</div>
+                <div class="color-info">HEX: #b69885</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #a38672;"></div>
+                <div class="color-info">LAB: L=149.0, a=136.1, b=143.3</div>
+                <div class="color-info">RGB: (163, 134, 114)</div>
+                <div class="color-info">HEX: #a38672</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">11. 19.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #965b51;"></div>
+                <div class="color-info">LAB: L=115.2, a=151.5, b=144.6</div>
+                <div class="color-info">RGB: (150, 91, 81)</div>
+                <div class="color-info">HEX: #965b51</div>
+                <div class="color-desc">중간 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #b78d78;"></div>
+                <div class="color-info">LAB: L=158.0, a=141.9, b=145.8</div>
+                <div class="color-info">RGB: (183, 141, 120)</div>
+                <div class="color-info">HEX: #b78d78</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #a27a66;"></div>
+                <div class="color-info">LAB: L=139.9, a=141.2, b=145.7</div>
+                <div class="color-info">RGB: (162, 122, 102)</div>
+                <div class="color-info">HEX: #a27a66</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">12. 2.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #c8766d;"></div>
+                <div class="color-info">LAB: L=149.6, a=159.8, b=147.3</div>
+                <div class="color-info">RGB: (200, 118, 109)</div>
+                <div class="color-info">HEX: #c8766d</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #dbae9c;"></div>
+                <div class="color-info">LAB: L=190.2, a=142.9, b=143.3</div>
+                <div class="color-info">RGB: (219, 174, 156)</div>
+                <div class="color-info">HEX: #dbae9c</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #ac8073;"></div>
+                <div class="color-info">LAB: L=147.0, a=143.6, b=142.2</div>
+                <div class="color-info">RGB: (172, 128, 115)</div>
+                <div class="color-info">HEX: #ac8073</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">13. 20.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #a66f6a;"></div>
+                <div class="color-info">LAB: L=134.1, a=149.4, b=140.6</div>
+                <div class="color-info">RGB: (166, 111, 106)</div>
+                <div class="color-info">HEX: #a66f6a</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #ceb6aa;"></div>
+                <div class="color-info">LAB: L=193.2, a=135.4, b=137.2</div>
+                <div class="color-info">RGB: (206, 182, 170)</div>
+                <div class="color-info">HEX: #ceb6aa</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #a98e86;"></div>
+                <div class="color-info">LAB: L=156.4, a=137.8, b=136.8</div>
+                <div class="color-info">RGB: (169, 142, 134)</div>
+                <div class="color-info">HEX: #a98e86</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">14. 21.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #c06762;"></div>
+                <div class="color-info">LAB: L=137.7, a=163.5, b=147.6</div>
+                <div class="color-info">RGB: (192, 103, 98)</div>
+                <div class="color-info">HEX: #c06762</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #ddb9ad;"></div>
+                <div class="color-info">LAB: L=199.9, a=139.1, b=139.8</div>
+                <div class="color-info">RGB: (221, 185, 173)</div>
+                <div class="color-info">HEX: #ddb9ad</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #d0ae9e;"></div>
+                <div class="color-info">LAB: L=188.5, a=138.6, b=141.6</div>
+                <div class="color-info">RGB: (208, 174, 158)</div>
+                <div class="color-info">HEX: #d0ae9e</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">15. 22.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #ac5b52;"></div>
+                <div class="color-info">LAB: L=123.2, a=160.1, b=148.5</div>
+                <div class="color-info">RGB: (172, 91, 82)</div>
+                <div class="color-info">HEX: #ac5b52</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #be9a89;"></div>
+                <div class="color-info">LAB: L=169.6, a=139.5, b=142.9</div>
+                <div class="color-info">RGB: (190, 154, 137)</div>
+                <div class="color-info">HEX: #be9a89</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #af8875;"></div>
+                <div class="color-info">LAB: L=153.2, a=140.5, b=144.8</div>
+                <div class="color-info">RGB: (175, 136, 117)</div>
+                <div class="color-info">HEX: #af8875</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">16. 23.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #dc7864;"></div>
+                <div class="color-info">LAB: L=156.1, a=165.5, b=156.7</div>
+                <div class="color-info">RGB: (220, 120, 100)</div>
+                <div class="color-info">HEX: #dc7864</div>
+                <div class="color-desc">밝은 빨강+노랑</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #ddb4a0;"></div>
+                <div class="color-info">LAB: L=195.5, a=140.7, b=144.5</div>
+                <div class="color-info">RGB: (221, 180, 160)</div>
+                <div class="color-info">HEX: #ddb4a0</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #ba8b78;"></div>
+                <div class="color-info">LAB: L=158.4, a=143.7, b=145.6</div>
+                <div class="color-info">RGB: (186, 139, 120)</div>
+                <div class="color-info">HEX: #ba8b78</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">17. 24.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #bc6e66;"></div>
+                <div class="color-info">LAB: L=140.1, a=158.3, b=146.5</div>
+                <div class="color-info">RGB: (188, 110, 102)</div>
+                <div class="color-info">HEX: #bc6e66</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #dcbeb4;"></div>
+                <div class="color-info">LAB: L=202.6, a=137.1, b=137.6</div>
+                <div class="color-info">RGB: (220, 190, 180)</div>
+                <div class="color-info">HEX: #dcbeb4</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b48e86;"></div>
+                <div class="color-info">LAB: L=159.7, a=141.3, b=138.5</div>
+                <div class="color-info">RGB: (180, 142, 134)</div>
+                <div class="color-info">HEX: #b48e86</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">18. 25.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b86c6b;"></div>
+                <div class="color-info">LAB: L=138.1, a=158.2, b=143.0</div>
+                <div class="color-info">RGB: (184, 108, 107)</div>
+                <div class="color-info">HEX: #b86c6b</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #bf8b76;"></div>
+                <div class="color-info">LAB: L=159.5, a=145.3, b=147.5</div>
+                <div class="color-info">RGB: (191, 139, 118)</div>
+                <div class="color-info">HEX: #bf8b76</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #7f5b4e;"></div>
+                <div class="color-info">LAB: L=107.3, a=141.9, b=141.7</div>
+                <div class="color-info">RGB: (127, 91, 78)</div>
+                <div class="color-info">HEX: #7f5b4e</div>
+                <div class="color-desc">중간 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">19. 26.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #a23836;"></div>
+                <div class="color-info">LAB: L=100.6, a=172.2, b=153.2</div>
+                <div class="color-info">RGB: (162, 56, 54)</div>
+                <div class="color-info">HEX: #a23836</div>
+                <div class="color-desc">중간 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #d5a593;"></div>
+                <div class="color-info">LAB: L=183.7, a=143.4, b=144.9</div>
+                <div class="color-info">RGB: (213, 165, 147)</div>
+                <div class="color-info">HEX: #d5a593</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #c99784;"></div>
+                <div class="color-info">LAB: L=170.6, a=144.1, b=145.0</div>
+                <div class="color-info">RGB: (201, 151, 132)</div>
+                <div class="color-info">HEX: #c99784</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">20. 27.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #a76767;"></div>
+                <div class="color-info">LAB: L=129.0, a=154.9, b=139.7</div>
+                <div class="color-info">RGB: (167, 103, 103)</div>
+                <div class="color-info">HEX: #a76767</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #d2ada3;"></div>
+                <div class="color-info">LAB: L=188.6, a=140.7, b=138.6</div>
+                <div class="color-info">RGB: (210, 173, 163)</div>
+                <div class="color-info">HEX: #d2ada3</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b6968f;"></div>
+                <div class="color-info">LAB: L=165.8, a=139.7, b=136.6</div>
+                <div class="color-info">RGB: (182, 150, 143)</div>
+                <div class="color-info">HEX: #b6968f</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">21. 28.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #dd9485;"></div>
+                <div class="color-info">LAB: L=174.4, a=154.8, b=147.1</div>
+                <div class="color-info">RGB: (221, 148, 133)</div>
+                <div class="color-info">HEX: #dd9485</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #d7a592;"></div>
+                <div class="color-info">LAB: L=183.6, a=144.9, b=145.6</div>
+                <div class="color-info">RGB: (215, 165, 146)</div>
+                <div class="color-info">HEX: #d7a592</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #ca9d87;"></div>
+                <div class="color-info">LAB: L=174.4, a=142.9, b=146.3</div>
+                <div class="color-info">RGB: (202, 157, 135)</div>
+                <div class="color-info">HEX: #ca9d87</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">22. 29.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b7645d;"></div>
+                <div class="color-info">LAB: L=132.2, a=161.4, b=147.4</div>
+                <div class="color-info">RGB: (183, 100, 93)</div>
+                <div class="color-info">HEX: #b7645d</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #d2aa97;"></div>
+                <div class="color-info">LAB: L=185.1, a=140.7, b=143.3</div>
+                <div class="color-info">RGB: (210, 170, 151)</div>
+                <div class="color-info">HEX: #d2aa97</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #c39c8c;"></div>
+                <div class="color-info">LAB: L=172.3, a=140.4, b=142.3</div>
+                <div class="color-info">RGB: (195, 156, 140)</div>
+                <div class="color-info">HEX: #c39c8c</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">23. 3.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #c48285;"></div>
+                <div class="color-info">LAB: L=156.5, a=154.0, b=137.0</div>
+                <div class="color-info">RGB: (196, 130, 133)</div>
+                <div class="color-info">HEX: #c48285</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #debebc;"></div>
+                <div class="color-info">LAB: L=203.3, a=139.1, b=133.5</div>
+                <div class="color-info">RGB: (222, 190, 188)</div>
+                <div class="color-info">HEX: #debebc</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #c0a09d;"></div>
+                <div class="color-info">LAB: L=175.4, a=139.3, b=134.7</div>
+                <div class="color-info">RGB: (192, 160, 157)</div>
+                <div class="color-info">HEX: #c0a09d</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">24. 30.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #a25246;"></div>
+                <div class="color-info">LAB: L=113.0, a=160.3, b=150.9</div>
+                <div class="color-info">RGB: (162, 82, 70)</div>
+                <div class="color-info">HEX: #a25246</div>
+                <div class="color-desc">중간 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #b5836a;"></div>
+                <div class="color-info">LAB: L=151.8, a=144.4, b=150.0</div>
+                <div class="color-info">RGB: (181, 131, 106)</div>
+                <div class="color-info">HEX: #b5836a</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #a87c63;"></div>
+                <div class="color-info">LAB: L=142.3, a=142.8, b=148.8</div>
+                <div class="color-info">RGB: (168, 124, 99)</div>
+                <div class="color-info">HEX: #a87c63</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">25. 31.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b86f70;"></div>
+                <div class="color-info">LAB: L=140.6, a=157.7, b=140.5</div>
+                <div class="color-info">RGB: (184, 111, 112)</div>
+                <div class="color-info">HEX: #b86f70</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #cda7a2;"></div>
+                <div class="color-info">LAB: L=183.8, a=141.0, b=137.0</div>
+                <div class="color-info">RGB: (205, 167, 162)</div>
+                <div class="color-info">HEX: #cda7a2</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #c39a92;"></div>
+                <div class="color-info">LAB: L=171.4, a=142.5, b=138.5</div>
+                <div class="color-info">RGB: (195, 154, 146)</div>
+                <div class="color-info">HEX: #c39a92</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">26. 32.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b25c5e;"></div>
+                <div class="color-info">LAB: L=126.3, a=163.1, b=143.5</div>
+                <div class="color-info">RGB: (178, 92, 94)</div>
+                <div class="color-info">HEX: #b25c5e</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #d8afa3;"></div>
+                <div class="color-info">LAB: L=192.0, a=141.4, b=140.0</div>
+                <div class="color-info">RGB: (216, 175, 163)</div>
+                <div class="color-info">HEX: #d8afa3</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b3887b;"></div>
+                <div class="color-info">LAB: L=154.3, a=143.8, b=141.7</div>
+                <div class="color-info">RGB: (179, 136, 123)</div>
+                <div class="color-info">HEX: #b3887b</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">27. 33.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b2635c;"></div>
+                <div class="color-info">LAB: L=130.5, a=159.8, b=146.2</div>
+                <div class="color-info">RGB: (178, 99, 92)</div>
+                <div class="color-info">HEX: #b2635c</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #dfaf9d;"></div>
+                <div class="color-info">LAB: L=193.0, a=143.1, b=144.4</div>
+                <div class="color-info">RGB: (223, 175, 157)</div>
+                <div class="color-info">HEX: #dfaf9d</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b18a7c;"></div>
+                <div class="color-info">LAB: L=155.5, a=141.9, b=141.0</div>
+                <div class="color-info">RGB: (177, 138, 124)</div>
+                <div class="color-info">HEX: #b18a7c</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">28. 34.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #be534e;"></div>
+                <div class="color-info">LAB: L=125.7, a=171.8, b=152.0</div>
+                <div class="color-info">RGB: (190, 83, 78)</div>
+                <div class="color-info">HEX: #be534e</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #dea594;"></div>
+                <div class="color-info">LAB: L=185.4, a=147.2, b=145.6</div>
+                <div class="color-info">RGB: (222, 165, 148)</div>
+                <div class="color-info">HEX: #dea594</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #bc8676;"></div>
+                <div class="color-info">LAB: L=155.5, a=147.4, b=145.8</div>
+                <div class="color-info">RGB: (188, 134, 118)</div>
+                <div class="color-info">HEX: #bc8676</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">29. 35.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b75975;"></div>
+                <div class="color-info">LAB: L=128.8, a=169.1, b=130.7</div>
+                <div class="color-info">RGB: (183, 89, 117)</div>
+                <div class="color-info">HEX: #b75975</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #d7b3a7;"></div>
+                <div class="color-info">LAB: L=193.6, a=139.4, b=139.4</div>
+                <div class="color-info">RGB: (215, 179, 167)</div>
+                <div class="color-info">HEX: #d7b3a7</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #ceac9e;"></div>
+                <div class="color-info">LAB: L=186.4, a=138.6, b=140.0</div>
+                <div class="color-info">RGB: (206, 172, 158)</div>
+                <div class="color-info">HEX: #ceac9e</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">30. 36.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b75756;"></div>
+                <div class="color-info">LAB: L=125.3, a=167.2, b=147.3</div>
+                <div class="color-info">RGB: (183, 87, 86)</div>
+                <div class="color-info">HEX: #b75756</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #d8b7a4;"></div>
+                <div class="color-info">LAB: L=196.9, a=137.1, b=142.0</div>
+                <div class="color-info">RGB: (216, 183, 164)</div>
+                <div class="color-info">HEX: #d8b7a4</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #bfa08f;"></div>
+                <div class="color-info">LAB: L=175.0, a=137.2, b=141.6</div>
+                <div class="color-info">RGB: (191, 160, 143)</div>
+                <div class="color-info">HEX: #bfa08f</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">31. 37.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #a15352;"></div>
+                <div class="color-info">LAB: L=114.8, a=160.5, b=143.2</div>
+                <div class="color-info">RGB: (161, 83, 82)</div>
+                <div class="color-info">HEX: #a15352</div>
+                <div class="color-desc">중간 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #c8998f;"></div>
+                <div class="color-info">LAB: L=172.4, a=144.2, b=141.0</div>
+                <div class="color-info">RGB: (200, 153, 143)</div>
+                <div class="color-info">HEX: #c8998f</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #a1786c;"></div>
+                <div class="color-info">LAB: L=138.4, a=142.3, b=141.9</div>
+                <div class="color-info">RGB: (161, 120, 108)</div>
+                <div class="color-info">HEX: #a1786c</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">32. 38.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #9a584d;"></div>
+                <div class="color-info">LAB: L=114.2, a=154.8, b=146.6</div>
+                <div class="color-info">RGB: (154, 88, 77)</div>
+                <div class="color-info">HEX: #9a584d</div>
+                <div class="color-desc">중간 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #b79285;"></div>
+                <div class="color-info">LAB: L=162.5, a=140.9, b=140.8</div>
+                <div class="color-info">RGB: (183, 146, 133)</div>
+                <div class="color-info">HEX: #b79285</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #956b5d;"></div>
+                <div class="color-info">LAB: L=125.8, a=143.6, b=142.1</div>
+                <div class="color-info">RGB: (149, 107, 93)</div>
+                <div class="color-info">HEX: #956b5d</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">33. 39.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #eebfc6;"></div>
+                <div class="color-info">LAB: L=208.5, a=146.3, b=131.4</div>
+                <div class="color-info">RGB: (238, 191, 198)</div>
+                <div class="color-info">HEX: #eebfc6</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #e9dbd4;"></div>
+                <div class="color-info">LAB: L=225.7, a=132.8, b=133.2</div>
+                <div class="color-info">RGB: (233, 219, 212)</div>
+                <div class="color-info">HEX: #e9dbd4</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #dbc5c1;"></div>
+                <div class="color-info">LAB: L=207.8, a=135.9, b=133.7</div>
+                <div class="color-info">RGB: (219, 197, 193)</div>
+                <div class="color-info">HEX: #dbc5c1</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">34. 4.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #cd7567;"></div>
+                <div class="color-info">LAB: L=150.4, a=161.5, b=151.3</div>
+                <div class="color-info">RGB: (205, 117, 103)</div>
+                <div class="color-info">HEX: #cd7567</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #dab5a5;"></div>
+                <div class="color-info">LAB: L=195.0, a=139.7, b=141.6</div>
+                <div class="color-info">RGB: (218, 181, 165)</div>
+                <div class="color-info">HEX: #dab5a5</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #c69a87;"></div>
+                <div class="color-info">LAB: L=171.0, a=142.7, b=144.9</div>
+                <div class="color-info">RGB: (198, 154, 135)</div>
+                <div class="color-info">HEX: #c69a87</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">35. 40.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b36d8c;"></div>
+                <div class="color-info">LAB: L=139.2, a=160.6, b=123.7</div>
+                <div class="color-info">RGB: (179, 109, 140)</div>
+                <div class="color-info">HEX: #b36d8c</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #c5b8bf;"></div>
+                <div class="color-info">LAB: L=194.9, a=134.3, b=126.8</div>
+                <div class="color-info">RGB: (197, 184, 191)</div>
+                <div class="color-info">HEX: #c5b8bf</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #92828c;"></div>
+                <div class="color-info">LAB: L=143.4, a=136.9, b=125.6</div>
+                <div class="color-info">RGB: (146, 130, 140)</div>
+                <div class="color-info">HEX: #92828c</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">36. 41.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #a75654;"></div>
+                <div class="color-info">LAB: L=118.2, a=161.0, b=144.6</div>
+                <div class="color-info">RGB: (167, 86, 84)</div>
+                <div class="color-info">HEX: #a75654</div>
+                <div class="color-desc">중간 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #be8b79;"></div>
+                <div class="color-info">LAB: L=159.9, a=145.1, b=145.6</div>
+                <div class="color-info">RGB: (190, 139, 121)</div>
+                <div class="color-info">HEX: #be8b79</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b68674;"></div>
+                <div class="color-info">LAB: L=153.9, a=144.1, b=145.4</div>
+                <div class="color-info">RGB: (182, 134, 116)</div>
+                <div class="color-info">HEX: #b68674</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">37. 42.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #9c464a;"></div>
+                <div class="color-info">LAB: L=105.0, a=164.7, b=143.9</div>
+                <div class="color-info">RGB: (156, 70, 74)</div>
+                <div class="color-info">HEX: #9c464a</div>
+                <div class="color-desc">중간 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #bd9289;"></div>
+                <div class="color-info">LAB: L=164.6, a=143.4, b=139.5</div>
+                <div class="color-info">RGB: (189, 146, 137)</div>
+                <div class="color-info">HEX: #bd9289</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #a27a6f;"></div>
+                <div class="color-info">LAB: L=140.4, a=142.1, b=140.5</div>
+                <div class="color-info">RGB: (162, 122, 111)</div>
+                <div class="color-info">HEX: #a27a6f</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">38. 43.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #914d41;"></div>
+                <div class="color-info">LAB: L=104.0, a=155.3, b=148.3</div>
+                <div class="color-info">RGB: (145, 77, 65)</div>
+                <div class="color-info">HEX: #914d41</div>
+                <div class="color-desc">중간 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #caa08f;"></div>
+                <div class="color-info">LAB: L=177.3, a=141.7, b=143.5</div>
+                <div class="color-info">RGB: (202, 160, 143)</div>
+                <div class="color-info">HEX: #caa08f</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b28473;"></div>
+                <div class="color-info">LAB: L=151.8, a=143.1, b=144.9</div>
+                <div class="color-info">RGB: (178, 132, 115)</div>
+                <div class="color-info">HEX: #b28473</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">39. 44.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #a6575c;"></div>
+                <div class="color-info">LAB: L=119.5, a=161.4, b=140.3</div>
+                <div class="color-info">RGB: (166, 87, 92)</div>
+                <div class="color-info">HEX: #a6575c</div>
+                <div class="color-desc">중간 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #c49e97;"></div>
+                <div class="color-info">LAB: L=174.6, a=141.2, b=137.7</div>
+                <div class="color-info">RGB: (196, 158, 151)</div>
+                <div class="color-info">HEX: #c49e97</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b58c83;"></div>
+                <div class="color-info">LAB: L=158.8, a=142.9, b=139.4</div>
+                <div class="color-info">RGB: (181, 140, 131)</div>
+                <div class="color-info">HEX: #b58c83</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">40. 45.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #8c4e48;"></div>
+                <div class="color-info">LAB: L=103.4, a=153.1, b=143.1</div>
+                <div class="color-info">RGB: (140, 78, 72)</div>
+                <div class="color-info">HEX: #8c4e48</div>
+                <div class="color-desc">중간 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #ad8f86;"></div>
+                <div class="color-info">LAB: L=158.0, a=138.1, b=137.0</div>
+                <div class="color-info">RGB: (173, 143, 134)</div>
+                <div class="color-info">HEX: #ad8f86</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #9b7e75;"></div>
+                <div class="color-info">LAB: L=141.4, a=138.7, b=137.8</div>
+                <div class="color-info">RGB: (155, 126, 117)</div>
+                <div class="color-info">HEX: #9b7e75</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">41. 46.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #c07567;"></div>
+                <div class="color-info">LAB: L=145.8, a=156.4, b=148.5</div>
+                <div class="color-info">RGB: (192, 117, 103)</div>
+                <div class="color-info">HEX: #c07567</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #d6aa95;"></div>
+                <div class="color-info">LAB: L=186.1, a=141.6, b=145.4</div>
+                <div class="color-info">RGB: (214, 170, 149)</div>
+                <div class="color-info">HEX: #d6aa95</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #b4826f;"></div>
+                <div class="color-info">LAB: L=150.6, a=145.1, b=146.9</div>
+                <div class="color-info">RGB: (180, 130, 111)</div>
+                <div class="color-info">HEX: #b4826f</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">42. 47.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #995e57;"></div>
+                <div class="color-info">LAB: L=118.3, a=151.2, b=142.8</div>
+                <div class="color-info">RGB: (153, 94, 87)</div>
+                <div class="color-info">HEX: #995e57</div>
+                <div class="color-desc">중간 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #d0b39b;"></div>
+                <div class="color-info">LAB: L=191.8, a=136.0, b=144.2</div>
+                <div class="color-info">RGB: (208, 179, 155)</div>
+                <div class="color-info">HEX: #d0b39b</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #a98e77;"></div>
+                <div class="color-info">LAB: L=155.8, a=135.9, b=144.1</div>
+                <div class="color-info">RGB: (169, 142, 119)</div>
+                <div class="color-info">HEX: #a98e77</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">43. 48.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #874a49;"></div>
+                <div class="color-info">LAB: L=99.5, a=154.6, b=140.8</div>
+                <div class="color-info">RGB: (135, 74, 73)</div>
+                <div class="color-info">HEX: #874a49</div>
+                <div class="color-desc">중간 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #ac8a7f;"></div>
+                <div class="color-info">LAB: L=154.6, a=139.8, b=139.7</div>
+                <div class="color-info">RGB: (172, 138, 127)</div>
+                <div class="color-info">HEX: #ac8a7f</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #98766b;"></div>
+                <div class="color-info">LAB: L=134.8, a=140.1, b=139.8</div>
+                <div class="color-info">RGB: (152, 118, 107)</div>
+                <div class="color-info">HEX: #98766b</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">44. 49.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #c36d6d;"></div>
+                <div class="color-info">LAB: L=142.2, a=162.0, b=143.3</div>
+                <div class="color-info">RGB: (195, 109, 109)</div>
+                <div class="color-info">HEX: #c36d6d</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #c09d8f;"></div>
+                <div class="color-info">LAB: L=172.6, a=139.1, b=140.4</div>
+                <div class="color-info">RGB: (192, 157, 143)</div>
+                <div class="color-info">HEX: #c09d8f</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #c7a394;"></div>
+                <div class="color-info">LAB: L=178.8, a=139.9, b=141.3</div>
+                <div class="color-info">RGB: (199, 163, 148)</div>
+                <div class="color-info">HEX: #c7a394</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">45. 5.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #c97c85;"></div>
+                <div class="color-info">LAB: L=154.8, a=159.6, b=136.9</div>
+                <div class="color-info">RGB: (201, 124, 133)</div>
+                <div class="color-info">HEX: #c97c85</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #dfc4bf;"></div>
+                <div class="color-info">LAB: L=207.6, a=137.4, b=134.6</div>
+                <div class="color-info">RGB: (223, 196, 191)</div>
+                <div class="color-info">HEX: #dfc4bf</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #c4a1a3;"></div>
+                <div class="color-info">LAB: L=177.8, a=141.1, b=132.7</div>
+                <div class="color-info">RGB: (196, 161, 163)</div>
+                <div class="color-info">HEX: #c4a1a3</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">46. 50.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #906473;"></div>
+                <div class="color-info">LAB: L=121.4, a=149.0, b=128.0</div>
+                <div class="color-info">RGB: (144, 100, 115)</div>
+                <div class="color-info">HEX: #906473</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #a6979b;"></div>
+                <div class="color-info">LAB: L=163.1, a=134.3, b=129.0</div>
+                <div class="color-info">RGB: (166, 151, 155)</div>
+                <div class="color-info">HEX: #a6979b</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #877d7e;"></div>
+                <div class="color-info">LAB: L=136.1, a=132.1, b=130.0</div>
+                <div class="color-info">RGB: (135, 125, 126)</div>
+                <div class="color-info">HEX: #877d7e</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">47. 51.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #ae6764;"></div>
+                <div class="color-info">LAB: L=131.3, a=156.9, b=142.8</div>
+                <div class="color-info">RGB: (174, 103, 100)</div>
+                <div class="color-info">HEX: #ae6764</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #bf9789;"></div>
+                <div class="color-info">LAB: L=168.2, a=141.1, b=142.0</div>
+                <div class="color-info">RGB: (191, 151, 137)</div>
+                <div class="color-info">HEX: #bf9789</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #92735d;"></div>
+                <div class="color-info">LAB: L=130.6, a=137.1, b=145.5</div>
+                <div class="color-info">RGB: (146, 115, 93)</div>
+                <div class="color-info">HEX: #92735d</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">48. 52.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #da8d78;"></div>
+                <div class="color-info">LAB: L=168.1, a=156.0, b=151.4</div>
+                <div class="color-info">RGB: (218, 141, 120)</div>
+                <div class="color-info">HEX: #da8d78</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #cea789;"></div>
+                <div class="color-info">LAB: L=182.4, a=138.6, b=149.2</div>
+                <div class="color-info">RGB: (206, 167, 137)</div>
+                <div class="color-info">HEX: #cea789</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #a78971;"></div>
+                <div class="color-info">LAB: L=151.8, a=136.7, b=145.1</div>
+                <div class="color-info">RGB: (167, 137, 113)</div>
+                <div class="color-info">HEX: #a78971</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">49. 53.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #8e5257;"></div>
+                <div class="color-info">LAB: L=107.7, a=154.3, b=136.1</div>
+                <div class="color-info">RGB: (142, 82, 87)</div>
+                <div class="color-info">HEX: #8e5257</div>
+                <div class="color-desc">중간 중성</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #c6a9a7;"></div>
+                <div class="color-info">LAB: L=183.7, a=138.7, b=133.8</div>
+                <div class="color-info">RGB: (198, 169, 167)</div>
+                <div class="color-info">HEX: #c6a9a7</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #9d807c;"></div>
+                <div class="color-info">LAB: L=143.5, a=140.0, b=134.4</div>
+                <div class="color-info">RGB: (157, 128, 124)</div>
+                <div class="color-info">HEX: #9d807c</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">50. 54.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #a95352;"></div>
+                <div class="color-info">LAB: L=117.5, a=163.4, b=145.4</div>
+                <div class="color-info">RGB: (169, 83, 82)</div>
+                <div class="color-info">HEX: #a95352</div>
+                <div class="color-desc">중간 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #dbb0a0;"></div>
+                <div class="color-info">LAB: L=193.0, a=141.9, b=142.1</div>
+                <div class="color-info">RGB: (219, 176, 160)</div>
+                <div class="color-info">HEX: #dbb0a0</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #d6a998;"></div>
+                <div class="color-info">LAB: L=186.4, a=142.9, b=143.5</div>
+                <div class="color-info">RGB: (214, 169, 152)</div>
+                <div class="color-info">HEX: #d6a998</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">51. 6.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #d08689;"></div>
+                <div class="color-info">LAB: L=162.9, a=157.5, b=138.8</div>
+                <div class="color-info">RGB: (208, 134, 137)</div>
+                <div class="color-info">HEX: #d08689</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #e2bfb6;"></div>
+                <div class="color-info">LAB: L=204.9, a=139.4, b=137.1</div>
+                <div class="color-info">RGB: (226, 191, 182)</div>
+                <div class="color-info">HEX: #e2bfb6</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #d3b1a8;"></div>
+                <div class="color-info">LAB: L=191.0, a=139.4, b=137.3</div>
+                <div class="color-info">RGB: (211, 177, 168)</div>
+                <div class="color-info">HEX: #d3b1a8</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">52. 7.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #b96e6f;"></div>
+                <div class="color-info">LAB: L=139.8, a=158.5, b=140.5</div>
+                <div class="color-info">RGB: (185, 110, 111)</div>
+                <div class="color-info">HEX: #b96e6f</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #d8b8a9;"></div>
+                <div class="color-info">LAB: L=197.3, a=137.5, b=140.4</div>
+                <div class="color-info">RGB: (216, 184, 169)</div>
+                <div class="color-info">HEX: #d8b8a9</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #ad988c;"></div>
+                <div class="color-info">LAB: L=164.3, a=135.0, b=137.2</div>
+                <div class="color-info">RGB: (173, 152, 140)</div>
+                <div class="color-info">HEX: #ad988c</div>
+                <div class="color-desc">밝은 무채색</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">53. 8.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #a25546;"></div>
+                <div class="color-info">LAB: L=115.9, a=158.7, b=151.9</div>
+                <div class="color-info">RGB: (162, 85, 70)</div>
+                <div class="color-info">HEX: #a25546</div>
+                <div class="color-desc">중간 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #cda68e;"></div>
+                <div class="color-info">LAB: L=181.5, a=139.8, b=146.1</div>
+                <div class="color-info">RGB: (205, 166, 142)</div>
+                <div class="color-info">HEX: #cda68e</div>
+                <div class="color-desc">매우 밝은 중성</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #ac816e;"></div>
+                <div class="color-info">LAB: L=147.8, a=142.3, b=145.6</div>
+                <div class="color-info">RGB: (172, 129, 110)</div>
+                <div class="color-info">HEX: #ac816e</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="image-section">
+        <div class="image-title">54. 9.jpg</div>
+        <div class="regions">
+
+            <div class="region-card lips">
+                <div class="region-name">립 (Lips)</div>
+                <div class="color-swatch" style="background-color: #d06c69;"></div>
+                <div class="color-info">LAB: L=146.1, a=167.8, b=148.6</div>
+                <div class="color-info">RGB: (208, 108, 105)</div>
+                <div class="color-info">HEX: #d06c69</div>
+                <div class="color-desc">밝은 빨강</div>
+            </div>
+
+            <div class="region-card cheeks">
+                <div class="region-name">치크 (Cheeks)</div>
+                <div class="color-swatch" style="background-color: #d1a99e;"></div>
+                <div class="color-info">LAB: L=185.2, a=141.2, b=139.2</div>
+                <div class="color-info">RGB: (209, 169, 158)</div>
+                <div class="color-info">HEX: #d1a99e</div>
+                <div class="color-desc">매우 밝은 무채색</div>
+            </div>
+
+            <div class="region-card eyeshadow">
+                <div class="region-name">아이섀도우 (Eyeshadow)</div>
+                <div class="color-swatch" style="background-color: #c89b8f;"></div>
+                <div class="color-info">LAB: L=173.2, a=143.7, b=141.2</div>
+                <div class="color-info">RGB: (200, 155, 143)</div>
+                <div class="color-info">HEX: #c89b8f</div>
+                <div class="color-desc">밝은 중성</div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
