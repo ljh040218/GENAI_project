@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const pool = require("./config/database");
+const productRoutes = require('./routes/products');
 
 // 라우트 require
 const authRoutes = require("./routes/auth");
@@ -12,6 +13,7 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/api/products', productRoutes);
 
 app.use(
   cors({
