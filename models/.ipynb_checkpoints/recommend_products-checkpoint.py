@@ -196,60 +196,7 @@ def extract_face_labs(image_path: str):
             if valid_mask.sum() < 50:
                 sat_threshold = np.percentile(S_values, 65)
                 valid_mask = (S_values >= sat_threshold) & (V_values >= val_min)
-            Your user’s .npmrc file (${HOME}/.npmrc)
-has a `globalconfig` and/or a `prefix` setting, which are incompatible with nvm.
-Run `nvm use --delete-prefix v24.11.0 --silent` to unset it.
-(base) jeongmin@mobility422:~/genai$ git add .
-(base) jeongmin@mobility422:~/genai$ git commit -m "happy"
-[back_ai 28eceb5] happy
- 17 files changed, 12146 insertions(+), 2997 deletions(-)
- rewrite data/.ipynb_checkpoints/extract_swatch_colors-checkpoint.py (65%)
- rewrite data/extract_swatch_colors.py (65%)
- create mode 100644 data/generate_cheek_html.py
- create mode 100644 data/generate_product_html.py
- create mode 100644 data/product/cheek_color_palette.html
- create mode 100644 data/product/eye_color_palette.html
- create mode 100644 data/product/lip_color_palette.html
- create mode 100644 models/.ipynb_checkpoints/recommend_products-checkpoint.py
- delete mode 100644 models/llama_generator.py
- delete mode 100644 models/lora_trainer.py
- create mode 100644 models/recommend_products.py
- delete mode 100644 models/vision_encoder.py
-(base) jeongmin@mobility422:~/genai$ git push origin back_ai
-오브젝트 나열하는 중: 31, 완료.
-오브젝트 개수 세는 중: 100% (31/31), 완료.
-Delta compression using up to 32 threads
-오브젝트 압축하는 중: 100% (20/20), 완료.
-오브젝트 쓰는 중: 100% (20/20), 52.45 KiB | 3.28 MiB/s, 완료.
-Total 20 (delta 12), reused 0 (delta 0), pack-reused 0
-remote: Resolving deltas: 100% (12/12), completed with 8 local objects.
-remote: error: GH013: Repository rule violations found for refs/heads/back_ai.
-remote: 
-remote: - GITHUB PUSH PROTECTION
-remote:   —————————————————————————————————————————
-remote:     Resolve the following violations before pushing again
-remote: 
-remote:     - Push cannot contain secrets
-remote: 
-remote:     
-remote:      (?) Learn how to resolve a blocked push
-remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
-remote:     
-remote:     
-remote:       —— Groq API Key ——————————————————————————————————————
-remote:        locations:
-remote:          - commit: 28eceb5ea9f479d56dcaec2ae39abdeb34eacfcb
-remote:            path: models/recommend_products.py:246
-remote:     
-remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
-remote:        https://github.com/ljh040218/GENAI_project/security/secret-scanning/unblock-secret/35b8I7ncDRyOGv3wvCh3a0upwts
-remote:     
-remote: 
-remote: 
-To https://github.com/ljh040218/GENAI_project.git
- ! [remote rejected] back_ai -> back_ai (push declined due to repository rule violations)
-error: 레퍼런스를 'https://github.com/ljh040218/GENAI_project.git'에 푸시하는데 실패했습니다
-
+                
             if valid_mask.sum() < 20:
                 sat_threshold = np.percentile(S_values, 55)
                 valid_mask = S_values >= sat_threshold
