@@ -3,6 +3,9 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const pool = require("./config/database");
 const authRoutes = require("./routes/auth");
+const beautyProfileRoutes = require('./src/routes/beautyProfile');
+
+app.use('/api/profile', beautyProfileRoutes);
 
 dotenv.config();
 const app = express();
