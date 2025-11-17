@@ -1,30 +1,28 @@
+import csv
 import cv2
 import numpy as np
+import os
 import requests
 from io import BytesIO
 from PIL import Image
-import sqlite3
-from typing import Dict, Optional, Tuple
+from pathlib import Path
 import time
 
-class SwatchColorExtractor:
-    def __init__(self, db_path: str = "/home/jeongmin/genai/data/db/products.db"):
-        self.db_path = db_path
-        self.conn = None
+BASE_DIR = "/home/jeongmin/genai/data/product"
+CATEGORIES = {
+    'lip': 'lip.csv',
+    'eye': 'eye.csv',
+    'cheek': 'cheek.csv'
+}
+
+class ColorExtractor:
+    def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
     
-    def connect_db(self):
-        self.conn = sqlite3.connect(self.db_path)
-        self.conn.row_factory = sqlite3.Row
-    
-    def close_db(self):
-        if self.conn:
-            self.conn.close()
-    
-    def download_image(self, url: str, timeout: int = 10) -> Optional[np.ndarray]:
+    def download_image(self, url, timeout=10):
         try:
             response = self.session.get(url, timeout=timeout)
             response.raise_for_status()
@@ -35,14 +33,12 @@ class SwatchColorExtractor:
             img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
             
             return img_bgr
-        
         except Exception as e:
-            print(f"  이미지 다운로드 실패: {e}")
+            print(f"    이미지 다운로드 실패: {e}")
             return None
     
-    def extract_center_region(self, image: np.ndarray, center_ratio: float = 0.4) -> np.ndarray:
+    def extract_center_region(self, image, center_ratio=0.4):
         h, w = image.shape[:2]
-        
         center_h = int(h * center_ratio)
         center_w = int(w * center_ratio)
         
@@ -53,21 +49,7 @@ class SwatchColorExtractor:
         
         return image[y1:y2, x1:x2]
     
-    def extract_dominant_color_kmeans(self, image: np.ndarray, k: int = 3) -> Tuple[float, float, float]:
-        pixels = image.reshape(-1, 3).astype(np.float32)
-        
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.2)
-        _, labels, centers = cv2.kmeans(pixels, k, None, criteria, 10, cv2.KMEANS_PP_CENTERS)
-        
-        counts = np.bincount(labels.flatten())
-        dominant_idx = np.argmax(counts)
-        dominant_bgr = centers[dominant_idx]
-        
-        lab = cv2.cvtColor(np.uint8([[dominant_bgr]]), cv2.COLOR_BGR2LAB)[0][0]
-        
-        return float(lab[0]), float(lab[1]), float(lab[2])
-    
-    def extract_color_spatial_center(self, image: np.ndarray) -> Tuple[float, float, float]:
+    def extract_color_spatial_center(self, image):
         center_region = self.extract_center_region(image, center_ratio=0.5)
         
         h, w = center_region.shape[:2]
@@ -82,7 +64,7 @@ class SwatchColorExtractor:
         
         return mean_lab
     
-    def extract_color_high_saturation(self, image: np.ndarray, top_percent: float = 0.3) -> Tuple[float, float, float]:
+    def extract_color_high_saturation(self, image, top_percent=0.3):
         center_region = self.extract_center_region(image, center_ratio=0.6)
         
         hsv = cv2.cvtColor(center_region, cv2.COLOR_BGR2HSV)
@@ -99,156 +81,262 @@ class SwatchColorExtractor:
         
         return mean_lab
     
-    def extract_color_auto(self, image: np.ndarray) -> Dict:
-        method1 = self.extract_color_spatial_center(image)
-        method2 = self.extract_color_high_saturation(image)
-        method3 = self.extract_dominant_color_kmeans(image, k=3)
+    def extract_dominant_color_kmeans(self, image, k=3):
+        pixels = image.reshape(-1, 3).astype(np.float32)
+        
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.2)
+        _, labels, centers = cv2.kmeans(pixels, k, None, criteria, 10, cv2.KMEANS_PP_CENTERS)
+        
+        counts = np.bincount(labels.flatten())
+        dominant_idx = np.argmax(counts)
+        dominant_bgr = centers[dominant_idx]
+        
+        lab = cv2.cvtColor(np.uint8([[dominant_bgr]]), cv2.COLOR_BGR2LAB)[0][0]
+        
+        return float(lab[0]), float(lab[1]), float(lab[2])
+    
+    def extract_lab(self, url):
+        img = self.download_image(url)
+        if img is None:
+            return None, None, None
+        
+        method1 = self.extract_color_spatial_center(img)
+        method2 = self.extract_color_high_saturation(img)
+        method3 = self.extract_dominant_color_kmeans(img, k=3)
         
         final_L = (method1[0] + method2[0] + method3[0]) / 3
         final_a = (method1[1] + method2[1] + method3[1]) / 3
         final_b = (method1[2] + method2[2] + method3[2]) / 3
         
-        return {
-            'L': round(final_L, 2),
-            'a': round(final_a, 2),
-            'b': round(final_b, 2),
-            'method1_spatial': method1,
-            'method2_saturation': method2,
-            'method3_kmeans': method3
-        }
-    
-    def update_product_color(self, product_id: int, L: float, a: float, b: float):
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            UPDATE products 
-            SET L = ?, a = ?, b = ?
-            WHERE id = ?
-        ''', (L, a, b, product_id))
-        self.conn.commit()
-    
-    def process_all_products(self, limit: Optional[int] = None, delay: float = 0.5):
-        if not self.conn:
-            self.connect_db()
-        
-        cursor = self.conn.cursor()
-        
-        if limit:
-            cursor.execute('''
-                SELECT id, brand, product_name, shade_name, swatch_url
-                FROM products
-                WHERE swatch_url IS NOT NULL AND swatch_url != ''
-                LIMIT ?
-            ''', (limit,))
-        else:
-            cursor.execute('''
-                SELECT id, brand, product_name, shade_name, swatch_url
-                FROM products
-                WHERE swatch_url IS NOT NULL AND swatch_url != ''
-            ''')
-        
-        products = cursor.fetchall()
-        total = len(products)
-        
-        print(f"처리할 제품: {total}개\n")
-        
-        success_count = 0
-        fail_count = 0
-        
-        for i, product in enumerate(products, 1):
-            print(f"[{i}/{total}] {product['brand']} - {product['shade_name']}")
-            
-            image = self.download_image(product['swatch_url'])
-            
-            if image is None:
-                print(f"  실패: 이미지 다운로드 불가\n")
-                fail_count += 1
-                continue
-            
-            try:
-                color_data = self.extract_color_auto(image)
-                
-                self.update_product_color(
-                    product['id'],
-                    color_data['L'],
-                    color_data['a'],
-                    color_data['b']
-                )
-                
-                print(f"  성공: L={color_data['L']}, a={color_data['a']}, b={color_data['b']}\n")
-                success_count += 1
-                
-            except Exception as e:
-                print(f"  실패: {e}\n")
-                fail_count += 1
-            
-            time.sleep(delay)
-        
-        print("\n" + "="*60)
-        print(f"처리 완료: 성공 {success_count}개, 실패 {fail_count}개")
-        print("="*60)
-    
-    def process_single_product(self, product_id: int) -> Optional[Dict]:
-        if not self.conn:
-            self.connect_db()
-        
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            SELECT id, brand, product_name, shade_name, swatch_url
-            FROM products
-            WHERE id = ?
-        ''', (product_id,))
-        
-        product = cursor.fetchone()
-        
-        if not product:
-            print(f"제품을 찾을 수 없습니다: ID {product_id}")
-            return None
-        
-        if not product['swatch_url']:
-            print(f"스와치 이미지가 없습니다: {product['brand']} {product['shade_name']}")
-            return None
-        
-        print(f"처리 중: {product['brand']} - {product['shade_name']}")
-        
-        image = self.download_image(product['swatch_url'])
-        
-        if image is None:
-            return None
-        
-        color_data = self.extract_color_auto(image)
-        
-        self.update_product_color(
-            product['id'],
-            color_data['L'],
-            color_data['a'],
-            color_data['b']
-        )
-        
-        print(f"완료: L={color_data['L']}, a={color_data['a']}, b={color_data['b']}")
-        
-        return color_data
+        return round(final_L, 2), round(final_a, 2), round(final_b, 2)
 
+def lab_to_rgb(L, a, b):
+    lab_pixel = np.uint8([[[L, a, b]]])
+    bgr_pixel = cv2.cvtColor(lab_pixel, cv2.COLOR_LAB2BGR)[0][0]
+    rgb = (int(bgr_pixel[2]), int(bgr_pixel[1]), int(bgr_pixel[0]))
+    return rgb
+
+def lab_to_hex(L, a, b):
+    r, g, b_val = lab_to_rgb(L, a, b)
+    return f"#{r:02x}{g:02x}{b_val:02x}"
+
+def get_color_name(L, a, b):
+    if L < 30:
+        return "매우 어두운"
+    elif L > 80:
+        return "매우 밝은"
+    
+    if abs(a - 128) < 10 and abs(b - 128) < 10:
+        return "무채색/베이지"
+    
+    if a > 148:
+        red_component = "빨강"
+    elif a < 108:
+        red_component = "초록"
+    else:
+        red_component = ""
+    
+    if b > 148:
+        yellow_component = "노랑"
+    elif b < 108:
+        yellow_component = "파랑"
+    else:
+        yellow_component = ""
+    
+    if red_component and yellow_component:
+        if a > 150 and b < 138:
+            return "빨강"
+        elif a > 138 and b > 150:
+            return "오렌지"
+        elif abs(a - 128) < 20 and b > 150:
+            return "노랑"
+        elif a < 108 and b > 138:
+            return "연두"
+        elif a < 108 and abs(b - 128) < 20:
+            return "초록"
+        elif a < 108 and b < 108:
+            return "청록"
+        elif abs(a - 128) < 20 and b < 108:
+            return "파랑"
+        elif a > 138 and b < 108:
+            return "보라"
+        else:
+            return f"{red_component}+{yellow_component}"
+    elif red_component:
+        return red_component
+    elif yellow_component:
+        return yellow_component
+    else:
+        return "중성"
+
+def process_csv(category, csv_file):
+    print(f"\n{'='*70}")
+    print(f"{category.upper()} 처리 중")
+    print(f"{'='*70}\n")
+    
+    csv_path = Path(BASE_DIR) / csv_file
+    
+    if not csv_path.exists():
+        print(f"CSV 파일이 없습니다: {csv_path}")
+        return
+    
+    rows = []
+    
+    with open(csv_path, 'r', encoding='utf-8-sig') as f:
+        reader = csv.DictReader(f)
+        fieldnames = reader.fieldnames
+        
+        has_lab = 'lab_L' in fieldnames
+        
+        if not has_lab:
+            fieldnames = list(fieldnames) + ['lab_L', 'lab_a', 'lab_b']
+        
+        extractor = ColorExtractor() if not has_lab else None
+        
+        for idx, row in enumerate(reader, 1):
+            if has_lab:
+                rows.append(row)
+                print(f"[{idx}] {row['brand']} - {row['shade_name']}: LAB 값 이미 존재")
+            else:
+                print(f"[{idx}] {row['brand']} - {row['shade_name']}")
+                
+                swatch_url = row.get('swatch_url', '').strip()
+                
+                if not swatch_url:
+                    print(f"    스와치 URL 없음, 건너뜀")
+                    row['lab_L'] = ''
+                    row['lab_a'] = ''
+                    row['lab_b'] = ''
+                    rows.append(row)
+                    continue
+                
+                L, a, b = extractor.extract_lab(swatch_url)
+                
+                if L is not None:
+                    row['lab_L'] = str(L)
+                    row['lab_a'] = str(a)
+                    row['lab_b'] = str(b)
+                    print(f"    성공: L={L}, a={a}, b={b}")
+                else:
+                    row['lab_L'] = ''
+                    row['lab_a'] = ''
+                    row['lab_b'] = ''
+                    print(f"    실패: LAB 추출 불가")
+                
+                rows.append(row)
+                time.sleep(0.5)
+    
+    output_path = csv_path
+    with open(output_path, 'w', newline='', encoding='utf-8-sig') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+    
+    print(f"\nCSV 업데이트 완료: {output_path}")
+    
+    return rows, fieldnames
+
+def generate_html(category, rows):
+    print(f"\nHTML 생성 중: {category}")
+    
+    html_path = Path(BASE_DIR) / f"{category}_color_palette.html"
+    
+    category_names = {
+        'lip': '립 제품',
+        'eye': '아이섀도우 제품',
+        'cheek': '치크 제품'
+    }
+    
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{category_names[category]} 색상 팔레트</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }}
+        h1 {{ text-align: center; }}
+        .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }}
+        .card {{ background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
+        .swatch {{ width: 100%; height: 100px; border-radius: 4px; margin-bottom: 10px; }}
+        .info {{ font-size: 12px; }}
+        .brand {{ font-weight: bold; color: #333; }}
+        .shade {{ color: #666; margin: 5px 0; }}
+        .lab {{ color: #999; font-family: monospace; font-size: 11px; }}
+    </style>
+</head>
+<body>
+    <h1>{category_names[category]} 색상 팔레트</h1>
+    <div class="grid">
+"""
+    
+    valid_rows = []
+    for row in rows:
+        try:
+            L_str = row.get('lab_L', '').strip()
+            a_str = row.get('lab_a', '').strip()
+            b_str = row.get('lab_b', '').strip()
+            
+            if L_str and a_str and b_str:
+                L = float(L_str)
+                a = float(a_str)
+                b = float(b_str)
+                
+                hex_code = lab_to_hex(L, a, b)
+                color_name = get_color_name(L, a, b)
+                
+                valid_rows.append({
+                    'brand': row['brand'],
+                    'product_name': row['product_name'],
+                    'shade_name': row['shade_name'],
+                    'L': L,
+                    'a': a,
+                    'b': b,
+                    'hex': hex_code,
+                    'color_name': color_name
+                })
+        except (ValueError, KeyError) as e:
+            continue
+    
+    valid_rows.sort(key=lambda x: x['L'], reverse=True)
+    
+    for item in valid_rows:
+        html += f"""
+        <div class="card">
+            <div class="swatch" style="background-color: {item['hex']};"></div>
+            <div class="info">
+                <div class="brand">{item['brand']}</div>
+                <div class="shade">{item['shade_name']}</div>
+                <div class="lab">LAB: {item['L']:.1f}, {item['a']:.1f}, {item['b']:.1f}</div>
+                <div class="lab">{item['hex']} · {item['color_name']}</div>
+            </div>
+        </div>
+"""
+    
+    html += """
+    </div>
+</body>
+</html>
+"""
+    
+    with open(html_path, 'w', encoding='utf-8') as f:
+        f.write(html)
+    
+    print(f"HTML 저장 완료: {html_path}")
+
+def main():
+    print("="*70)
+    print("제품 색상 LAB 추출 및 HTML 생성")
+    print("="*70)
+    
+    for category, csv_file in CATEGORIES.items():
+        rows, fieldnames = process_csv(category, csv_file)
+        if rows:
+            generate_html(category, rows)
+    
+    print("\n" + "="*70)
+    print("전체 처리 완료!")
+    print(f"출력 디렉토리: {BASE_DIR}")
+    print("="*70)
 
 if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description='스와치 이미지에서 LAB 색상 추출')
-    parser.add_argument('--limit', type=int, default=None, help='처리할 제품 수 제한')
-    parser.add_argument('--delay', type=float, default=0.5, help='요청 간 대기 시간(초)')
-    parser.add_argument('--product-id', type=int, default=None, help='특정 제품 ID만 처리')
-    
-    args = parser.parse_args()
-    
-    print("=== 스와치 이미지 색상 추출 ===\n")
-    
-    extractor = SwatchColorExtractor()
-    extractor.connect_db()
-    
-    if args.product_id:
-        extractor.process_single_product(args.product_id)
-    else:
-        extractor.process_all_products(limit=args.limit, delay=args.delay)
-    
-    extractor.close_db()
-    
-    print("\n완료!")
+    main()
