@@ -2,10 +2,10 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const pool = require("./config/database");
-const authRoutes = require("./routes/auth");
-const beautyProfileRoutes = require('./src/routes/beautyProfile');
 
-app.use('/api/profile', beautyProfileRoutes);
+// 라우트 require
+const authRoutes = require("./routes/auth");
+const beautyProfileRoutes = require("./routes/beautyProfile");
 
 dotenv.config();
 const app = express();
@@ -20,6 +20,7 @@ app.use(
   })
 );
 
+// PostgreSQL 연결
 pool
   .connect()
   .then(() => console.log("Connected to PostgreSQL via Railway"))
@@ -33,7 +34,9 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// 라우트 등록
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", beautyProfileRoutes);
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
