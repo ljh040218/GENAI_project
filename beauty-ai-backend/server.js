@@ -7,6 +7,7 @@ const productRoutes = require('./routes/products');
 // 라우트 require
 const authRoutes = require("./routes/auth");
 const beautyProfileRoutes = require("./routes/beautyProfile");
+const imageAnalysisRoutes = require('./routes/imageAnalysis');
 
 dotenv.config();
 const app = express();
@@ -14,6 +15,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/products', productRoutes);
+app.use('/api/image', imageAnalysisRoutes);
 
 app.use(
   cors({
@@ -36,7 +38,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// 라우트 등록
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", beautyProfileRoutes);
 
