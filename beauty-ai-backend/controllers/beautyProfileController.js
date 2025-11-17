@@ -28,6 +28,13 @@ exports.createBeautyProfile = async (req, res) => {
     
     const userId = req.user.id;
 
+    if (!personalColor || !skinUndertone) {
+      return res.status(400).json({
+        success: false,
+        message: 'personalColor and skinUndertone are required'
+      });
+    }
+
     const existingProfile = await client.query(
       'SELECT * FROM beauty_profiles WHERE user_id = $1',
       [userId]
@@ -52,12 +59,12 @@ exports.createBeautyProfile = async (req, res) => {
         userId, 
         personalColor, 
         skinUndertone, 
-        skinType,
-        contrastLevel, 
-        preferredFinish,
-        preferredStore,
-        priceRangeMin || 5000, 
-        priceRangeMax || 50000,
+        skinType || null,
+        contrastLevel || null, 
+        preferredFinish || null,
+        preferredStore || null,
+        priceRangeMin || null, 
+        priceRangeMax || null,
         preferences ? JSON.stringify(preferences) : '{}'
       ]
     );
@@ -136,32 +143,32 @@ exports.updateBeautyProfile = async (req, res) => {
     const values = [];
     let paramCount = 1;
 
-    if (personalColor) {
+    if (personalColor !== undefined) {
       updates.push(`personal_color = $${paramCount}`);
       values.push(personalColor);
       paramCount++;
     }
-    if (skinUndertone) {
+    if (skinUndertone !== undefined) {
       updates.push(`skin_undertone = $${paramCount}`);
       values.push(skinUndertone);
       paramCount++;
     }
-    if (skinType) {
+    if (skinType !== undefined) {
       updates.push(`skin_type = $${paramCount}`);
       values.push(skinType);
       paramCount++;
     }
-    if (contrastLevel) {
+    if (contrastLevel !== undefined) {
       updates.push(`contrast_level = $${paramCount}`);
       values.push(contrastLevel);
       paramCount++;
     }
-    if (preferredFinish) {
+    if (preferredFinish !== undefined) {
       updates.push(`preferred_finish = $${paramCount}`);
       values.push(preferredFinish);
       paramCount++;
     }
-    if (preferredStore) {
+    if (preferredStore !== undefined) {
       updates.push(`preferred_store = $${paramCount}`);
       values.push(preferredStore);
       paramCount++;
@@ -176,7 +183,7 @@ exports.updateBeautyProfile = async (req, res) => {
       values.push(priceRangeMax);
       paramCount++;
     }
-    if (preferences) {
+    if (preferences !== undefined) {
       updates.push(`preferences = $${paramCount}`);
       values.push(JSON.stringify(preferences));
       paramCount++;
