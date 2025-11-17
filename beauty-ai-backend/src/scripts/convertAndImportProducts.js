@@ -38,23 +38,19 @@ function labToRGB(L, a, b) {
   let x = a / 500 + y;
   let z = y - b / 200;
 
-  x = 0.95047 * ((x * x * x > 0.008856) ? x * x * x : (x - 16/116) / 7.787);
-  y = 1.00000 * ((y * y * y > 0.008856) ? y * y * y : (y - 16/116) / 7.787);
-  z = 1.08883 * ((z * z * z > 0.008856) ? z * z * z : (z - 16/116) / 7.787);
+  x = 0.95047 * ((x * x * x > 0.008856) ? x * x * x : (x - 16 / 116) / 7.787);
+  y = 1.00000 * ((y * y * y > 0.008856) ? y * y * y : (y - 16 / 116) / 7.787);
+  z = 1.08883 * ((z * z * z > 0.008856) ? z * z * z : (z - 16 / 116) / 7.787);
 
-  let r = x *  3.2406 + y * -1.5372 + z * -0.4986;
-  let g = x * -0.9689 + y *  1.8758 + z *  0.0415;
-  let bl = x *  0.0557 + y * -0.2040 + z *  1.0570;
+  let r = x * 3.2406 + y * -1.5372 + z * -0.4986;
+  let g = x * -0.9689 + y * 1.8758 + z * 0.0415;
+  let bl = x * 0.0557 + y * -0.2040 + z * 1.0570;
 
-  r = (r > 0.0031308) ? (1.055 * Math.pow(r, 1/2.4) - 0.055) : 12.92 * r;
-  g = (g > 0.0031308) ? (1.055 * Math.pow(g, 1/2.4) - 0.055) : 12.92 * g;
-  bl = (bl > 0.0031308) ? (1.055 * Math.pow(bl, 1/2.4) - 0.055) : 12.92 * bl;
+  r = (r > 0.0031308) ? (1.055 * Math.pow(r, 1 / 2.4) - 0.055) : 12.92 * r;
+  g = (g > 0.0031308) ? (1.055 * Math.pow(g, 1 / 2.4) - 0.055) : 12.92 * g;
+  bl = (bl > 0.0031308) ? (1.055 * Math.pow(bl, 1 / 2.4) - 0.055) : 12.92 * bl;
 
-  return [
-    Math.max(0, Math.min(1, r)) * 255,
-    Math.max(0, Math.min(1, g)) * 255,
-    Math.max(0, Math.min(1, bl)) * 255
-  ].map(Math.round);
+  return [r, g, bl].map(v => Math.max(0, Math.min(1, v)) * 255).map(Math.round);
 }
 
 function rgbToHex(rgb) {
@@ -74,7 +70,7 @@ async function readCSV(filePath) {
     const results = [];
     fs.createReadStream(filePath)
       .pipe(csv())
-      .on('data', (data) => {
+      .on('data', data => {
         const cleanData = {};
         for (const [key, value] of Object.entries(data)) {
           const cleanKey = sanitize(key);
@@ -89,15 +85,17 @@ async function readCSV(filePath) {
 
 async function importProducts() {
   const client = await pool.connect();
-  
+
   try {
-    console.log('Starting product import from CSV files...\n');
+    console.log('Starting product import...\n');
 
     const categories = ['lip', 'cheek', 'eye'];
     const categoryMap = {
-    'lip': 'lips',
-    'cheek': 'cheeks', 
-    'eye': 'eyes'};
+      'lip': 'lips',
+      'cheek': 'cheeks',
+      'eye': 'eyes'
+    };
+
     const allProducts = [];
 
     for (const category of categories) {
@@ -110,13 +108,13 @@ async function importProducts() {
 
       console.log(`Reading ${category}.csv...`);
       const rows = await readCSV(filePath);
-      
+
       let validRows = 0;
       let skippedRows = 0;
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
-        
+
         if (!row.brand || !row.product_name || !row.shade_name) {
           skippedRows++;
           continue;
@@ -128,12 +126,22 @@ async function importProducts() {
           const lab_b = parseFloat(row.lab_b);
 
           if (isNaN(lab_L) || isNaN(lab_a) || isNaN(lab_b)) {
-            console.log(`  Skipping row ${i + 1}: Invalid LAB values`);
             skippedRows++;
             continue;
           }
 
-          const rgb = labToRGB(lab_L, lab_a, lab_b);
+          let L_std, a_std, b_std;
+          if (category === 'cheek') {
+            L_std = lab_L;
+            a_std = lab_a;
+            b_std = lab_b;
+          } else {
+            L_std = lab_L * 100.0 / 255.0;
+            a_std = lab_a - 128.0;
+            b_std = lab_b - 128.0;
+          }
+
+          const rgb = labToRGB(L_std, a_std, b_std);
           const hex = row.color_hex || rgbToHex(rgb);
 
           const safeBrand = row.brand.replace(/[^a-zA-Z0-9가-힣]/g, '_');
@@ -147,25 +155,21 @@ async function importProducts() {
             category: categoryMap[category],
             price: parsePrice(row.price),
             finish: (() => {
-            const finishValue = row.finish ? row.finish.trim() : '';
-            const mapped = FINISH_MAP[finishValue];
-            if (mapped) return mapped;
-            // 영문 그대로 있으면 소문자로
-            const lower = finishValue.toLowerCase();
-            if (['matte', 'glossy', 'satin', 'velvet', 'dewy'].includes(lower)) {
+              const finishValue = row.finish ? row.finish.trim() : '';
+              const mapped = FINISH_MAP[finishValue];
+              if (mapped) return mapped;
+              const lower = finishValue.toLowerCase();
+              if (['matte', 'glossy', 'satin', 'velvet', 'dewy'].includes(lower)) {
                 return lower;
-            }
-            console.log(`Unknown finish: "${finishValue}", using default "satin"`);
-            return 'satin';
+              }
+              return 'satin';
             })(),
             color_rgb: rgb,
-            color_lab: [lab_L, lab_a, lab_b],
+            color_lab: [L_std, a_std, b_std],
             color_hex: hex,
             image_url: row.image_url || row.swatch_url || '',
             description: `${row.product_name} ${row.shade_name}`,
-            purchase_links: {
-              olive: 'https://www.oliveyoung.co.kr'
-            },
+            purchase_links: { olive: 'https://www.oliveyoung.co.kr' },
             swatch_url: row.swatch_url || row.image_url
           };
 
@@ -173,7 +177,6 @@ async function importProducts() {
           validRows++;
 
         } catch (err) {
-          console.log(`  Error processing row ${i + 1}:`, err.message);
           skippedRows++;
         }
       }
@@ -182,11 +185,6 @@ async function importProducts() {
     }
 
     console.log(`\nTotal products to import: ${allProducts.length}\n`);
-
-    if (allProducts.length === 0) {
-      console.log('No products to import');
-      return;
-    }
 
     let imported = 0;
     let skipped = 0;
@@ -199,7 +197,7 @@ async function importProducts() {
             id, brand, name, category, price, finish,
             color_rgb, color_lab, color_hex, image_url,
             description, purchase_links
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+          ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
           ON CONFLICT (id) DO NOTHING`,
           [
             product.id,
@@ -217,33 +215,23 @@ async function importProducts() {
           ]
         );
         imported++;
-        
-        if (imported % 100 === 0) {
-          console.log(`  Imported ${imported}/${allProducts.length} products...`);
-        }
+
       } catch (err) {
-        if (err.code === '23505') {
-          skipped++;
-        } else {
-          console.error(`  Failed to import ${product.name}:`, err.message);
-          failed++;
-        }
+        if (err.code === '23505') skipped++;
+        else failed++;
       }
     }
 
-    console.log(`\nImport completed!`);
-    console.log(`Statistics:`);
-    console.log(`   - Total products: ${allProducts.length}`);
-    console.log(`   - Successfully imported: ${imported}`);
-    console.log(`   - Skipped (duplicates): ${skipped}`);
-    console.log(`   - Failed: ${failed}`);
-
-    const countResult = await client.query('SELECT COUNT(*) FROM products');
-    console.log(`   - Total in database: ${countResult.rows[0].count}\n`);
+    console.log('\nImport completed!');
+    console.log(`Total: ${allProducts.length}`);
+    console.log(`Imported: ${imported}`);
+    console.log(`Skipped: ${skipped}`);
+    console.log(`Failed: ${failed}`);
 
   } catch (error) {
     console.error('Import failed:', error);
     throw error;
+
   } finally {
     client.release();
     await pool.end();
