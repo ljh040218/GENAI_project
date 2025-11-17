@@ -2,160 +2,190 @@ import React, { useState } from "react";
 
 const API_BASE = "https://genaiproject-production.up.railway.app/api";
 
-const PERSONAL_COLORS = {
-  'Spring': [
-    { value: 'bright_spring', label: 'Bright Spring (브라이트 봄)' },
-    { value: 'true_spring', label: 'True Spring (트루 봄)' },
-    { value: 'light_spring', label: 'Light Spring (라이트 봄)' }
-  ],
-  'Summer': [
-    { value: 'light_summer', label: 'Light Summer (라이트 여름)' },
-    { value: 'true_summer', label: 'True Summer (트루 여름)' },
-    { value: 'soft_summer', label: 'Soft Summer (소프트 여름)' }
-  ],
-  'Autumn': [
-    { value: 'soft_autumn', label: 'Soft Autumn (소프트 가을)' },
-    { value: 'true_autumn', label: 'True Autumn (트루 가을)' },
-    { value: 'deep_autumn', label: 'Deep Autumn (딥 가을)' }
-  ],
-  'Winter': [
-    { value: 'deep_winter', label: 'Deep Winter (딥 겨울)' },
-    { value: 'true_winter', label: 'True Winter (트루 겨울)' },
-    { value: 'bright_winter', label: 'Bright Winter (브라이트 겨울)' }
-  ]
-};
-
-export default function App() {
+export default function ImageAnalysisPage() {
+  // Auth 상태
   const [email, setEmail] = useState("test@example.com");
-  const [username, setUsername] = useState("testuser");
   const [password, setPassword] = useState("Password123!");
   const [token, setToken] = useState("");
-  const [result, setResult] = useState(null);
+
+  // 이미지 업로드 상태
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+
+  // 응답 / 로딩 / 에러
+  const [analysisResult, setAnalysisResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [authMessage, setAuthMessage] = useState("");
 
-  const [personalColor, setPersonalColor] = useState("bright_spring");
-  const [skinUndertone, setSkinUndertone] = useState("warm");
-  const [skinType, setSkinType] = useState("combination");
-  const [contrastLevel, setContrastLevel] = useState("medium");
-  const [preferredFinish, setPreferredFinish] = useState("dewy");
-  const [preferredStore, setPreferredStore] = useState("roadshop");
-  const [priceRangeMin, setPriceRangeMin] = useState(10000);
-  const [priceRangeMax, setPriceRangeMax] = useState(30000);
-
-  const request = async (path, method = "GET", body = null, headers = {}) => {
+  // 공통 요청 함수 (JSON용)
+  const jsonRequest = async (path, method = "GET", body = null, extraHeaders = {}) => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE}${path}`, {
         method,
         headers: {
           "Content-Type": "application/json",
-          ...headers,
+          ...extraHeaders,
         },
         body: body ? JSON.stringify(body) : null,
       });
+
       const data = await res.json();
-      setResult(data);
-      console.log(path, data);
       return data;
     } catch (err) {
       console.error("Network error:", err);
-      setResult({ success: false, message: "Network error" });
+      return { success: false, message: "Network error" };
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRegister = async () => {
-    await request("/auth/register", "POST", {
-      username,
-      email,
-      password,
-    });
-  };
-
+  // 로그인
   const handleLogin = async () => {
-    const data = await request("/auth/login", "POST", { email, password });
+    setAuthMessage("");
+    const data = await jsonRequest("/auth/login", "POST", { email, password });
     if (data?.accessToken) {
       setToken(data.accessToken);
+      setAuthMessage("로그인 성공: 토큰이 설정되었습니다.");
+    } else {
+      setAuthMessage(data?.message || "로그인 실패");
     }
   };
 
-  const handleProfile = async () => {
-    if (!token) {
-      setResult({ success: false, message: "로그인 먼저 진행하세요." });
+  // 이미지 선택
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setImageFile(null);
+      setImagePreview(null);
       return;
     }
-    await request("/auth/profile", "GET", null, {
-      Authorization: `Bearer ${token}`,
-    });
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
-  const handleHealth = async () => {
-    await request("/health");
-  };
-
-  const handleCreateBeautyProfile = async () => {
+  // 이미지 분석 요청
+  const handleAnalyzeImage = async () => {
     if (!token) {
-      setResult({ success: false, message: "로그인 먼저 진행하세요." });
+      setAnalysisResult({
+        success: false,
+        message: "먼저 로그인해서 토큰을 받아야 합니다.",
+      });
       return;
     }
-    await request("/profile/beauty", "POST", {
-      personalColor,
-      skinUndertone,
-      skinType,
-      contrastLevel,
-      preferredFinish,
-      preferredStore,
-      priceRangeMin: parseInt(priceRangeMin),
-      priceRangeMax: parseInt(priceRangeMax)
-    }, {
-      Authorization: `Bearer ${token}`,
-    });
-  };
 
-  const handleGetBeautyProfile = async () => {
-    if (!token) {
-      setResult({ success: false, message: "로그인 먼저 진행하세요." });
+    if (!imageFile) {
+      setAnalysisResult({
+        success: false,
+        message: "분석할 이미지를 업로드하세요.",
+      });
       return;
     }
-    await request("/profile/beauty", "GET", null, {
-      Authorization: `Bearer ${token}`,
-    });
+
+    setLoading(true);
+    setAnalysisResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("image", imageFile);
+
+      const res = await fetch(`${API_BASE}/image/analyze`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          // multipart/form-data는 브라우저가 boundary 포함해서 알아서 설정하므로
+          // "Content-Type" 수동 지정하면 안 됨
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      setAnalysisResult(data);
+    } catch (err) {
+      console.error("Image analyze error:", err);
+      setAnalysisResult({
+        success: false,
+        message: "이미지 분석 중 오류가 발생했습니다.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleUpdateBeautyProfile = async () => {
-    if (!token) {
-      setResult({ success: false, message: "로그인 먼저 진행하세요." });
-      return;
-    }
-    await request("/profile/beauty", "PUT", {
-      personalColor,
-      skinUndertone,
-      skinType,
-      contrastLevel,
-      preferredFinish,
-      preferredStore,
-      priceRangeMin: parseInt(priceRangeMin),
-      priceRangeMax: parseInt(priceRangeMax)
-    }, {
-      Authorization: `Bearer ${token}`,
-    });
+  // 색상 / 추천 결과 예쁘게 출력 (있으면)
+  const renderColors = (colors) => {
+    if (!colors || typeof colors !== "object") return null;
+
+    return (
+      <div style={{ marginTop: "1rem" }}>
+        <h4>추출된 LAB 색상</h4>
+        <ul>
+          {Object.entries(colors).map(([region, lab]) => (
+            <li key={region}>
+              <b>{region}</b>:{" "}
+              {Array.isArray(lab)
+                ? `L=${lab[0]?.toFixed?.(2) ?? lab[0]}, a=${lab[1]?.toFixed?.(
+                    2
+                  ) ?? lab[1]}, b=${lab[2]?.toFixed?.(2) ?? lab[2]}`
+                : JSON.stringify(lab)}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
+  const renderRecommendations = (recs) => {
+    if (!recs || typeof recs !== "object") return null;
+
+    return (
+      <div style={{ marginTop: "1rem" }}>
+        <h4>추천 제품</h4>
+        {Object.entries(recs).map(([category, items]) => (
+          <div key={category} style={{ marginBottom: "1rem" }}>
+            <h5>{category}</h5>
+            {Array.isArray(items) && items.length > 0 ? (
+              <ul>
+                {items.map((item, idx) => (
+                  <li key={idx}>
+                    <b>{item.brand}</b> - {item.name}{" "}
+                    {item.deltaE !== undefined && (
+                      <span style={{ fontSize: "0.85rem", color: "#555" }}>
+                        (ΔE: {item.deltaE?.toFixed?.(2) ?? item.deltaE})
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p style={{ fontSize: "0.85rem", color: "#777" }}>
+                추천 결과가 없습니다.
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: "1400px", margin: "0 auto" }}>
-      <h2>K-Beauty AI Backend API Test</h2>
+    <div
+      style={{
+        padding: "2rem",
+        fontFamily: "sans-serif",
+        maxWidth: "1200px",
+        margin: "0 auto",
+      }}
+    >
+      <h2>K-Beauty AI · 이미지 분석 & 추천</h2>
 
+      {/* 1. 로그인 섹션 */}
       <div style={sectionStyle}>
-        <h3>1. Authentication</h3>
+        <h3>1. 로그인</h3>
+        <p style={{ fontSize: "0.9rem", color: "#555" }}>
+          JWT 토큰이 있어야 이미지 분석 API를 호출할 수 있습니다.
+        </p>
         <div style={{ marginBottom: "1rem" }}>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
-            style={inputStyle}
-          />
           <input
             type="email"
             value={email}
@@ -170,180 +200,101 @@ export default function App() {
             placeholder="Password"
             style={inputStyle}
           />
-        </div>
-
-        <div>
-          <button onClick={handleHealth} disabled={loading} style={buttonStyle}>
-            Health Check
-          </button>
-          <button onClick={handleRegister} disabled={loading} style={buttonStyle}>
-            Register
-          </button>
-          <button onClick={handleLogin} disabled={loading} style={buttonStyle}>
-            Login
-          </button>
-          <button onClick={handleProfile} disabled={loading} style={buttonStyle}>
-            Get User Profile
+          <button onClick={handleLogin} disabled={loading} style={primaryButtonStyle}>
+            로그인
           </button>
         </div>
-
-        <div style={{ marginTop: "1rem" }}>
+        <div style={{ fontSize: "0.85rem" }}>
           <p>
             <b>Access Token:</b>{" "}
-            <span style={{ wordBreak: "break-all", color: token ? "green" : "red", fontSize: "0.85rem" }}>
-              {token || "(Please login first)"}
+            <span
+              style={{
+                wordBreak: "break-all",
+                color: token ? "green" : "red",
+              }}
+            >
+              {token || "(로그인 필요)"}
             </span>
           </p>
+          {authMessage && (
+            <p style={{ color: "#444", marginTop: "0.3rem" }}>{authMessage}</p>
+          )}
         </div>
       </div>
 
+      {/* 2. 이미지 업로드 & 분석 */}
       <div style={{ ...sectionStyle, backgroundColor: "#fff5f7" }}>
-        <h3>2. Beauty Profile</h3>
-        
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1.5rem" }}>
-          
-          <div>
-            <label style={labelStyle}>
-              <b>Personal Color</b> <span style={{ color: "red" }}>*</span>
-            </label>
-            <select 
-              value={personalColor} 
-              onChange={(e) => setPersonalColor(e.target.value)}
-              style={selectStyle}
-            >
-              {Object.entries(PERSONAL_COLORS).map(([season, colors]) => (
-                <optgroup key={season} label={season}>
-                  {colors.map(color => (
-                    <option key={color.value} value={color.value}>
-                      {color.label}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
+        <h3>2. 이미지 업로드 & 분석</h3>
+        <p style={{ fontSize: "0.9rem", color: "#555" }}>
+          얼굴이 잘 나온 정면 사진을 업로드하면, 립 / 치크 / 아이섀도우 영역을 분석해서
+          LAB 색상과 제품 추천을 반환합니다.
+        </p>
 
-          <div>
-            <label style={labelStyle}>
-              <b>Skin Undertone</b> <span style={{ color: "red" }}>*</span>
-            </label>
-            <select 
-              value={skinUndertone} 
-              onChange={(e) => setSkinUndertone(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="warm">Warm</option>
-              <option value="cool">Cool</option>
-              <option value="neutral">Neutral</option>
-            </select>
-          </div>
+        <div style={{ marginTop: "1rem" }}>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            style={{ marginBottom: "1rem" }}
+          />
+        </div>
 
-          <div>
-            <label style={labelStyle}>
-              <b>Skin Type</b> <span style={{ color: "red" }}>*</span>
-            </label>
-            <select 
-              value={skinType} 
-              onChange={(e) => setSkinType(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="oily">Oily</option>
-              <option value="dry">Dry</option>
-              <option value="combination">Combination</option>
-              <option value="sensitive">Sensitive</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={labelStyle}>
-              <b>Contrast Level</b> <span style={{ color: "red" }}>*</span>
-            </label>
-            <select 
-              value={contrastLevel} 
-              onChange={(e) => setContrastLevel(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={labelStyle}>
-              <b>Preferred Finish</b> <span style={{ color: "red" }}>*</span>
-            </label>
-            <select 
-              value={preferredFinish} 
-              onChange={(e) => setPreferredFinish(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="matte">Matte</option>
-              <option value="glossy">Glossy</option>
-              <option value="satin">Satin</option>
-              <option value="velvet">Velvet</option>
-              <option value="dewy">Dewy</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={labelStyle}>
-              <b>Preferred Store</b> <span style={{ color: "red" }}>*</span>
-            </label>
-            <select 
-              value={preferredStore} 
-              onChange={(e) => setPreferredStore(e.target.value)}
-              style={selectStyle}
-            >
-              <option value="roadshop">Roadshop</option>
-              <option value="department">Department</option>
-              <option value="online">Online</option>
-              <option value="luxury">Luxury</option>
-            </select>
-          </div>
-
-          <div style={{ gridColumn: "1 / -1" }}>
-            <label style={labelStyle}>
-              <b>Price Range (KRW)</b>
-            </label>
-            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-              <input
-                type="number"
-                value={priceRangeMin}
-                onChange={(e) => setPriceRangeMin(e.target.value)}
-                placeholder="Min"
-                style={{ ...inputStyle, width: "200px" }}
-              />
-              <span>~</span>
-              <input
-                type="number"
-                value={priceRangeMax}
-                onChange={(e) => setPriceRangeMax(e.target.value)}
-                placeholder="Max"
-                style={{ ...inputStyle, width: "200px" }}
+        {imagePreview && (
+          <div style={{ marginTop: "1rem", display: "flex", gap: "1.5rem" }}>
+            <div>
+              <p style={{ fontSize: "0.9rem", marginBottom: "0.5rem" }}>업로드한 이미지 미리보기</p>
+              <img
+                src={imagePreview}
+                alt="preview"
+                style={{
+                  maxWidth: "260px",
+                  borderRadius: "8px",
+                  border: "1px solid #ddd",
+                }}
               />
             </div>
           </div>
-        </div>
+        )}
 
         <div style={{ marginTop: "1.5rem" }}>
-          <button onClick={handleCreateBeautyProfile} disabled={loading} style={primaryButtonStyle}>
-            Create Beauty Profile
-          </button>
-          <button onClick={handleGetBeautyProfile} disabled={loading} style={buttonStyle}>
-            Get Beauty Profile
-          </button>
-          <button onClick={handleUpdateBeautyProfile} disabled={loading} style={buttonStyle}>
-            Update Beauty Profile
+          <button
+            onClick={handleAnalyzeImage}
+            disabled={loading}
+            style={primaryButtonStyle}
+          >
+            {loading ? "분석 중..." : "이미지 분석 & 추천 받기"}
           </button>
         </div>
       </div>
 
+      {/* 3. 결과 출력 */}
       <div style={sectionStyle}>
-        <h3>API Response</h3>
-        <pre style={preStyle}>
-          {result ? JSON.stringify(result, null, 2) : "Response will appear here"}
-        </pre>
+        <h3>3. 분석 결과</h3>
+        {analysisResult ? (
+          <>
+            {analysisResult.message && (
+              <p
+                style={{
+                  color: analysisResult.success === false ? "red" : "#333",
+                }}
+              >
+                {analysisResult.message}
+              </p>
+            )}
+
+            {renderColors(analysisResult.colors)}
+            {renderRecommendations(analysisResult.recommendations)}
+
+            <h4 style={{ marginTop: "1.5rem" }}>Raw Response</h4>
+            <pre style={preStyle}>
+              {JSON.stringify(analysisResult, null, 2)}
+            </pre>
+          </>
+        ) : (
+          <p style={{ fontSize: "0.9rem", color: "#777" }}>
+            아직 분석 결과가 없습니다. 이미지를 업로드하고 분석을 실행해보세요.
+          </p>
+        )}
       </div>
     </div>
   );
@@ -354,7 +305,7 @@ const sectionStyle = {
   padding: "1.5rem",
   marginBottom: "1.5rem",
   borderRadius: "8px",
-  backgroundColor: "#fff"
+  backgroundColor: "#fff",
 };
 
 const inputStyle = {
@@ -362,22 +313,7 @@ const inputStyle = {
   padding: "0.6rem",
   borderRadius: "4px",
   border: "1px solid #ddd",
-  fontSize: "14px"
-};
-
-const selectStyle = {
-  width: "100%",
-  padding: "0.6rem",
-  borderRadius: "4px",
-  border: "1px solid #ddd",
   fontSize: "14px",
-  backgroundColor: "white"
-};
-
-const labelStyle = {
-  display: "block",
-  marginBottom: "0.5rem",
-  fontSize: "14px"
 };
 
 const buttonStyle = {
@@ -387,7 +323,7 @@ const buttonStyle = {
   backgroundColor: "#fff",
   border: "1px solid #ddd",
   borderRadius: "4px",
-  fontSize: "14px"
+  fontSize: "14px",
 };
 
 const primaryButtonStyle = {
@@ -395,7 +331,7 @@ const primaryButtonStyle = {
   backgroundColor: "#ff69b4",
   color: "white",
   border: "none",
-  fontWeight: "bold"
+  fontWeight: "bold",
 };
 
 const preStyle = {
@@ -405,5 +341,5 @@ const preStyle = {
   fontSize: "0.9rem",
   overflowX: "auto",
   maxHeight: "500px",
-  overflowY: "auto"
+  overflowY: "auto",
 };
