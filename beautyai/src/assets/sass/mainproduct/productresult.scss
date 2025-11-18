@@ -48,35 +48,31 @@
     text-align: center;
   }
 
-  /* card */
+
+
+  /* 카드 */
   .pr-card {
+    margin: 15px 30px;
+    width: min(360px, 92vw);
     background: #fff;
-    border-radius: 20px;
-    width: 90%;
-    margin: 0 auto 20px;
-    padding-bottom: 20px;
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
   }
-
-  /* 업로드한 제품 사진 */
-.pr-photo {
-  width: 100%;
-  max-width: 360px;
-  max-height: 360px;
-  overflow: hidden;
-  margin: 24px auto 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pr-photo img {
-  width: 100%;
-  height: auto;
-  max-height: 360px;
-  object-fit: contain;
-  border-radius: 14px;
-}
-
+  .pr-photo {
+    margin: 30px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .pr-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
   /* segment */
   .pr-segment {
     display: flex;
@@ -123,21 +119,25 @@
   /* BottomSheet */
   .pr-bsheet {
     position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%) translateY(calc(65vh));
-    width: 100%;
-    max-width: 420px;
-    height: 75vh;
-    background: rgba(255, 157, 173, 0.55);
-    backdrop-filter: blur(18px);
-    border-top-left-radius: 32px;
-    border-top-right-radius: 32px;
-    box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.2);
-    transition: transform 0.35s ease-out;
-    z-index: 99;
-    display: flex;
-    flex-direction: column;
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  max-width: 420px;
+  height: 75vh;
+
+  background: rgba(255, 157, 173, 0.55);
+  backdrop-filter: blur(18px);
+  border-top-left-radius: 32px;
+  border-top-right-radius: 32px;
+  box-shadow: 0 -12px 30px rgba(0,0,0,0.2);
+
+  display: flex;
+  flex-direction: column;
+  z-index: 99;
+  align-items: center;
+  /* 🎯 핵심: 닫힌 상태 → 핸들 영역만 보이도록 */
+  transform: translateX(-50%) translateY(calc(75vh - 80px));  
+  transition: transform 0.35s ease-out;
   }
 
   .pr-bsheet.open {
@@ -145,7 +145,7 @@
   }
 
   .pr-bs-handle-area {
-    height: 70px;
+    height: 80px;
     display: grid;
     place-items: center;
     cursor: pointer;
@@ -170,7 +170,7 @@
 
 .pr-compare-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 340px;
   margin: 0 auto;
   background: #fff;
   border-radius: 18px;
@@ -181,56 +181,89 @@
 /*화면을 3등분하는 그리드 */
 .pr-compare-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); 
-  width: 100%;
-  gap: 0;
-  text-align: center;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    height: 100%; /* ← 세로로도 꽉 차게 */
+    align-items: stretch; /* 컬럼 높이 맞춤 */
+    gap: 0;
+    margin-left: -10px;
+    padding: 20px 10px; /* ← 내부 여백을 여기로 이동 */
+    position: relative;
 }
 
 /*각 col 크기 조절 */
 .pr-compare-col {
-  padding: 16px 4px;
-  box-sizing: border-box;
+   position: relative;
+    padding: 14px 10px 18px;
+    text-align: center;
+    color: #2f2f2f;
 }
+
 
 /* MATCH 텍스트 */
 .pr-col-title {
-  font-size: 14px;
-  font-weight: 900;
-  margin-bottom: 10px;
+  font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    margin: 15px;
 }
 
-/* 🔥 제품 이미지 크기 축소 */
-.pr-col-thumb img {
-  width: 70px;
-  height: 70px;
-  object-fit: contain;
-  margin: 0 auto;
-}
+.pr-col-thumb {
+    width: 80px;
+    height: 80px;
+    margin: 4px auto 10px;
+    display: grid;
+    padding: 10px;
+    place-items: center;
+  }
+  .pr-col-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 
-.pr-col-name {
-  font-size: 13px;
-  font-weight: 700;
-  padding: 10px 0;
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
-}
+  .pr-col-name {
+    display: grid;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 800;
+    color: #444444;
+    line-height: 1.2;
+    padding: 30px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
 
-.pr-col-finish {
-  font-size: 12px;
-  margin-top: 10px;
-}
+  .pr-col-finish {
+    font-size: 13px;
+    color: #444444;
+    padding: 20px 0 5px;
+  }
 
-.pr-col-score {
-  font-size: 13px;
-  font-weight: 700;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-}
+  .pr-col-score {
+    font-size: 14px;
+    font-weight: 600;
+    color: #444444;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
 
-.pr-col-reason {
-  font-size: 11px;
-  color: #444;
-  padding: 12px 0;
-}
+  .pr-col-reason {
+    padding: 14px 0 6px;
+    min-height: 64px; /* 시안처럼 공간 확보 */
+    place-items: center;
+  }
+  .pr-col-reason p {
+    margin: 20px 5px;
+    font-size: 12px;
+    color: #444;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  /* bsheet 기본 여백 살짝 조정(선택) */
+  .bsheet .bs-content {
+    padding: 16px 16px 22px;
+  }
+
 }
