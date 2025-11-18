@@ -7,6 +7,9 @@ import MainFace from './components/MainFace';
 import FaceResult from './components/FaceResult';  
 import ProductResult from './components/ProductResult';
 import MainProduct from './components/MainProduct';
+import Profile from './pages/login/ProfileSCreate';
+import ProfileEdit from './pages/login/ProfileEdit';
+import ProfileView from './pages/login/ProfileView';    
 
 const App = () => {
     return (
@@ -20,6 +23,9 @@ const App = () => {
                 <Route path='/login' element={<Login />} />
                 <Route path='/signup' element={<Sign />} />
                 <Route path="/" element={<Login />} />
+                <Route path='/profilesetting' element={<Profile />} />
+                <Route path='/profileedit' element={<ProfileEdit />} />
+                <Route path='/profileview' element={<ProfileView />} />
 
             </Routes>
             

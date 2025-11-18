@@ -1,5 +1,5 @@
 // src/pages/Signup.jsx
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiEye, FiEyeOff, FiChevronLeft } from 'react-icons/fi';
 import Congrat from '../../assets/img/congrats.png';
@@ -75,6 +75,12 @@ const Signup = () => {
   };
 
   const handleGoToLogin = () => navigate("/login");
+useEffect(() => {
+  document.body.style.overflow = "hidden";
+  return () => {
+    document.body.style.overflow = "auto";
+  };
+}, []);
 
   return (
     <div className="Signup_wrap container" onKeyDown={onKeyDown}>

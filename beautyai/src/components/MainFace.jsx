@@ -1,5 +1,5 @@
 // MainFace.jsx
-import React, { useRef, useState } from "react";
+import React, { useRef, useState,useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/sass/mainface/mainface.scss";
 import { FiChevronLeft } from "react-icons/fi";
@@ -39,7 +39,11 @@ const MainFace = () => {
       }, 500);
     }, 2000);
   };
-
+   useEffect(() => {
+      document.body.style.overflow = "hidden";
+      return () => (document.body.style.overflow = "auto");
+    }, []);
+  
   return (
     <div className="MainFace_wrap container2">
       {/* 상단바 */}

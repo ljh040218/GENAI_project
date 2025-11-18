@@ -1,5 +1,5 @@
 // src/pages/Login.jsx
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../../assets/img/main/Logo.png';
@@ -62,6 +62,12 @@ const Login = () => {
   const onKeyDown = (e) => {
     if (e.key === 'Enter' && isFormValid && !loading) handleLogin();
   };
+  useEffect(() => {
+  document.body.style.overflow = "hidden";
+  return () => {
+    document.body.style.overflow = "auto";
+  };
+}, []);
 
   return (
     <div className="Login_wrap container" onKeyDown={onKeyDown}>
