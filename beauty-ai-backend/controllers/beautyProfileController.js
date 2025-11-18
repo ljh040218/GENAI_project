@@ -155,32 +155,32 @@ exports.updateBeautyProfile = async (req, res) => {
     }
     if (skinType !== undefined) {
       updates.push(`skin_type = $${paramCount}`);
-      values.push(skinType);
+      values.push(skinType || null);
       paramCount++;
     }
     if (contrastLevel !== undefined) {
       updates.push(`contrast_level = $${paramCount}`);
-      values.push(contrastLevel);
+      values.push(contrastLevel || null);
       paramCount++;
     }
     if (preferredFinish !== undefined) {
       updates.push(`preferred_finish = $${paramCount}`);
-      values.push(preferredFinish);
+      values.push(preferredFinish || null);
       paramCount++;
     }
     if (preferredStore !== undefined) {
       updates.push(`preferred_store = $${paramCount}`);
-      values.push(preferredStore);
+      values.push(preferredStore || null);
       paramCount++;
     }
     if (priceRangeMin !== undefined) {
       updates.push(`price_range_min = $${paramCount}`);
-      values.push(priceRangeMin);
+      values.push(priceRangeMin || null);
       paramCount++;
     }
     if (priceRangeMax !== undefined) {
       updates.push(`price_range_max = $${paramCount}`);
-      values.push(priceRangeMax);
+      values.push(priceRangeMax || null);
       paramCount++;
     }
     if (preferences !== undefined) {
