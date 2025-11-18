@@ -60,12 +60,12 @@ export default function App() {
 
   const [personalColor, setPersonalColor] = useState("bright_spring");
   const [skinUndertone, setSkinUndertone] = useState("warm");
-  const [skinType, setSkinType] = useState("combination");
-  const [contrastLevel, setContrastLevel] = useState("medium");
-  const [preferredFinish, setPreferredFinish] = useState("dewy");
-  const [preferredStore, setPreferredStore] = useState("roadshop");
-  const [priceRangeMin, setPriceRangeMin] = useState(10000);
-  const [priceRangeMax, setPriceRangeMax] = useState(30000);
+  const [skinType, setSkinType] = useState("");
+  const [contrastLevel, setContrastLevel] = useState("");
+  const [preferredFinish, setPreferredFinish] = useState("");
+  const [preferredStore, setPreferredStore] = useState("");
+  const [priceRangeMin, setPriceRangeMin] = useState("");
+  const [priceRangeMax, setPriceRangeMax] = useState("");
 
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -156,6 +156,18 @@ export default function App() {
       return;
     }
 
+    const profileData = {
+      personalColor,
+      skinUndertone
+    };
+
+    if (skinType) profileData.skinType = skinType;
+    if (contrastLevel) profileData.contrastLevel = contrastLevel;
+    if (preferredFinish) profileData.preferredFinish = preferredFinish;
+    if (preferredStore) profileData.preferredStore = preferredStore;
+    if (priceRangeMin) profileData.priceRangeMin = parseInt(priceRangeMin);
+    if (priceRangeMax) profileData.priceRangeMax = parseInt(priceRangeMax);
+
     setLoading(true);
     try {
       const res = await fetch(`${NODE_API}/profile/beauty`, {
@@ -164,16 +176,7 @@ export default function App() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({
-          personalColor,
-          skinUndertone,
-          skinType,
-          contrastLevel,
-          preferredFinish,
-          preferredStore,
-          priceRangeMin: parseInt(priceRangeMin),
-          priceRangeMax: parseInt(priceRangeMax)
-        })
+        body: JSON.stringify(profileData)
       });
 
       const data = await res.json();
@@ -224,6 +227,18 @@ export default function App() {
       return;
     }
 
+    const profileData = {
+      personalColor,
+      skinUndertone
+    };
+
+    if (skinType) profileData.skinType = skinType;
+    if (contrastLevel) profileData.contrastLevel = contrastLevel;
+    if (preferredFinish) profileData.preferredFinish = preferredFinish;
+    if (preferredStore) profileData.preferredStore = preferredStore;
+    if (priceRangeMin) profileData.priceRangeMin = parseInt(priceRangeMin);
+    if (priceRangeMax) profileData.priceRangeMax = parseInt(priceRangeMax);
+
     setLoading(true);
     try {
       const res = await fetch(`${NODE_API}/profile/beauty`, {
@@ -232,16 +247,7 @@ export default function App() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({
-          personalColor,
-          skinUndertone,
-          skinType,
-          contrastLevel,
-          preferredFinish,
-          preferredStore,
-          priceRangeMin: parseInt(priceRangeMin),
-          priceRangeMax: parseInt(priceRangeMax)
-        })
+        body: JSON.stringify(profileData)
       });
 
       const data = await res.json();
@@ -316,6 +322,30 @@ export default function App() {
     }
   };
 
+  const fillMinimalProfile = () => {
+    setPersonalColor("bright_spring");
+    setSkinUndertone("warm");
+    setSkinType("");
+    setContrastLevel("");
+    setPreferredFinish("");
+    setPreferredStore("");
+    setPriceRangeMin("");
+    setPriceRangeMax("");
+    alert("최소 필수 필드만 설정되었습니다!");
+  };
+
+  const fillFullProfile = () => {
+    setPersonalColor("bright_spring");
+    setSkinUndertone("warm");
+    setSkinType("combination");
+    setContrastLevel("medium");
+    setPreferredFinish("dewy");
+    setPreferredStore("roadshop");
+    setPriceRangeMin("10000");
+    setPriceRangeMax("30000");
+    alert("모든 필드가 설정되었습니다!");
+  };
+
   return (
     <div style={{ padding: "2rem", fontFamily: "sans-serif", maxWidth: "1400px", margin: "0 auto" }}>
       <h2 style={{ color: "#ff69b4" }}>K-Beauty AI Backend API Test</h2>
@@ -371,11 +401,27 @@ export default function App() {
       <div style={{ ...sectionStyle, backgroundColor: "#fff5f7" }}>
         <h3>2. 뷰티 프로필 (Beauty Profile)</h3>
         
+        <div style={{ marginBottom: "1rem", padding: "1rem", backgroundColor: "#ffe4e1", borderRadius: "8px" }}>
+          <p style={{ margin: 0, fontSize: "0.9rem" }}>
+            <b>⚠️ 필수 필드:</b> 퍼스널 컬러, 피부 언더톤 (2개만)<br/>
+            <b>💡 선택 필드:</b> 나머지는 입력하지 않아도 됩니다
+          </p>
+        </div>
+
+        <div style={{ marginBottom: "1rem" }}>
+          <button onClick={fillMinimalProfile} style={{ ...buttonStyle, backgroundColor: "#90EE90" }}>
+            최소 필드만 채우기
+          </button>
+          <button onClick={fillFullProfile} style={{ ...buttonStyle, backgroundColor: "#87CEEB" }}>
+            전체 필드 채우기
+          </button>
+        </div>
+        
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1.5rem" }}>
           
           <div>
             <label style={labelStyle}>
-              <b>퍼스널 컬러 (Personal Color)</b> <span style={{ color: "red" }}>*</span>
+              <b>퍼스널 컬러 (Personal Color)</b> <span style={{ color: "red" }}>* 필수</span>
             </label>
             <select 
               value={personalColor} 
@@ -396,7 +442,7 @@ export default function App() {
 
           <div>
             <label style={labelStyle}>
-              <b>피부 언더톤 (Skin Undertone)</b> <span style={{ color: "red" }}>*</span>
+              <b>피부 언더톤 (Skin Undertone)</b> <span style={{ color: "red" }}>* 필수</span>
             </label>
             <select 
               value={skinUndertone} 
@@ -411,13 +457,14 @@ export default function App() {
 
           <div>
             <label style={labelStyle}>
-              <b>피부 타입 (Skin Type)</b> <span style={{ color: "red" }}>*</span>
+              <b>피부 타입 (Skin Type)</b> <span style={{ color: "#888" }}>선택</span>
             </label>
             <select 
               value={skinType} 
               onChange={(e) => setSkinType(e.target.value)}
               style={selectStyle}
             >
+              <option value="">-- 선택 안 함 --</option>
               <option value="oily">Oily (지성)</option>
               <option value="dry">Dry (건성)</option>
               <option value="combination">Combination (복합성)</option>
@@ -427,13 +474,14 @@ export default function App() {
 
           <div>
             <label style={labelStyle}>
-              <b>명암 대비 (Contrast Level)</b> <span style={{ color: "red" }}>*</span>
+              <b>명암 대비 (Contrast Level)</b> <span style={{ color: "#888" }}>선택</span>
             </label>
             <select 
               value={contrastLevel} 
               onChange={(e) => setContrastLevel(e.target.value)}
               style={selectStyle}
             >
+              <option value="">-- 선택 안 함 --</option>
               <option value="high">High (높음)</option>
               <option value="medium">Medium (중간)</option>
               <option value="low">Low (낮음)</option>
@@ -442,13 +490,14 @@ export default function App() {
 
           <div>
             <label style={labelStyle}>
-              <b>선호 피니시 (Preferred Finish)</b> <span style={{ color: "red" }}>*</span>
+              <b>선호 피니시 (Preferred Finish)</b> <span style={{ color: "#888" }}>선택</span>
             </label>
             <select 
               value={preferredFinish} 
               onChange={(e) => setPreferredFinish(e.target.value)}
               style={selectStyle}
             >
+              <option value="">-- 선택 안 함 --</option>
               <option value="matte">Matte (매트)</option>
               <option value="glossy">Glossy (글로시)</option>
               <option value="satin">Satin (새틴)</option>
@@ -459,13 +508,14 @@ export default function App() {
 
           <div>
             <label style={labelStyle}>
-              <b>선호 매장 (Preferred Store)</b> <span style={{ color: "red" }}>*</span>
+              <b>선호 매장 (Preferred Store)</b> <span style={{ color: "#888" }}>선택</span>
             </label>
             <select 
               value={preferredStore} 
               onChange={(e) => setPreferredStore(e.target.value)}
               style={selectStyle}
             >
+              <option value="">-- 선택 안 함 --</option>
               <option value="roadshop">Roadshop (로드샵)</option>
               <option value="department">Department (백화점)</option>
               <option value="online">Online (온라인)</option>
@@ -475,14 +525,14 @@ export default function App() {
 
           <div style={{ gridColumn: "1 / -1" }}>
             <label style={labelStyle}>
-              <b>가격대 (Price Range)</b>
+              <b>가격대 (Price Range)</b> <span style={{ color: "#888" }}>선택</span>
             </label>
             <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
               <input
                 type="number"
                 value={priceRangeMin}
                 onChange={(e) => setPriceRangeMin(e.target.value)}
-                placeholder="최소 금액"
+                placeholder="최소 금액 (선택)"
                 style={{ ...inputStyle, width: "200px" }}
               />
               <span>~</span>
@@ -490,7 +540,7 @@ export default function App() {
                 type="number"
                 value={priceRangeMax}
                 onChange={(e) => setPriceRangeMax(e.target.value)}
-                placeholder="최대 금액"
+                placeholder="최대 금액 (선택)"
                 style={{ ...inputStyle, width: "200px" }}
               />
               <span>원</span>
