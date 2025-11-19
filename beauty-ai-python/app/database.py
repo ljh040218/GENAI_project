@@ -19,7 +19,7 @@ def get_products_from_db(database_url: str, category: str) -> List[Dict]:
         query = """
             SELECT id, brand, name, category, price, finish,
                    color_rgb, color_lab, color_hex, image_url,
-                   description, purchase_links, created_at
+                   purchase_links, created_at, shade_name
             FROM products
             WHERE category = %s
             ORDER BY created_at DESC
