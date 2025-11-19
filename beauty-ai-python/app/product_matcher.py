@@ -10,10 +10,6 @@ from .database import get_products_from_db
 
 
 class ProductMatcher:
-    """
-    제품 이미지 분석 및 매칭 클래스
-    얼굴 분석 없이 제품 이미지의 색상만으로 유사 제품 추천
-    """
     
     def __init__(self, database_url: str, groq_api_key: str):
         self.database_url = database_url
@@ -27,7 +23,31 @@ class ProductMatcher:
             raise ValueError("이미지 디코딩 실패")
         
         rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        avg_r, avg_g, avg_b = np.mean(rgb.reshape(-1, 3), axis=0)
+        h, w = rgb.shape[:2]
+        
+        center_y, center_x = h // 2, w // 2
+        crop_h, crop_w = h // 3, w // 3
+        
+        y1 = max(0, center_y - crop_h // 2)
+        y2 = min(h, center_y + crop_h // 2)
+        x1 = max(0, center_x - crop_w // 2)
+        x2 = min(w, center_x + crop_w // 2)
+        
+        center_crop = rgb[y1:y2, x1:x2]
+        
+        pixels = center_crop.reshape(-1, 3)
+        brightness = np.mean(pixels, axis=1)
+        
+        lower_threshold = np.percentile(brightness, 10)
+        upper_threshold = np.percentile(brightness, 90)
+        
+        mask = (brightness >= lower_threshold) & (brightness <= upper_threshold)
+        filtered_pixels = pixels[mask]
+        
+        if len(filtered_pixels) < 10:
+            filtered_pixels = pixels
+        
+        avg_r, avg_g, avg_b = np.median(filtered_pixels, axis=0)
         
         rgb_norm = np.array([[[avg_r/255, avg_g/255, avg_b/255]]])
         lab = rgb2lab(rgb_norm)[0][0]
@@ -64,7 +84,22 @@ class ProductMatcher:
             distances.append(dE)
         
         df["color_distance"] = distances
-        return df.sort_values("color_distance").head(top_k)
+        df_sorted = df.sort_values("color_distance")
+        
+        unique_products = []
+        seen_names = set()
+        
+        for _, row in df_sorted.iterrows():
+            product_key = f"{row['brand']}_{row['name']}"
+            
+            if product_key not in seen_names:
+                unique_products.append(row)
+                seen_names.add(product_key)
+                
+                if len(unique_products) >= top_k:
+                    break
+        
+        return pd.DataFrame(unique_products)
     
     def build_llama_prompt(self, user_lab: Tuple[float, float, float], 
                           top3_df: pd.DataFrame) -> str:
@@ -82,20 +117,12 @@ class ProductMatcher:
 
 제품 정보:
 """
-        
         for rank, (_, row) in enumerate(top3_df.iterrows(), start=1):
-            full_name = row.get('name', '')
-            if ' - ' in full_name:
-                product_name, shade_name = full_name.split(' - ', 1)
-            else:
-                product_name = full_name
-                shade_name = full_name
-            
             prompt += f"""
 [{rank}위 제품]
 - 브랜드: {row['brand']}
-- 제품명: {product_name}
-- 쉐이드: {shade_name}
+- 제품명: {row['name']}
+- 쉐이드: {row.get('shade_name', '')}
 - 피니쉬: {row.get('finish', '')}
 - ΔE 색상 거리: {row['color_distance']:.2f}
 """
@@ -141,52 +168,32 @@ class ProductMatcher:
             
             return reasons
             
-        except Exception as e:
+        except Exception:
             return ["색상 유사도가 높아 추천된 제품입니다."] * 3
     
     def recommend(self, image_bytes: bytes, category: str, top_k: int = 3) -> Tuple[Dict, List[Dict]]:
-        """
-        제품 이미지 기반 추천
-        
-        Returns:
-            user_lab: {"L": float, "a": float, "b": float}
-            results: List[{brand, product_name, category, shade_name, price, finish, image_url, reason}]
-        """
-        # 1. 이미지에서 LAB 추출
         L, A, B = self.extract_lab_from_bytes(image_bytes)
         
-        # 2. Top10 매칭
-        top10 = self.get_top_matches(L, A, B, category, top_k=10)
+        top_matches = self.get_top_matches(L, A, B, category, top_k=top_k)
         
-        if top10.empty:
+        if top_matches.empty:
             return {"L": L, "a": A, "b": B}, []
         
-        # 3. Top3 선택
-        top3 = top10.head(top_k).reset_index(drop=True)
+        top3 = top_matches.head(top_k).reset_index(drop=False)
         
-        # 4. LLaMA 프롬프트 + 이유 생성
         prompt = self.build_llama_prompt((L, A, B), top3)
         reasons = self.generate_reasons_with_llama(prompt)
         
         while len(reasons) < len(top3):
             reasons.append("색상 유사도가 높아 추천된 제품입니다.")
         
-        # 5. 최종 결과 구성
         results = []
         for i, (_, row) in enumerate(top3.iterrows()):
-            full_name = row.get('name', '')
-            
-            if ' - ' in full_name:
-                product_name, shade_name = full_name.split(' - ', 1)
-            else:
-                product_name = full_name
-                shade_name = full_name
-            
             item = {
                 "brand": row["brand"],
-                "product_name": product_name.strip(),
+                "product_name": row["name"],
                 "category": row["category"],
-                "shade_name": shade_name.strip(),
+                "shade_name": row.get("shade_name", ""),
                 "price": int(row["price"]) if row.get("price") else 0,
                 "finish": row.get("finish", ""),
                 "image_url": row.get("image_url", ""),
