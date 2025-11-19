@@ -8,7 +8,8 @@ import os
 from dotenv import load_dotenv
 import logging
 
-from .color_analyzer import ColorAnalyzer
+from .face_matcher import FaceMatcher
+from .product_matcher import ProductMatcher
 
 load_dotenv()
 
@@ -37,7 +38,12 @@ if not DATABASE_URL:
 if not GROQ_API_KEY:
     raise ValueError("GROQ_API_KEY environment variable is required")
 
-color_analyzer = ColorAnalyzer(
+face_matcher = FaceMatcher(
+    database_url=DATABASE_URL,
+    groq_api_key=GROQ_API_KEY
+)
+
+product_matcher = ProductMatcher(
     database_url=DATABASE_URL,
     groq_api_key=GROQ_API_KEY
 )
@@ -79,7 +85,7 @@ async def health_check():
         "message": "Python API is running",
         "services": {
             "face_parser": "ready",
-            "color_analyzer": "ready",
+            "face_matcher": "ready",
             "database": "connected" if DATABASE_URL else "not configured",
             "llm": "ready" if GROQ_API_KEY else "not configured"
         }
@@ -102,7 +108,7 @@ async def analyze_image(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="Invalid image file")
         
         logger.info("Extracting face colors...")
-        face_colors = color_analyzer.extract_face_colors(image)
+        face_colors = face_matcher.extract_face_colors(image)
         
         result = {
             "success": True,
@@ -114,17 +120,20 @@ async def analyze_image(file: UploadFile = File(...)):
         # 립 분석
         if face_colors["lips"]:
             logger.info("Analyzing lips...")
-            lip_recommendations, lip_info = color_analyzer.recommend_products(
+            lip_recommendations, lip_info = face_matcher.recommend_products(
                 face_colors["lips"], 
                 "lips", 
                 top_k=3
             )
             
             if lip_recommendations:
-                lip_explanation = color_analyzer.generate_explanation(
+                lip_reasons = face_matcher.generate_explanation(
                     lip_recommendations, 
                     "lips"
                 )
+                
+                for i, product in enumerate(lip_recommendations):
+                    product["reason"] = lip_reasons[i] if i < len(lip_reasons) else "색상 유사도가 높아 추천된 제품입니다."
                 
                 result["lips"] = {
                     "color": {
@@ -138,24 +147,26 @@ async def analyze_image(file: UploadFile = File(...)):
                         "chroma": lip_info["user_chroma"],
                         "tone_group": lip_info["user_tone_group"]
                     },
-                    "recommendations": lip_recommendations,
-                    "explanation": lip_explanation
+                    "recommendations": lip_recommendations
                 }
         
         # 치크 분석
         if face_colors["cheeks"]:
             logger.info("Analyzing cheeks...")
-            cheek_recommendations, cheek_info = color_analyzer.recommend_products(
+            cheek_recommendations, cheek_info = face_matcher.recommend_products(
                 face_colors["cheeks"], 
                 "cheeks", 
                 top_k=3
             )
             
             if cheek_recommendations:
-                cheek_explanation = color_analyzer.generate_explanation(
+                cheek_reasons = face_matcher.generate_explanation(
                     cheek_recommendations, 
                     "cheeks"
                 )
+                
+                for i, product in enumerate(cheek_recommendations):
+                    product["reason"] = cheek_reasons[i] if i < len(cheek_reasons) else "색상 유사도가 높아 추천된 제품입니다."
                 
                 result["cheeks"] = {
                     "color": {
@@ -169,24 +180,26 @@ async def analyze_image(file: UploadFile = File(...)):
                         "chroma": cheek_info["user_chroma"],
                         "tone_group": cheek_info["user_tone_group"]
                     },
-                    "recommendations": cheek_recommendations,
-                    "explanation": cheek_explanation
+                    "recommendations": cheek_recommendations
                 }
         
         # 아이섀도우 분석
         if face_colors["eyeshadow"]:
             logger.info("Analyzing eyeshadow...")
-            eye_recommendations, eye_info = color_analyzer.recommend_products(
+            eye_recommendations, eye_info = face_matcher.recommend_products(
                 face_colors["eyeshadow"], 
                 "eyes", 
                 top_k=3
             )
             
             if eye_recommendations:
-                eye_explanation = color_analyzer.generate_explanation(
+                eye_reasons = face_matcher.generate_explanation(
                     eye_recommendations, 
                     "eyes"
                 )
+                
+                for i, product in enumerate(eye_recommendations):
+                    product["reason"] = eye_reasons[i] if i < len(eye_reasons) else "색상 유사도가 높아 추천된 제품입니다."
                 
                 result["eyeshadow"] = {
                     "color": {
@@ -200,8 +213,7 @@ async def analyze_image(file: UploadFile = File(...)):
                         "chroma": eye_info["user_chroma"],
                         "tone_group": eye_info["user_tone_group"]
                     },
-                    "recommendations": eye_recommendations,
-                    "explanation": eye_explanation
+                    "recommendations": eye_recommendations
                 }
         
         logger.info("Analysis completed successfully")
@@ -217,15 +229,12 @@ async def analyze_image(file: UploadFile = File(...)):
 
 @app.post("/api/analyze/color")
 async def analyze_color(color: ColorInput):
-    """
-    LAB 색상 값으로 직접 제품 추천
-    """
     try:
         logger.info(f"Analyzing color: LAB({color.lab_L}, {color.lab_a}, {color.lab_b})")
         
         user_lab_cv = (color.lab_L, color.lab_a, color.lab_b)
         
-        recommendations, user_info = color_analyzer.recommend_products(
+        recommendations, user_info = face_matcher.recommend_products(
             user_lab_cv,
             color.category,
             top_k=3
@@ -234,7 +243,10 @@ async def analyze_color(color: ColorInput):
         if not recommendations:
             raise HTTPException(status_code=404, detail="No matching products found")
         
-        explanation = color_analyzer.generate_explanation(recommendations, color.category)
+        reasons = face_matcher.generate_explanation(recommendations, color.category)
+        
+        for i, product in enumerate(recommendations):
+            product["reason"] = reasons[i] if i < len(reasons) else "색상 유사도가 높아 추천된 제품입니다."
         
         return {
             "success": True,
@@ -250,14 +262,40 @@ async def analyze_color(color: ColorInput):
                 "tone_group": user_info["user_tone_group"]
             },
             "category": color.category,
-            "recommendations": recommendations,
-            "explanation": explanation
+            "recommendations": recommendations
         }
         
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error in color analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/product/recommend")
+async def product_recommend(file: UploadFile = File(...), category: str = Query("lips", description="Product category: lips, cheeks, eyes")):
+    """
+    제품 이미지에서 색상을 추출하여 유사한 제품 추천 (PDF 완전 구현)
+    """
+    try:
+        logger.info(f"Product image analysis - Category: {category}")
+        
+        contents = await file.read()
+        
+        user_lab, results = product_matcher.recommend(contents, category, top_k=3)
+        
+        if not results:
+            raise HTTPException(status_code=404, detail="No matching products found")
+        
+        return {
+            "user_lab": user_lab,
+            "results": results
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in product recommendation: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

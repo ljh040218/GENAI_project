@@ -47,7 +47,7 @@ def classify_tone_group(hue: float, a_std: float, b_std: float):
     return "other"
 
 
-class ColorAnalyzer:
+class FaceMatcher:
     def __init__(self, database_url: str, groq_api_key: str):
         self.database_url = database_url
         self.groq_client = Groq(api_key=groq_api_key)
@@ -195,12 +195,14 @@ class ColorAnalyzer:
         results = []
         for _, row in group_df.iterrows():
             results.append({
-                "id": row.get('id', ''),
                 "brand": row['brand'],
-                "name": row['name'],
+                "product_name": row['name'],
+                "category": category,
+                "shade_name": row.get('shade_name', row['name']),
                 "price": int(row['price']) if row['price'] else 0,
-                "color_hex": row.get('color_hex', ''),
+                "finish": row.get('finish', ''),
                 "image_url": row.get('image_url', ''),
+                "color_hex": row.get('color_hex', ''),
                 "deltaE": float(row['deltaE'])
             })
 
@@ -215,36 +217,65 @@ class ColorAnalyzer:
 
         return results, user_info
 
-    def generate_explanation(self, recommendations: List[Dict], category: str) -> str:
+    def generate_explanation(self, recommendations: List[Dict], category: str) -> List[str]:
         try:
             category_kr = {"lips": "립", "cheeks": "치크", "eyes": "아이섀도우"}.get(category, "메이크업")
 
             prompt = f"""You are a professional K-beauty makeup color analysis expert.
 
 Below are the Top 3 recommended {category_kr} products based on color analysis.
-Write a brief explanation for each product in polite Korean."""
+Write a brief explanation (2-3 sentences) for EACH product in polite Korean.
+
+Format: Return ONLY a JSON object with this structure:
+{{
+  "reasons": [
+    "1위 제품에 대한 추천 이유",
+    "2위 제품에 대한 추천 이유", 
+    "3위 제품에 대한 추천 이유"
+  ]
+}}
+
+Product information:
+"""
 
             for rank, prod in enumerate(recommendations, start=1):
                 prompt += f"""
-{rank}위: {prod['brand']} - {prod['name']}
+{rank}위: {prod['brand']} - {prod['product_name']}
 ΔE: {prod['deltaE']:.2f}
 """
 
             prompt += """
-Start directly with "1위:" and write only the explanations.
+Rules:
+1) 2-3 sentences per product
+2) Explain why the color matches (tone/chroma/brightness)
+3) Include Korean beauty terms (MLBB, rosy, warm, cool, 데일리)
+4) Keep it concise and natural
+5) Output ONLY the JSON object, no other text
 """
 
             response = self.groq_client.chat.completions.create(
                 model="llama-3.1-8b-instant",
                 messages=[
-                    {"role": "system", "content": "You write Korean beauty product explanations."},
+                    {"role": "system", "content": "You are a professional beauty color analysis AI assistant."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.5,
+                temperature=0.7,
                 max_tokens=600
             )
 
-            return response.choices[0].message.content.strip()
+            raw_text = response.choices[0].message.content.strip()
+            
+            import json
+            try:
+                data = json.loads(raw_text)
+                reasons = data.get("reasons", [])
+            except json.JSONDecodeError:
+                reasons = [raw_text]
+            
+            while len(reasons) < len(recommendations):
+                reasons.append("색상 유사도가 높아 추천된 제품입니다.")
+            
+            return reasons[:len(recommendations)]
 
         except Exception as e:
-            return f"추천 이유 생성 중 오류 발생: {str(e)}"
+            return ["추천 이유 생성 중 오류 발생"] * len(recommendations)
