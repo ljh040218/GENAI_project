@@ -94,9 +94,6 @@ async def health_check():
 
 @app.post("/api/analyze/image", response_model=AnalysisResponse)
 async def analyze_image(file: UploadFile = File(...)):
-    """
-    얼굴 이미지를 분석하여 립, 치크, 아이섀도우 색상 추출 및 제품 추천
-    """
     try:
         logger.info(f"Received image: {file.filename}")
         
@@ -274,9 +271,6 @@ async def analyze_color(color: ColorInput):
 
 @app.post("/api/product/recommend")
 async def product_recommend(file: UploadFile = File(...), category: str = Query("lips", description="Product category: lips, cheeks, eyes")):
-    """
-    제품 이미지에서 색상을 추출하여 유사한 제품 추천 (PDF 완전 구현)
-    """
     try:
         logger.info(f"Product image analysis - Category: {category}")
         
