@@ -160,11 +160,11 @@
 
   .pr-bs-content {
     flex: 1;
-    padding-bottom: 30px;
     overflow-y: auto;
     width: 100%;
     display: flex;
     justify-content: center;
+    align-items: flex-start;
   }
 
   .pr-compare-card {
@@ -250,15 +250,36 @@
     padding: 14px 0 6px;
     min-height: 64px; /* 시안처럼 공간 확보 */
     place-items: center;
-  }
-  .pr-col-reason p {
-    margin: 20px 5px;
     font-size: 12px;
-    color: #444;
     line-height: 1.5;
-    text-align: center;
+    margin: 5px 5px;
   }
 
+  .pr-chat-btn {
+    width: 90%;
+    margin: 15px auto 10px;
+    padding: 14px 20px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #ff9fb9;
+    color: #333;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+
+    .pr-chat-main {
+      font-weight: 600;
+      font-size: 13px;
+      color: #ff5f8a;
+    }
+
+    .pr-chat-sub {
+      font-size: 12px;
+      color: #666;
+    }
+  }
   /* bsheet 기본 여백 살짝 조정(선택) */
   .bsheet .bs-content {
     padding: 16px 16px 22px;

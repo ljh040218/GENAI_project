@@ -10,6 +10,7 @@ import MainProduct from "./components/MainProduct";
 import Profile from "./pages/login/ProfileSCreate";
 import ProfileEdit from "./pages/login/ProfileEdit";
 import ProfileView from "./pages/login/ProfileView";
+import Chat from "./components/Chat";
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <Route path="/mainproduct" element={<MainProduct />} />
         <Route path="/faceresult" element={<FaceResult />} />
         <Route path="/productresult" element={<ProductResult />} />
+        <Route path="/chat" element={<Chat />} />
         <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Sign />} />

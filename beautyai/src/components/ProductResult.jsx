@@ -100,6 +100,12 @@ const ProductResult = () => {
                 </div>
               ))}
             </div>
+            <button className="pr-chat-btn" onClick={() => navigate("/chat")}>
+              <span className="pr-chat-main">추천이 마음에 안 드나요?</span>
+              <span className="pr-chat-sub">
+                VIZY beauty stylist에게 물어보세요!
+              </span>
+            </button>
           </div>
         </div>
       </div>
