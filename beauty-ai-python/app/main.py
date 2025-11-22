@@ -61,7 +61,6 @@ class AnalysisResponse(BaseModel):
     lips: Optional[Dict] = None
     cheeks: Optional[Dict] = None
     eyeshadow: Optional[Dict] = None
-    message: Optional[str] = None
 
 
 @app.get("/")

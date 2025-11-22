@@ -133,38 +133,31 @@ class ProductMatcher:
         try:
             category_kr = {"lips": "립", "cheeks": "치크", "eyes": "아이섀도우"}.get(category, "메이크업")
             
-            prompt = f"""당신은 전문적인 메이크업 컬러 분석 AI입니다.
+            prompt = f"""당신은 K-뷰티 메이크업 전문가입니다.
 
-아래는 제품 이미지 색상 분석을 통해 추천된 Top3 {category_kr} 제품입니다.
-각 제품에 대해 2~3문장으로 추천 이유를 설명하세요.
+아래 Top3 {category_kr} 제품의 추천 이유를 각각 2문장으로 간결하게 작성하세요.
 
 제품 정보:
 """
             
             for rank, prod in enumerate(recommendations, start=1):
                 prompt += f"""
-[{rank}위 제품]
-- 브랜드: {prod['brand']}
-- 제품명: {prod['product_name']}
-- 쉐이드: {prod['shade_name']}
-- 피니쉬: {prod['finish']}
-- ΔE 색상 거리: {prod['deltaE']:.2f}
+{rank}위: {prod['brand']} {prod['product_name']} {prod['shade_name']}
+피니쉬: {prod['finish']}, ΔE: {prod['deltaE']:.1f}
 """
             
             prompt += """
-설명 규칙:
-1) 각 제품당 2~3문장
-2) 왜 사용자가 업로드한 제품 색상과 비슷한지 설명
-3) MLBB / rosy / warm / cool / 데일리 같은 감성 표현 포함
-4) 간결하게 작성
-5) 아래 JSON 형식으로만 출력
+규칙:
+1) 각 제품당 정확히 2문장
+2) 사용자가 업로드한 제품 색상과의 유사성 설명
+3) MLBB/rosy/warm/cool/데일리 등 감성 단어 사용
+4) 아래 JSON만 출력 (다른 텍스트 금지)
 
-출력 형식(JSON):
 {
   "reasons": [
-    "1위 제품에 대한 추천 이유",
-    "2위 제품에 대한 추천 이유",
-    "3위 제품에 대한 추천 이유"
+    "1위 추천 이유",
+    "2위 추천 이유",
+    "3위 추천 이유"
   ]
 }
 """
@@ -172,14 +165,16 @@ class ProductMatcher:
             response = self.groq_client.chat.completions.create(
                 model="llama-3.1-8b-instant",
                 messages=[
-                    {"role": "system", "content": "You are a professional beauty color analysis AI assistant."},
+                    {"role": "system", "content": "You are a professional beauty color analyst. Output only valid JSON."},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7,
-                max_tokens=600
+                temperature=0.5,
+                max_tokens=400
             )
             
             raw_text = response.choices[0].message.content.strip()
+            
+            raw_text = raw_text.replace("```json", "").replace("```", "").strip()
             
             import json
             try:
