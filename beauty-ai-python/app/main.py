@@ -73,7 +73,8 @@ async def root():
         "endpoints": {
             "health": "/health",
             "analyze_image": "/api/analyze/image",
-            "analyze_color": "/api/analyze/color"
+            "analyze_color": "/api/analyze/color",
+            "product_recommend": "/api/product/recommend"
         }
     }
 
@@ -94,9 +95,6 @@ async def health_check():
 
 @app.post("/api/analyze/image", response_model=AnalysisResponse)
 async def analyze_image(file: UploadFile = File(...)):
-    """
-    얼굴 이미지를 분석하여 립, 치크, 아이섀도우 색상 추출 및 제품 추천
-    """
     try:
         logger.info(f"Received image: {file.filename}")
         
@@ -117,7 +115,6 @@ async def analyze_image(file: UploadFile = File(...)):
             "eyeshadow": None
         }
         
-        # 립 분석
         if face_colors["lips"]:
             logger.info("Analyzing lips...")
             lip_recommendations, lip_info = face_matcher.recommend_products(
@@ -150,7 +147,6 @@ async def analyze_image(file: UploadFile = File(...)):
                     "recommendations": lip_recommendations
                 }
         
-        # 치크 분석
         if face_colors["cheeks"]:
             logger.info("Analyzing cheeks...")
             cheek_recommendations, cheek_info = face_matcher.recommend_products(
@@ -183,7 +179,6 @@ async def analyze_image(file: UploadFile = File(...)):
                     "recommendations": cheek_recommendations
                 }
         
-        # 아이섀도우 분석
         if face_colors["eyeshadow"]:
             logger.info("Analyzing eyeshadow...")
             eye_recommendations, eye_info = face_matcher.recommend_products(
@@ -273,10 +268,10 @@ async def analyze_color(color: ColorInput):
 
 
 @app.post("/api/product/recommend")
-async def product_recommend(file: UploadFile = File(...), category: str = Query("lips", description="Product category: lips, cheeks, eyes")):
-    """
-    제품 이미지에서 색상을 추출하여 유사한 제품 추천 (PDF 완전 구현)
-    """
+async def product_recommend(
+    file: UploadFile = File(...), 
+    category: str = Query("lips", description="Product category: lips, cheeks, eyes")
+):
     try:
         logger.info(f"Product image analysis - Category: {category}")
         
@@ -286,6 +281,11 @@ async def product_recommend(file: UploadFile = File(...), category: str = Query(
         
         if not results:
             raise HTTPException(status_code=404, detail="No matching products found")
+        
+        reasons = product_matcher.generate_explanation(results, category)
+        
+        for i, product in enumerate(results):
+            product["reason"] = reasons[i] if i < len(reasons) else "색상 유사도가 높아 추천된 제품입니다."
         
         return {
             "user_lab": user_lab,

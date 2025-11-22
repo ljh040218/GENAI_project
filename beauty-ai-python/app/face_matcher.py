@@ -145,7 +145,7 @@ class FaceMatcher:
 
     def recommend_products(self, user_lab_cv: Tuple[float, float, float], category: str, top_k: int = 3):
         if user_lab_cv is None:
-            return None, None
+            return [], None
 
         L_cv, a_cv, b_cv = user_lab_cv
         L_std, a_std, b_std = opencv_lab_to_standard(L_cv, a_cv, b_cv)
@@ -156,7 +156,7 @@ class FaceMatcher:
 
         if not products:
             print(f"No products found for category: {category}")
-            return None, None
+            return [], None
 
         df = pd.DataFrame(products)
 
@@ -198,7 +198,7 @@ class FaceMatcher:
                 "brand": row['brand'],
                 "product_name": row['name'],
                 "category": category,
-                "shade_name": row.get('shade_name', row['name']),
+                "shade_name": row.get('shade_name', ''),
                 "price": int(row['price']) if row['price'] else 0,
                 "finish": row.get('finish', ''),
                 "image_url": row.get('image_url', ''),
@@ -221,36 +221,40 @@ class FaceMatcher:
         try:
             category_kr = {"lips": "립", "cheeks": "치크", "eyes": "아이섀도우"}.get(category, "메이크업")
 
-            prompt = f"""You are a professional K-beauty makeup color analysis expert.
+            prompt = f"""당신은 전문적인 K-뷰티 메이크업 컬러 분석 전문가입니다.
 
-Below are the Top 3 recommended {category_kr} products based on color analysis.
-Write a brief explanation (2-3 sentences) for EACH product in polite Korean.
+아래는 얼굴 분석을 통해 추천된 Top3 {category_kr} 제품입니다.
+각 제품에 대해 2~3문장으로 추천 이유를 설명하세요.
 
-Format: Return ONLY a JSON object with this structure:
-{{
-  "reasons": [
-    "1위 제품에 대한 추천 이유",
-    "2위 제품에 대한 추천 이유", 
-    "3위 제품에 대한 추천 이유"
-  ]
-}}
-
-Product information:
+제품 정보:
 """
 
             for rank, prod in enumerate(recommendations, start=1):
                 prompt += f"""
-{rank}위: {prod['brand']} - {prod['product_name']}
-ΔE: {prod['deltaE']:.2f}
+[{rank}위 제품]
+- 브랜드: {prod['brand']}
+- 제품명: {prod['product_name']}
+- 쉐이드: {prod['shade_name']}
+- 피니쉬: {prod['finish']}
+- ΔE 색상 거리: {prod['deltaE']:.2f}
 """
 
             prompt += """
-Rules:
-1) 2-3 sentences per product
-2) Explain why the color matches (tone/chroma/brightness)
-3) Include Korean beauty terms (MLBB, rosy, warm, cool, 데일리)
-4) Keep it concise and natural
-5) Output ONLY the JSON object, no other text
+설명 규칙:
+1) 각 제품당 2~3문장
+2) 왜 사용자의 얼굴 톤과 잘 어울리는지 설명 (톤/채도/명도 관점)
+3) MLBB / rosy / warm / cool / 데일리 같은 감성 표현 포함
+4) 간결하게 작성
+5) 아래 JSON 형식으로만 출력
+
+출력 형식(JSON):
+{
+  "reasons": [
+    "1위 제품에 대한 추천 이유",
+    "2위 제품에 대한 추천 이유",
+    "3위 제품에 대한 추천 이유"
+  ]
+}
 """
 
             response = self.groq_client.chat.completions.create(
@@ -277,5 +281,5 @@ Rules:
             
             return reasons[:len(recommendations)]
 
-        except Exception as e:
-            return ["추천 이유 생성 중 오류 발생"] * len(recommendations)
+        except Exception:
+            return ["색상 유사도가 높아 추천된 제품입니다."] * len(recommendations)

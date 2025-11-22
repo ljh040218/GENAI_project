@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import pandas as pd
-import json
 from typing import List, Dict, Tuple
 from groq import Groq
 from skimage.color import rgb2lab, deltaE_ciede2000
@@ -83,8 +82,8 @@ class ProductMatcher:
             )
             distances.append(dE)
         
-        df["color_distance"] = distances
-        df_sorted = df.sort_values("color_distance")
+        df["deltaE"] = distances
+        df_sorted = df.sort_values("deltaE")
         
         unique_products = []
         seen_names = set()
@@ -101,39 +100,64 @@ class ProductMatcher:
         
         return pd.DataFrame(unique_products)
     
-    def build_llama_prompt(self, user_lab: Tuple[float, float, float], 
-                          top3_df: pd.DataFrame) -> str:
-        L, A, B = user_lab
+    def recommend(self, image_bytes: bytes, category: str, top_k: int = 3) -> Tuple[Dict, List[Dict]]:
+        L, A, B = self.extract_lab_from_bytes(image_bytes)
         
-        prompt = f"""당신은 전문적인 메이크업 컬러 분석 AI입니다.
+        top_matches = self.get_top_matches(L, A, B, category, top_k=top_k)
+        
+        if top_matches.empty:
+            return {"L": L, "a": A, "b": B}, []
+        
+        top_results = top_matches.head(top_k).reset_index(drop=False)
+        
+        results = []
+        for _, row in top_results.iterrows():
+            item = {
+                "brand": row["brand"],
+                "product_name": row["name"],
+                "category": row["category"],
+                "shade_name": row.get("shade_name", ""),
+                "price": int(row["price"]) if row.get("price") else 0,
+                "finish": row.get("finish", ""),
+                "image_url": row.get("image_url", ""),
+                "color_hex": row.get("color_hex", ""),
+                "deltaE": float(row["deltaE"])
+            }
+            results.append(item)
+        
+        user_lab = {"L": L, "a": A, "b": B}
+        
+        return user_lab, results
+    
+    def generate_explanation(self, recommendations: List[Dict], category: str) -> List[str]:
+        try:
+            category_kr = {"lips": "립", "cheeks": "치크", "eyes": "아이섀도우"}.get(category, "메이크업")
+            
+            prompt = f"""당신은 전문적인 메이크업 컬러 분석 AI입니다.
 
-사용자가 올린 제품 이미지의 대표 LAB 색상:
-- L: {L:.2f}
-- a: {A:.2f}
-- b: {B:.2f}
-
-아래는 ΔE2000 기준으로 가장 유사한 Top3 제품입니다.
-각 제품이 왜 비슷한지, 어떤 메이크업 룩에 적합한지를 설명해주세요.
+아래는 제품 이미지 색상 분석을 통해 추천된 Top3 {category_kr} 제품입니다.
+각 제품에 대해 2~3문장으로 추천 이유를 설명하세요.
 
 제품 정보:
 """
-        for rank, (_, row) in enumerate(top3_df.iterrows(), start=1):
-            prompt += f"""
+            
+            for rank, prod in enumerate(recommendations, start=1):
+                prompt += f"""
 [{rank}위 제품]
-- 브랜드: {row['brand']}
-- 제품명: {row['name']}
-- 쉐이드: {row.get('shade_name', '')}
-- 피니쉬: {row.get('finish', '')}
-- ΔE 색상 거리: {row['color_distance']:.2f}
+- 브랜드: {prod['brand']}
+- 제품명: {prod['product_name']}
+- 쉐이드: {prod['shade_name']}
+- 피니쉬: {prod['finish']}
+- ΔE 색상 거리: {prod['deltaE']:.2f}
 """
-        
-        prompt += """
+            
+            prompt += """
 설명 규칙:
-1) 각 제품당 2~3문장.
-2) 왜 사용자가 넣은 '제품 색상'과 비슷한지 (톤/채도/명도 관점에서 설명)
+1) 각 제품당 2~3문장
+2) 왜 사용자가 업로드한 제품 색상과 비슷한지 설명
 3) MLBB / rosy / warm / cool / 데일리 같은 감성 표현 포함
-4) 너무 길게 쓰지 말고 간결하게
-5) 아래 JSON 형식으로만 출력하세요.
+4) 간결하게 작성
+5) 아래 JSON 형식으로만 출력
 
 출력 형식(JSON):
 {
@@ -144,11 +168,7 @@ class ProductMatcher:
   ]
 }
 """
-        
-        return prompt
-    
-    def generate_reasons_with_llama(self, prompt: str) -> List[str]:
-        try:
+            
             response = self.groq_client.chat.completions.create(
                 model="llama-3.1-8b-instant",
                 messages=[
@@ -156,52 +176,22 @@ class ProductMatcher:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.7,
+                max_tokens=600
             )
             
-            raw = response.choices[0].message.content.strip()
+            raw_text = response.choices[0].message.content.strip()
             
+            import json
             try:
-                data = json.loads(raw)
+                data = json.loads(raw_text)
                 reasons = data.get("reasons", [])
             except json.JSONDecodeError:
-                reasons = [raw]
+                reasons = [raw_text]
             
-            return reasons
+            while len(reasons) < len(recommendations):
+                reasons.append("색상 유사도가 높아 추천된 제품입니다.")
+            
+            return reasons[:len(recommendations)]
             
         except Exception:
-            return ["색상 유사도가 높아 추천된 제품입니다."] * 3
-    
-    def recommend(self, image_bytes: bytes, category: str, top_k: int = 3) -> Tuple[Dict, List[Dict]]:
-        L, A, B = self.extract_lab_from_bytes(image_bytes)
-        
-        top_matches = self.get_top_matches(L, A, B, category, top_k=top_k)
-        
-        if top_matches.empty:
-            return {"L": L, "a": A, "b": B}, []
-        
-        top3 = top_matches.head(top_k).reset_index(drop=False)
-        
-        prompt = self.build_llama_prompt((L, A, B), top3)
-        reasons = self.generate_reasons_with_llama(prompt)
-        
-        while len(reasons) < len(top3):
-            reasons.append("색상 유사도가 높아 추천된 제품입니다.")
-        
-        results = []
-        for i, (_, row) in enumerate(top3.iterrows()):
-            item = {
-                "brand": row["brand"],
-                "product_name": row["name"],
-                "category": row["category"],
-                "shade_name": row.get("shade_name", ""),
-                "price": int(row["price"]) if row.get("price") else 0,
-                "finish": row.get("finish", ""),
-                "image_url": row.get("image_url", ""),
-                "color_hex": row.get("color_hex", ""),
-                "reason": reasons[i].strip()
-            }
-            results.append(item)
-        
-        user_lab = {"L": L, "a": A, "b": B}
-        
-        return user_lab, results
+            return ["색상 유사도가 높아 추천된 제품입니다."] * len(recommendations)
