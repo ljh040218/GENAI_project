@@ -1,182 +1,184 @@
-@use "../setting/common";
-
-.FaceResult_wrap.container2 {
+.FaceResult_wrap {
+  width: 100%;
   background-color: #ffebeb;
-  text-align: center;
-  font-family: "Pretendard Variable", sans-serif;
-  color: #a85565;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100vh + 100px);
+  padding-bottom: 160px;
 
-  /* 상단바 */
+  /* 🔥 화면의 위에서부터 바로 시작하도록 */
+  justify-content: flex-start;
+  padding-top: 30px;
+  margin-top: 10px;
+
   .fr-topbar {
     width: 100%;
     display: flex;
     justify-content: flex-start;
-    padding: 16px 20px;
+    padding: 16px 20px; // MainFace와 동일
+    .fr-home-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #c05b6d;
+      cursor: pointer;
+      margin-left: auto;
+      margin-right: 22px;
 
+      display: flex;
+      align-items: center;
+    }
     .fr-back-btn {
       background: none;
       border: none;
       font-size: 26px;
+      margin-left: 22px;
       color: #c05b6d;
       cursor: pointer;
     }
   }
+
   .fr-title {
-    margin: 0;
+    font-size: 25px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: #e4657f;
+    width: 90%;
     text-align: center;
-    color: #b86b78;
-    font-weight: 800;
-    margin-bottom: 30px;
   }
 
-  /* 카드 */
   .fr-card {
-    margin: 15px 30px;
-    width: min(360px, 92vw);
     background: #fff;
-    border-radius: 18px;
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 30px;
+    border-radius: 20px;
+    width: 90%;
+    margin: 0 auto;
+
+    padding-bottom: 20px;
   }
+
   .fr-photo {
-    margin: 30px;
+    width: 100%;
+    max-width: 360px;
+    max-height: 360px;
     overflow: hidden;
-    background: #fff;
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+    margin: 24px auto 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+
   .fr-photo img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+    height: auto;
+    max-height: 360px;
+    object-fit: contain;
+    border-radius: 14px;
   }
 
-  /* 세그먼트 버튼 */
   .fr-segment {
     display: flex;
     gap: 10px;
     justify-content: center;
-    margin: 12px;
+    margin-top: 14px;
   }
+
   .seg-btn {
+    padding: 9px 14px;
+    border-radius: 999px;
+    background: white;
+    font-weight: 700;
+    border: 1px solid #e0c2c9;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    border-radius: 999px;
-    border: 1.5px solid #e7c6cf;
-    background: #fff;
-    color: #3b1f27;
-    font-weight: 800;
-    font-size: 13px;
-    transition: all 0.15s ease;
+    gap: 6px;
   }
-  .seg-btn .seg-ic {
-    font-size: 16px;
-    line-height: 1;
-  }
+
   .seg-btn.active {
     background: #f091a0;
-    box-shadow: 0 4px 10px rgba(255, 122, 168, 0.25);
-  }
-  .seg-btn:hover {
-    transform: translateY(-1px);
+    color: white;
   }
 
-  /* 힌트 */
   .fr-hint {
-    text-align: center;
-    color: #444444;
+    font-size: 12px;
+    margin-top: 14px;
     opacity: 0.7;
-    font-size: 13px;
-    margin: 20px 0;
-  }
-
-  /* 제품 영역 (UI만, 탭에 따라 색만 바뀌는 더미) */
-  .fr-product {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: min(360px, 92vw);
-    margin: 22px;
     text-align: center;
   }
-  .prod-img {
-    width: 140px;
-    height: 140px;
-    border-radius: 16px;
-    display: grid;
-    place-items: center;
-    color: #fff;
-    font-weight: 700;
-    box-shadow: var(--shadow);
-  }
-  .prod-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+
+  .fr-product {
+    margin-top: 24px;
+    width: 90%;
+    margin: 0 auto;
+    text-align: center;
+
+    .prod-img img {
+      width: 110px;
+      height: 110px;
+      object-fit: contain;
+    }
+
+    .prod-name {
+      margin-top: 12px;
+      font-weight: 800;
+    }
   }
 
-  .prod-name {
-    color: #444444;
-    font-weight: 800;
-    margin-top: 12px;
-  }
-
-  /* ===== Bottom Sheet ===== */
+  /* BottomSheet */
   .bsheet {
     position: fixed;
-    left: 0;
-    right: 0;
     bottom: 0;
-    height: 75vh; /* 시트 높이 */
-    background: rgba(255, 123, 144, 0.6);
+    left: 50%;
+    width: 100%;
+    max-width: 420px;
+    height: 75vh;
+
+    background: rgba(255, 157, 173, 0.55);
+    backdrop-filter: blur(18px);
     border-top-left-radius: 32px;
     border-top-right-radius: 32px;
-    box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.15);
-    /* 기본은 핸들만 보이도록 접힘 상태로! (HANDLE=72px 과 일치) */
-    --handle-h: 72px;
-    transform: translateY(calc(100% - var(--handle-h)));
-    transition: transform 0.18s ease-out;
-    backdrop-filter: blur(16px);
-    touch-action: none;
+    box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.2);
+
     display: flex;
     flex-direction: column;
+    z-index: 99;
     align-items: center;
-    z-index: 999;
+    /* 🎯 핵심: 닫힌 상태 → 핸들 영역만 보이도록 */
+    transform: translateX(-50%) translateY(calc(75vh - 80px));
+    transition: transform 0.35s ease-out;
   }
 
-  /* 핸들 드래그 영역 */
-  .bs-handle-area {
-    height: var(--handle-h);
-    padding: 0;
+  /* 🔥 OPEN 상태 (완전히 펼쳐짐) */
+  .bsheet.open {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* 핸들 영역 */
+  .bsheet .bs-handle-area {
+    height: 80px;
     display: grid;
     place-items: center;
-    cursor: grab;
-  }
-  .bs-handle {
-    width: 96px;
-    height: 6px;
-    border-radius: 999px;
-    background: #fff;
-    opacity: 0.9;
+    cursor: pointer;
+
+    .bs-handle {
+      width: 90px;
+      height: 6px;
+      background: #fff;
+      border-radius: 999px;
+      opacity: 0.9;
+    }
   }
 
-  /* 시트 내부 내용 */
   .bs-content {
     flex: 1;
-    overflow: auto;
-    padding: 10px 30px 15px;
-    margin-top: 10px;
+    padding-bottom: 30px;
+    overflow-y: auto;
   }
 
-  /* 내용 카드 */
   .bs-card {
     width: min(360px, 92vw);
-    margin: 0 auto;
+    margin-top: 15px;
     background: #eaeaea;
     border-radius: 18px;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
@@ -224,10 +226,5 @@
     color: #000;
     font-size: 14px;
     line-height: 1.6;
-  }
-
-  /* 페이지 스크롤과 겹침 방지: 페이지 컨테이너에는 overflow:hidden 권장 */
-  .FaceResult_wrap {
-    overflow: hidden;
   }
 }

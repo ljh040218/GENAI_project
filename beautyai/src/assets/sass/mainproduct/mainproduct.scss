@@ -1,5 +1,4 @@
-
-.MainFace_wrap {
+.MainProduct_wrap {
   background-color: #ffebeb;
   text-align: center;
   font-family: "Pretendard Variable", sans-serif;
@@ -23,7 +22,7 @@
     }
   }
 
-  /* 텍스트 + 아이콘 + 버튼 전체 묶음 */
+  /* 업로드 영역 */
   .upload-section {
     display: flex;
     flex-direction: column;
@@ -37,10 +36,10 @@
       font-weight: 700;
       color: #e4657f;
       line-height: 1.6;
-      margin-bottom: 30px; /* ✅ 제목 아래 여백 */
+      margin-bottom: 30px;
     }
 
-    .face-upload-icon {
+    .product-upload-icon {
       font-size: 120px;
       background: linear-gradient(135deg, #f58595, #f6a8b9);
       color: white;
@@ -112,8 +111,7 @@
     }
   }
 
-
-  /* 팝업 모달 */
+  /* 팝업 */
   .popup-overlay {
     position: fixed;
     top: 0;
@@ -175,4 +173,71 @@
       }
     }
   }
+  .category-popup {
+  padding: 25px 20px;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e4657f;
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: #a87c84;
+    margin-bottom: 20px;
+  }
+
+  .category-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    button {
+      padding: 12px 0;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      font-weight: 700;
+      background: #f58aa0;
+      color: #fff;
+      cursor: pointer;
+
+      &:active {
+        transform: scale(0.97);
+      }
+    }
+  }
+
+  .popup-close {
+  margin-top: 18px;
+  width: 100%;
+  height: 45px;
+
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  border: 2px solid #f3a3b8;
+
+  color: #d65f80;
+  font-weight: 600;
+  font-size: 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #e67c95;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+}
 }

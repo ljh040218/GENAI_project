@@ -1,10 +1,10 @@
-import React, { useState, useRef, useLayoutEffect } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState, useRef, useLayoutEffect, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "../assets/sass/mainface/faceresult.scss";
-import { FiChevronLeft } from "react-icons/fi";
-import yujinImg from "../assets/img/faceresult/yujin.png";
-import romandImg from "../assets/img/faceresult/romand.png";
+import { FiChevronLeft, FiHome } from "react-icons/fi";
 
+import yujinImg from "../assets/img/mainface/yujin.png";
+import romandImg from "../assets/img/mainface/romand.png";
 const TABS = [
   { key: "LIPS", label: "LIPS", icon: "💄" },
   { key: "CHEEKS", label: "CHEEKS", icon: "🌸" },
@@ -13,97 +13,56 @@ const TABS = [
 
 const FaceResult = () => {
   const { state } = useLocation();
-  const imageUrl = state?.imageUrl; // MainFace에서 navigate로 넘긴 URL
+  const navigate = useNavigate();
+  const imageUrl = state?.imageUrl;
+
   const [active, setActive] = useState("LIPS");
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
 
-  const sheetRef = useRef(null);
-  const [sheetY, setSheetY] = useState(0); //현재 Y 이동
-  const posRef = useRef({ start: 0, y: 0 }); // 내부 상태
-  const HANDLE = 72; // 핸들이 보일 높이
-  const SHEET_RATIO = 0.75; // 75vh
+  const toggleSheet = () => {
+    setIsSheetOpen((prev) => !prev);
+  };
 
-  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
-
-  // 초기: 핸들만 보이도록 접힘 위치로
-  useLayoutEffect(() => {
-    const setCollapsed = () => {
-      const vh = window.innerHeight;
-      const h = vh * SHEET_RATIO; // 시트 실제 px 높이
-      const collapsedPx = Math.max(0, h - HANDLE);
-      posRef.current.y = collapsedPx;
-      setSheetY(collapsedPx);
-    };
-    setCollapsed();
-    window.addEventListener("resize", setCollapsed);
-    return () => window.removeEventListener("resize", setCollapsed);
+  // body 스크롤 방지
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => (document.body.style.overflow = "auto");
   }, []);
 
-  const onMove = (e) => {
-    const vh = window.innerHeight;
-    const h = vh * SHEET_RATIO;
-    const collapsedPx = Math.max(0, h - HANDLE);
-    let next = e.clientY - posRef.current.start; // 양수: 아래
-    // 바닥에 붙인 상태: 열림은 0, 닫힘은 collapsedPx
-    next = clamp(next, 0, collapsedPx);
-    posRef.current.y = next;
-    setSheetY(next);
-  };
-
-  const endDrag = () => {
-    const vh = window.innerHeight;
-    const h = vh * SHEET_RATIO;
-    const collapsedPx = Math.max(0, h - HANDLE);
-    const mid = collapsedPx / 2;
-    const y = posRef.current.y;
-
-    // 두 상태만: 0(열림) / collapsedPx(닫힘)
-    const target = y <= mid ? 0 : collapsedPx;
-
-    posRef.current.y = target;
-    setSheetY(target);
-
-    window.removeEventListener("pointermove", onMove);
-    window.removeEventListener("pointerup", endDrag);
-  };
-
-  const startDrag = (clientY) => {
-    posRef.current.start = clientY - posRef.current.y;
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", endDrag);
-  };
-
   return (
-    <div className="FaceResult_wrap container2">
-      {/* 상단 뒤로가기 */}
+    <div className="container FaceResult_wrap">
+      {/* 상단바 */}
       <header className="fr-topbar">
         <button className="fr-back-btn" onClick={() => window.history.back()}>
           <FiChevronLeft />
+        </button>
+        <button className="fr-home-btn" onClick={() => navigate("/home")}>
+          <FiHome />
         </button>
       </header>
 
       <h2 className="fr-title">분석 결과</h2>
 
-      {/* 업로드 이미지 카드 */}
+      {/* 얼굴 이미지 카드 */}
       <section className="fr-card">
         <div className="fr-photo">
-          {/* {imageUrl ? (
-            <img src={imageUrl} alt="uploaded" />
+          {imageUrl ? (
+            <img src={imageUrl} alt="사용자 업로드 이미지" />
           ) : (
-            <div className="fr-photo-placeholder">업로드한 이미지</div>
-          )} */}
-          <img src={yujinImg} alt="유진" />
+            <div>이미지가 없습니다</div>
+          )}
         </div>
 
-        {/* 세그먼트 버튼 */}
+        {/* 탭 버튼 */}
         <div className="fr-segment">
-          {TABS.map(({ key, label, icon }) => (
+          {TABS.map((t) => (
             <button
-              key={key}
-              className={`seg-btn ${active === key ? "active" : ""}`}
-              onClick={() => setActive(key)}
+              key={t.key}
+              className={`seg-btn ${active === t.key ? "active" : ""}`}
+              onClick={() => setActive(t.key)}
             >
-              <span className="seg-ic">{icon}</span>
-              <span className="seg-txt">{label}</span>
+              <span className="seg-ic">{t.icon}</span>
+              <span className="seg-txt">{t.label}</span>
             </button>
           ))}
         </div>
@@ -113,12 +72,10 @@ const FaceResult = () => {
         </p>
       </section>
 
-      {/* 제품 영역 (UI만) */}
+      {/* 제품 미리보기 */}
       <section className="fr-product">
-        <div className={`prod-img ${active.toLowerCase()}`}>
-          {active === "LIPS" && <img src={romandImg} alt="Rom&nd" />}
-          {active === "CHEEKS" && <img src={romandImg} alt="Rom&nd" />}
-          {active === "EYES" && <img src={romandImg} alt="Rom&nd" />}
+        <div className="prod-img">
+          <img src={romandImg} alt="product" />
         </div>
         <div className="prod-name">
           {active === "LIPS" && "Rom&nd Juicy Tint #Figfig"}
@@ -127,24 +84,16 @@ const FaceResult = () => {
         </div>
       </section>
 
-      {/* 하단 핑크 바 */}
-      <div
-        ref={sheetRef}
-        className="bsheet container2"
-        style={{ transform: `translateY(${sheetY}px)` }}
-      >
-        <div
-          className="bs-handle-area"
-          onPointerDown={(e) => startDrag(e.clientY)}
-        >
+      {/* BottomSheet */}
+      <div className={`bsheet ${isSheetOpen ? "open" : ""}`}>
+        <div className="bs-handle-area" onClick={toggleSheet}>
           <div className="bs-handle" />
         </div>
 
         <div className="bs-content">
-          {/* 스크롤 올린 페이지*/}
           <div className="bs-card">
             <div className="bs-prod-img">
-              <img src={romandImg} alt="Rom&nd" />
+              <img src={romandImg} alt="Romand" />
             </div>
 
             <div className="bs-info">
