@@ -10,23 +10,17 @@ const TABS = [
   { key: "EYES", name: "EYES", icon: "👁️" },
 ];
 
-const NAME_BY_TAB = {
-  LIPS: "Rom&nd Juicy Tint #Figfig",
-  CHEEKS: "3CE Face Blush #Mono Pink",
-  EYES: "Dasique Shadow Palette #Rose",
-};
-
 const ProductResult = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const imageUrl = state?.imageUrl;
   const category = state?.category; // MainProduct에서 선택한 카테고리
-  const results = state?.results || {}; // 카테고리별 top3 결과들
+  // Python 백엔드 응답
+  const pythonResult = state?.pythonResult;
+  const resultList = pythonResult?.results || [];
 
   const [active, setActive] = useState(category); // 해당 카테고리만 활성화
   const [sheetOpen, setSheetOpen] = useState(false);
-
-  const currentMatches = results[active] || []; // 현재 카테고리의 top3
 
   const toggleSheet = () => setSheetOpen((prev) => !prev);
 
@@ -34,6 +28,12 @@ const ProductResult = () => {
     document.body.style.overflow = "hidden";
     return () => (document.body.style.overflow = "auto");
   }, []);
+  const deltaEtoSimilarity = (deltaE) => {
+    // ΔE = 0 → 100% 유사
+    // ΔE = 10 이상 → 0% 가까움
+    const similarity = Math.max(0, 100 - deltaE * 10);
+    return `${similarity.toFixed(0)}%`;
+  };
 
   return (
     <div className="ProductResult_wrap container2">
@@ -71,7 +71,9 @@ const ProductResult = () => {
           ))}
         </div>
 
-        <div className="pr-prod-name">{NAME_BY_TAB[active]}</div>
+        <div className="pr-prod-name">
+          {resultList[0]?.brand} {resultList[0]?.product_name}
+        </div>
         <p className="pr-hint">* AI 분석 결과와 유사한 상위 3개 제품입니다.</p>
       </section>
 
@@ -84,19 +86,34 @@ const ProductResult = () => {
         <div className="pr-bs-content">
           <div className="pr-compare-card">
             <div className="pr-compare-grid">
-              {currentMatches.map((m, i) => (
+              {resultList.map((item, i) => (
                 <div key={i} className="pr-compare-col">
-                  <div className="pr-col-title">MATCH {m.tag}</div>
+                  <div className="pr-col-title">
+                    MATCH {i === 0 ? "A" : i === 1 ? "B" : "C"}
+                  </div>
                   <div className="pr-col-thumb">
-                    <img src={m.image} alt="" />
+                    <img src={item.image_url} alt="" />
                   </div>
                   <div className="pr-col-name">
-                    <span>{m.brand}</span>
-                    <span>{m.name}</span>
+                    <span className="pr-brand">{item.brand}</span>
+                    <span className="pr-product">{item.product_name}</span>
+                    {item.shade_name && (
+                      <span className="pr-shade">{item.shade_name}</span>
+                    )}
                   </div>
-                  <div className="pr-col-finish">{m.finish}</div>
-                  <div className="pr-col-score">{m.similarity}</div>
-                  <div className="pr-col-reason">{m.reason}</div>
+                  {/* 피니시 + 유사도 */}
+                  <div className="pr-col-meta">
+                    <span className="pr-finish">{item.finish}</span>
+                    <span className="pr-score">
+                      {deltaEtoSimilarity(item.deltaE)}
+                    </span>
+                    {item.price && (
+                      <span className="pr-price">
+                        {item.price.toLocaleString()}원
+                      </span>
+                    )}
+                  </div>
+                  <div className="pr-col-reason">{item.reason}</div>
                 </div>
               ))}
             </div>

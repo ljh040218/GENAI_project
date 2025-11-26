@@ -101,8 +101,8 @@
   }
 
   .pr-prod-name {
-    margin-top: 16px;
-    font-size: 16px;
+    margin: 30px 0 10px;
+    font-size: 18px;
     font-weight: 800;
     color: #444;
     text-align: center;
@@ -110,7 +110,7 @@
 
   .pr-hint {
     font-size: 12px;
-    margin-top: 14px;
+    margin: 10px 0 30px;
     opacity: 0.7;
     text-align: center;
   }
@@ -170,10 +170,10 @@
   .pr-compare-card {
     width: 100%;
     max-width: 340px;
-    margin: 0 auto;
+    margin: 0 auto 18px;
     background: #fff;
     border-radius: 18px;
-    padding: 20px 10px;
+    padding: 18px 10px 20px;
     box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
   }
 
@@ -185,17 +185,23 @@
     height: 100%; /* ← 세로로도 꽉 차게 */
     align-items: stretch; /* 컬럼 높이 맞춤 */
     gap: 0;
-    margin-left: -10px;
-    padding: 20px 10px; /* ← 내부 여백을 여기로 이동 */
+    padding: 10px 4px 4px; /* ← 내부 여백을 여기로 이동 */
     position: relative;
   }
 
   /*각 col 크기 조절 */
   .pr-compare-col {
-    position: relative;
-    padding: 14px 10px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px 16px;
     text-align: center;
     color: #2f2f2f;
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+
+    &:last-child {
+      border-right: none;
+    }
   }
 
   /* MATCH 텍스트 */
@@ -221,38 +227,54 @@
   }
 
   .pr-col-name {
-    display: grid;
-    gap: 4px;
-    font-size: 14px;
-    font-weight: 800;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 700;
     color: #444444;
-    line-height: 1.2;
-    padding: 30px 0;
+    line-height: 1.4;
+    padding: 25px 0;
     border-top: 1px solid rgba(0, 0, 0, 0.08);
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    min-height: 76px;
+    text-align: center;
+    word-break: keep-all;
   }
 
-  .pr-col-finish {
-    font-size: 13px;
-    color: #444444;
-    padding: 20px 0 5px;
+  .pr-shade {
+    font-size: 11px;
+    color: #777;
   }
 
-  .pr-col-score {
-    font-size: 14px;
-    font-weight: 600;
-    color: #444444;
-    padding-bottom: 20px;
+  /* finish + similarity 한 줄 정렬 */
+  .pr-col-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 0;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    min-height: 70px;
   }
 
-  .pr-col-reason {
-    padding: 14px 0 6px;
-    min-height: 64px; /* 시안처럼 공간 확보 */
-    place-items: center;
+  .pr-finish,
+  .pr-score,
+  .pr-price {
     font-size: 12px;
+    font-weight: 600;
+    color: #444;
+  }
+
+  /* 추천 이유: 시안처럼 충분한 공간 */
+  .pr-col-reason {
+    font-size: 10px;
     line-height: 1.5;
-    margin: 5px 5px;
+    color: #555;
+    padding-top: 4px;
+    min-height: 70px;
+    word-break: keep-all;
+    padding: 30px 0;
   }
 
   .pr-chat-btn {
