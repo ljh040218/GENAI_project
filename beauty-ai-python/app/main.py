@@ -8,13 +8,33 @@ import os
 from dotenv import load_dotenv
 import logging
 
-from .face_matcher import FaceMatcher
-from .product_matcher import ProductMatcher
-
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+VECTOR_DATABASE_URL = os.getenv("VECTOR_DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is required")
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY environment variable is required")
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY environment variable is required")
+if not VECTOR_DATABASE_URL:
+    raise ValueError("VECTOR_DATABASE_URL environment variable is required")
+
+from .face_matcher import FaceMatcher
+from .product_matcher import ProductMatcher
+from .rag_agent import (
+    VectorDB, 
+    FeedbackParser, 
+    ProductReranker,
+    RAGAgent
+)
 
 app = FastAPI(
     title="K-Beauty AI Image Analysis API",
@@ -30,21 +50,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL environment variable is required")
-if not GROQ_API_KEY:
-    raise ValueError("GROQ_API_KEY environment variable is required")
-
 face_matcher = FaceMatcher(
     database_url=DATABASE_URL,
-    groq_api_key=GROQ_API_KEY
+    openai_api_key=OPENAI_API_KEY
 )
 
 product_matcher = ProductMatcher(
     database_url=DATABASE_URL,
+    openai_api_key=OPENAI_API_KEY
+)
+
+vector_db = VectorDB(database_url=VECTOR_DATABASE_URL)
+feedback_parser = FeedbackParser(groq_api_key=GROQ_API_KEY)
+product_reranker = ProductReranker()
+
+rag_agent = RAGAgent(
+    vector_db=vector_db,
+    feedback_parser=feedback_parser,
+    reranker=product_reranker,
     groq_api_key=GROQ_API_KEY
 )
 
@@ -63,6 +86,14 @@ class AnalysisResponse(BaseModel):
     eyeshadow: Optional[Dict] = None
 
 
+class AgentRequest(BaseModel):
+    user_id: str
+    message: str
+    current_recommendations: List[Dict]
+    user_profile: Dict
+    category: str
+
+
 @app.get("/")
 async def root():
     return {
@@ -73,7 +104,8 @@ async def root():
             "health": "/health",
             "analyze_image": "/api/analyze/image",
             "analyze_color": "/api/analyze/color",
-            "product_recommend": "/api/product/recommend"
+            "product_recommend": "/api/product/recommend",
+            "agent_message": "/api/agent/message"
         }
     }
 
@@ -87,9 +119,34 @@ async def health_check():
             "face_parser": "ready",
             "face_matcher": "ready",
             "database": "connected" if DATABASE_URL else "not configured",
-            "llm": "ready" if GROQ_API_KEY else "not configured"
+            "vector_db": "connected" if VECTOR_DATABASE_URL else "not configured",
+            "openai": "ready" if OPENAI_API_KEY else "not configured",
+            "groq": "ready" if GROQ_API_KEY else "not configured"
         }
     }
+
+
+@app.post("/api/agent/message")
+async def agent_message(request: AgentRequest):
+    try:
+        logger.info(f"Agent message from user {request.user_id}: {request.message}")
+        
+        result = rag_agent.process_message(
+            user_id=request.user_id,
+            message=request.message,
+            current_recommendations=request.current_recommendations,
+            user_profile=request.user_profile,
+            category=request.category
+        )
+        
+        return {
+            "success": True,
+            **result
+        }
+        
+    except Exception as e:
+        logger.error(f"Agent error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/analyze/image", response_model=AnalysisResponse)

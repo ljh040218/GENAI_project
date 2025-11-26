@@ -1,18 +1,23 @@
 import cv2
+import json
 import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple
-from groq import Groq
+import os
 from skimage.color import rgb2lab, deltaE_ciede2000
+from openai import OpenAI
 
 from .database import get_products_from_db
 
 
 class ProductMatcher:
-    
-    def __init__(self, database_url: str, groq_api_key: str):
+    def __init__(self, database_url: str, openai_api_key: str | None = None):
         self.database_url = database_url
-        self.groq_client = Groq(api_key=groq_api_key)
+        
+        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY가 설정되어 있지 않습니다.")
+        self.client = OpenAI(api_key=api_key)
     
     def extract_lab_from_bytes(self, image_bytes: bytes) -> Tuple[float, float, float]:
         nparr = np.frombuffer(image_bytes, np.uint8)
@@ -130,63 +135,107 @@ class ProductMatcher:
         return user_lab, results
     
     def generate_explanation(self, recommendations: List[Dict], category: str) -> List[str]:
-        try:
-            category_kr = {"lips": "립", "cheeks": "치크", "eyes": "아이섀도우"}.get(category, "메이크업")
-            
-            prompt = f"""당신은 K-뷰티 메이크업 전문가입니다.
+        if not recommendations:
+            return []
 
-아래 Top3 {category_kr} 제품의 추천 이유를 각각 2문장으로 간결하게 작성하세요.
+        try:
+            category_kr = {
+                "lips": "립",
+                "cheeks": "치크",
+                "eyes": "아이섀도우",
+            }.get(category.lower(), "메이크업")
+
+            product_block = ""
+            for rank, prod in enumerate(recommendations, start=1):
+                product_block += f"""
+{rank}위:
+- 브랜드: {prod.get('brand', '')}
+- 제품명: {prod.get('product_name', '')}
+- 쉐이드명: {prod.get('shade_name', '')}
+- 피니쉬: {prod.get('finish', '')}
+- ΔE: {prod.get('deltaE', 0):.2f}
+"""
+
+            prompt = f"""
+당신은 K-뷰티 색조 전문가입니다.
+
+아래 Top {len(recommendations)}개 {category_kr} 제품에 대해,
+각각 **정확히 2문장**으로 한국어 추천 이유를 작성하세요.
 
 제품 정보:
-"""
-            
-            for rank, prod in enumerate(recommendations, start=1):
-                prompt += f"""
-{rank}위: {prod['brand']} {prod['product_name']} {prod['shade_name']}
-피니쉬: {prod['finish']}, ΔE: {prod['deltaE']:.1f}
-"""
-            
-            prompt += """
-규칙:
-1) 각 제품당 정확히 2문장
-2) 사용자가 업로드한 제품 색상과의 유사성 설명
-3) MLBB/rosy/warm/cool/데일리 등 감성 단어 사용
-4) 아래 JSON만 출력 (다른 텍스트 금지)
+{product_block}
 
-{
+규칙:
+1) 각 제품당 반드시 한국어 2문장만 작성하세요. (3문장 이상, 1문장 금지)
+2) 문장에는 다음 요소를 포함하세요:
+   - 색감 특징: 톤(쿨톤/웜톤/뉴트럴), 명도(밝다/중간/어둡다), 채도(선명/은은/뮤트) 중 최소 2개
+   - MLBB, rosy, warm, cool, 데일리, 포인트 메이크업 등 감성 단어를 적절히 사용
+   - ΔE 값이 작을수록 사용자가 업로드한 색상과 더 비슷하다는 점을 자연스럽게 언급
+3) 제공된 속성(브랜드, 제품명, 쉐이드명, 피니쉬, ΔE, {category_kr} 용도) 외의 정보는 절대 만들지 마세요.
+   - 예: 지속력, 발림감, 향, 성분, 피부 타입, 발색력, 마케팅 문구 등은 언급 금지
+4) 각 문장은 해당 제품만을 설명해야 하며, 다른 순위 제품과 혼동하지 마세요.
+5) 아래 JSON 형식으로만 출력하세요. JSON 앞뒤에 다른 텍스트를 절대 추가하지 마세요.
+
+출력 형식(JSON):
+
+{{
   "reasons": [
-    "1위 추천 이유",
-    "2위 추천 이유",
-    "3위 추천 이유"
+    "1위 제품에 대한 한국어 2문장 설명",
+    "2위 제품에 대한 한국어 2문장 설명",
+    "3위 제품에 대한 한국어 2문장 설명"
   ]
-}
+}}
+
+- reasons 배열 길이는 반드시 제품 개수({len(recommendations)})와 같아야 합니다.
+- 각 요소는 하나의 문자열(string)이어야 하며, 그 안에 마침표로 구분된 2문장이 들어 있어야 합니다.
 """
-            
-            response = self.groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                temperature=0.2,
+                max_tokens=400,
                 messages=[
-                    {"role": "system", "content": "You are a professional beauty color analyst. Output only valid JSON."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a precise K-beauty color analysis assistant. "
+                            "You must output ONLY valid JSON that can be parsed by json.loads in Python."
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
                 ],
-                temperature=0.5,
-                max_tokens=400
             )
-            
+
             raw_text = response.choices[0].message.content.strip()
-            
             raw_text = raw_text.replace("```json", "").replace("```", "").strip()
-            
-            import json
+
             try:
                 data = json.loads(raw_text)
                 reasons = data.get("reasons", [])
             except json.JSONDecodeError:
-                reasons = [raw_text]
-            
+                start = raw_text.find("{")
+                end = raw_text.rfind("}")
+                if start != -1 and end != -1:
+                    json_str = raw_text[start : end + 1]
+                    data = json.loads(json_str)
+                    reasons = data.get("reasons", [])
+                else:
+                    reasons = [raw_text]
+
+            if not isinstance(reasons, list):
+                reasons = []
+
             while len(reasons) < len(recommendations):
-                reasons.append("색상 유사도가 높아 추천된 제품입니다.")
-            
-            return reasons[:len(recommendations)]
-            
-        except Exception:
-            return ["색상 유사도가 높아 추천된 제품입니다."] * len(recommendations)
+                reasons.append(
+                    "색상 유사도가 높고 원본 컬러와 자연스럽게 어우러지는 제품으로 추천되었습니다."
+                )
+            if len(reasons) > len(recommendations):
+                reasons = reasons[: len(recommendations)]
+
+            return reasons
+
+        except Exception as e:
+            print("LLM 에러:", e)
+            return [
+                "색상 유사도가 높고 원본 컬러와 자연스럽게 어우러지는 제품으로 추천되었습니다."
+            ] * len(recommendations)
