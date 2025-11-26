@@ -15,15 +15,12 @@ logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 VECTOR_DATABASE_URL = os.getenv("VECTOR_DATABASE_URL")
 
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is required")
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY environment variable is required")
-if not GROQ_API_KEY:
-    raise ValueError("GROQ_API_KEY environment variable is required")
 if not VECTOR_DATABASE_URL:
     raise ValueError("VECTOR_DATABASE_URL environment variable is required")
 
@@ -60,15 +57,15 @@ product_matcher = ProductMatcher(
     openai_api_key=OPENAI_API_KEY
 )
 
-vector_db = VectorDB(database_url=VECTOR_DATABASE_URL)
-feedback_parser = FeedbackParser(groq_api_key=GROQ_API_KEY)
+vector_db = VectorDB(database_url=VECTOR_DATABASE_URL, openai_api_key=OPENAI_API_KEY)
+feedback_parser = FeedbackParser(openai_api_key=OPENAI_API_KEY)
 product_reranker = ProductReranker()
 
 rag_agent = RAGAgent(
     vector_db=vector_db,
     feedback_parser=feedback_parser,
     reranker=product_reranker,
-    groq_api_key=GROQ_API_KEY
+    openai_api_key=OPENAI_API_KEY
 )
 
 
@@ -120,8 +117,7 @@ async def health_check():
             "face_matcher": "ready",
             "database": "connected" if DATABASE_URL else "not configured",
             "vector_db": "connected" if VECTOR_DATABASE_URL else "not configured",
-            "openai": "ready" if OPENAI_API_KEY else "not configured",
-            "groq": "ready" if GROQ_API_KEY else "not configured"
+            "openai": "ready" if OPENAI_API_KEY else "not configured"
         }
     }
 

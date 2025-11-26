@@ -2,22 +2,28 @@ import os
 import json
 import psycopg2
 from typing import Dict, List, Tuple, Optional
-from groq import Groq
+from openai import OpenAI
 import numpy as np
-from sentence_transformers import SentenceTransformer
 
 
 class VectorDB:
-    def __init__(self, database_url: str):
+    def __init__(self, database_url: str, openai_api_key: str | None = None):
         self.database_url = database_url
-        self.embedding_model = SentenceTransformer('sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2')
+        
+        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY가 설정되어 있지 않습니다.")
+        self.client = OpenAI(api_key=api_key)
     
     def get_connection(self):
         return psycopg2.connect(self.database_url)
     
     def create_embedding(self, text: str) -> List[float]:
-        embedding = self.embedding_model.encode(text)
-        return embedding.tolist()
+        response = self.client.embeddings.create(
+            model="text-embedding-3-small",
+            input=text
+        )
+        return response.data[0].embedding
     
     def save_feedback(
         self, 
@@ -91,8 +97,11 @@ class VectorDB:
 
 
 class FeedbackParser:
-    def __init__(self, groq_api_key: str):
-        self.groq_client = Groq(api_key=groq_api_key)
+    def __init__(self, openai_api_key: str | None = None):
+        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY가 설정되어 있지 않습니다.")
+        self.client = OpenAI(api_key=api_key)
     
     def parse_feedback_to_preferences(self, user_text: str) -> Dict:
         prompt = f"""당신은 메이크업 추천을 위한 개인화 선호도 분석 AI입니다.
@@ -121,8 +130,8 @@ class FeedbackParser:
 """
         
         try:
-            response = self.groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a strict JSON-only preference parser."},
                     {"role": "user", "content": prompt}
@@ -231,12 +240,16 @@ class RAGAgent:
         vector_db: VectorDB,
         feedback_parser: FeedbackParser,
         reranker: ProductReranker,
-        groq_api_key: str
+        openai_api_key: str | None = None
     ):
         self.vector_db = vector_db
         self.feedback_parser = feedback_parser
         self.reranker = reranker
-        self.groq_client = Groq(api_key=groq_api_key)
+        
+        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY가 설정되어 있지 않습니다.")
+        self.client = OpenAI(api_key=api_key)
     
     def generate_explanation(self, products: List[Dict], category: str) -> List[str]:
         if not products:
@@ -273,8 +286,8 @@ class RAGAgent:
 """
         
         try:
-            response = self.groq_client.chat.completions.create(
-                model="llama-3.1-8b-instant",
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "You are a professional beauty analyst. Output only valid JSON."},
                     {"role": "user", "content": prompt}
