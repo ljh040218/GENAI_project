@@ -5,6 +5,9 @@ import "../assets/sass/mainface/mainface.scss";
 import { FiChevronLeft } from "react-icons/fi";
 import { FaUserCircle } from "react-icons/fa";
 
+
+const PYTHON_API = "https://pythonapi-production-8efe.up.railway.app";
+
 const MainFace = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -12,37 +15,61 @@ const MainFace = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // ▣ 1) 버튼 → 파일 선택창 열기
-  const openFilePicker = () => {
-    fileInputRef.current.click();
-  };
+  // 파일 선택창 열기
+  const openFilePicker = () => fileInputRef.current.click();
 
-  // ▣ 2) 파일 선택 후 실행
-  const handleFileChange = (e) => {
+  // 파일 선택 후
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
-    if (!file) return; // 사용자가 파일 선택 안 하면 중단
+    if (!file) return;
 
+    // 로컬에서 미리보기용 URL (FaceResult에서 보여줄 이미지)
     const imgURL = URL.createObjectURL(file);
 
     // 팝업 켜기 + 로딩 시작
     setShowPopup(true);
     setIsLoading(true);
 
-    // ▣ 3초 AI 분석 연출 후 결과 페이지 이동
-    setTimeout(() => {
-      setIsLoading(false);
+     const formData = new FormData();
+  formData.append("file", file);
 
-      setTimeout(() => {
-        navigate("/faceresult", {
-          state: { imageUrl: imgURL },
-        });
-      }, 500);
-    }, 2000);
+  let apiResult = null;
+
+  try {
+      const response = await fetch(`${PYTHON_API}/api/analyze/image`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
+      });
+
+  apiResult = await response.json();
+      console.log("🔥 얼굴 분석 API 응답:", apiResult);
+
+    } catch (error) {
+      console.error("Face API Error:", error);
+    }
+
+    setIsLoading(false);
+
+    // 네비게이트
+    setTimeout(() => {
+      navigate("/faceresult", {
+        state: {
+          imageUrl: imgURL,
+          results: apiResult, // ⭐ FaceResult가 필요한 구조 그대로 전달
+        },
+      });
+    }, 500);
   };
-   useEffect(() => {
-      document.body.style.overflow = "hidden";
-      return () => (document.body.style.overflow = "auto");
-    }, []);
+
+  // 스크롤 방지
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => (document.body.style.overflow = "auto");
+  }, []);
+
   
   return (
     <div className="MainFace_wrap container2">

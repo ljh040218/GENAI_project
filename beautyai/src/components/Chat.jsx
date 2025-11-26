@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useState,useEffect,useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FiSend, FiChevronLeft, FiHome } from "react-icons/fi";
 import "../assets/sass/chat/chat.scss";
-import ChatLogo from "../assets/img/chat/chatbot_lg.png";
-import VizyIcon from "../assets/img/chat/chatbot_icon.png";
+import ChatLogo from "../assets/img/chat/chatbot_lg.svg";
+import VizyIcon from "../assets/img/chat/chatbot_icon.svg";
 
 const ChatBot = () => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]); // 🔥 메시지 리스트 추가
   const navigate = useNavigate();
+  const bottomRef = useRef(null);
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -28,6 +29,15 @@ const ChatBot = () => {
       ]);
     }, 500);
   };
+  
+useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+     useEffect(() => {
+        document.body.style.overflow = "hidden";
+        return () => (document.body.style.overflow = "auto");
+      }, []);
 
   return (
     <div className="container2">
@@ -62,6 +72,7 @@ const ChatBot = () => {
               <div className={`cb-msg-bubble ${msg.role}`}>{msg.text}</div>
             </div>
           ))}
+          <div ref={bottomRef} />
         </div>
 
         {/* 하단 고정 영역 */}

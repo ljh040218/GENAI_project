@@ -63,12 +63,14 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
+    height: 100%;
     gap: 14px;
   }
   /* bot row */
   .cb-msg-row.bot {
     display: flex;
     align-items: center;
+    margin-left: 10px;
     gap: 8px;
   }
 
@@ -76,6 +78,7 @@
   .cb-msg-row.user {
     display: flex;
     justify-content: flex-end;
+    margin-right: 10px;
   }
   /* bot bubble */
   .cb-msg-bubble.bot {
@@ -95,6 +98,7 @@
     background: #ff5f8a;
     color: white;
     padding: 10px 14px;
+    margin-right: 10px;
     border-radius: 14px 14px 4px 14px;
     font-size: 13px;
     line-height: 1.4;
@@ -106,7 +110,7 @@
     flex-direction: column;
     padding: 20px;
     gap: 16px;
-    margin-top: auto;
+    margin-bottom: 50px;
     padding: 0 16px calc(env(safe-area-inset-bottom, 10px) + 20px);
     box-sizing: border-box;
   }

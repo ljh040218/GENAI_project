@@ -124,173 +124,205 @@
       font-weight: 800;
     }
   }
+/* BottomSheet (FaceResult) */
+.bsheet {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  max-width: 420px;
+  height: 75vh;
 
-  /* BottomSheet */
-  .bsheet {
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    width: 100%;
-    max-width: 420px;
-    height: 75vh;
+  background: rgba(255, 157, 173, 0.55);
+  backdrop-filter: blur(18px);
+  border-top-left-radius: 32px;
+  border-top-right-radius: 32px;
+  box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.2);
 
-    background: rgba(255, 157, 173, 0.55);
-    backdrop-filter: blur(18px);
-    border-top-left-radius: 32px;
-    border-top-right-radius: 32px;
-    box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  z-index: 99;
+  align-items: center;
 
-    display: flex;
-    flex-direction: column;
-    z-index: 99;
-    align-items: center;
-    /* 🎯 핵심: 닫힌 상태 → 핸들 영역만 보이도록 */
-    transform: translateX(-50%) translateY(calc(75vh - 80px));
-    transition: transform 0.35s ease-out;
-  }
+  /* 닫힌 상태 → 핸들만 보이도록 */
+  transform: translateX(-50%) translateY(calc(75vh - 80px));
+  transition: transform 0.35s ease-out;
+}
 
-  .bsheet.open {
-    transform: translateX(-50%) translateY(0);
-  }
+.bsheet.open {
+  transform: translateX(-50%) translateY(0);
+}
 
-  .fr-handle-area {
-    height: 80px;
-    display: grid;
-    place-items: center;
-    cursor: pointer;
 
-    .fr-handle {
-      width: 90px;
-      height: 6px;
-      background: #fff;
-      border-radius: 999px;
-      opacity: 0.9;
-    }
-  }
+/* 핸들 */
+.fr-handle-area {
+  height: 80px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
 
-  .fr-content {
-    flex: 1;
-    overflow-y: auto;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-  }
-
-  .fr-compare-card {
-    width: 100%;
-    max-width: 340px;
-    margin: 0 auto;
+  .fr-handle {
+    width: 90px;
+    height: 6px;
     background: #fff;
-    border-radius: 18px;
-    padding: 20px 10px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    border-radius: 999px;
+    opacity: 0.9;
   }
+}
 
-  /*화면을 3등분하는 그리드 */
-  .fr-compare-grid {
-    display: grid;
+/* 컨텐츠 */
+.fr-content {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* 카드 */
+.fr-compare-card {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto 18px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 10px 20px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* 3등분 그리드 */
+.fr-compare-grid {
+  display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     width: 100%;
     height: 100%; /* ← 세로로도 꽉 차게 */
     align-items: stretch; /* 컬럼 높이 맞춤 */
     gap: 0;
-    margin-left: -10px;
-    padding: 20px 10px; /* ← 내부 여백을 여기로 이동 */
+    padding: 10px 4px 4px; /* ← 내부 여백을 여기로 이동 */
     position: relative;
-  }
+}
 
-  /*각 col 크기 조절 */
-  .fr-compare-col {
-    position: relative;
-    padding: 14px 10px 18px;
-    text-align: center;
-    color: #2f2f2f;
-  }
+/* 개별 컬럼 */
+.fr-compare-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px 16px;
+  text-align: center;
+  color: #2f2f2f;
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
 
-  /* MATCH 텍스트 */
-  .fr-col-title {
-    font-size: 16px;
-    font-weight: 900;
-    letter-spacing: 0.04em;
-    margin: 15px;
+  &:last-child {
+    border-right: none;
   }
+}
 
-  .fr-col-thumb {
-    width: 80px;
-    height: 80px;
-    margin: 4px auto 10px;
-    display: grid;
-    padding: 10px;
-    place-items: center;
-  }
+/* MATCH */
+.fr-col-title {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  margin: 15px;
+}
+
+/* 썸네일 */
+.fr-col-thumb {
+  width: 80px;
+  height: 80px;
+  margin: 4px auto 10px;
+  display: grid;
+  padding: 10px;
+  place-items: center;
+}
   .fr-col-thumb img {
     width: 100%;
     height: 100%;
     object-fit: contain;
   }
 
-  .fr-col-name {
-    display: grid;
-    gap: 4px;
-    font-size: 14px;
-    font-weight: 800;
-    color: #444444;
-    line-height: 1.2;
-    padding: 30px 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  }
 
-  .fr-col-finish {
-    font-size: 13px;
-    color: #444444;
-    padding: 20px 0 5px;
-  }
-
-  .fr-col-score {
-    font-size: 14px;
-    font-weight: 600;
-    color: #444444;
-    padding-bottom: 20px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  }
-
-  .fr-col-reason {
-    padding: 14px 0 6px;
-    min-height: 64px; /* 시안처럼 공간 확보 */
-    place-items: center;
-    font-size: 12px;
-    line-height: 1.5;
-    margin: 5px 5px;
-  }
-  .fr-chat-btn {
-    width: 90%;
-    margin: 15px auto 10px;
-    padding: 14px 20px;
-    border-radius: 12px;
-    background: #fff;
-    border: 1px solid #ff9fb9;
-    color: #333;
-    text-align: center;
-    display: flex;
+/* 브랜드 + 제품명 + 쉐이드 */
+.fr-col-name {
+  display: flex;
     flex-direction: column;
     gap: 5px;
-    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    color: #444444;
+    line-height: 1.4;
+    padding: 25px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    min-height: 76px;
+    text-align: center;
+    word-break: keep-all;
+}
 
-    .fr-chat-main {
-      font-weight: 600;
-      font-size: 13px;
-      color: #ff5f8a;
-    }
+.fr-shade {
+  font-size: 11px;
+  color: #777;
+}
 
-    .fr-chat-sub {
-      font-size: 12px;
-      color: #666;
-    }
+/* finish + similarity + price */
+.fr-col-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  min-height: 70px;
+}
+  .fr-finish,
+  .fr-score,
+  .fr-price {
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
   }
-  /* bsheet 기본 여백 살짝 조정(선택) */
-  .bsheet .fr-content {
-    padding: 16px 16px 22px;
+
+
+/* 추천 이유 */
+.fr-col-reason {
+  font-size: 10px;
+    line-height: 1.5;
+    color: #555;
+    padding-top: 4px;
+    min-height: 70px;
+    word-break: keep-all;
+    padding: 30px 0;
+}
+
+/* 문의 버튼 */
+.fr-chat-btn {
+  width: 90%;
+  margin: 15px auto 10px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #ff9fb9;
+  color: #333;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+
+  .fr-chat-main {
+    font-weight: 600;
+    font-size: 13px;
+    color: #ff5f8a;
   }
+
+  .fr-chat-sub {
+    font-size: 12px;
+    color: #666;
+  }
+}
+
+/* 기본 패딩 */
+.bsheet .fr-content {
+  padding: 16px 16px 22px;
+}
 }
