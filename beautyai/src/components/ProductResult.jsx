@@ -28,12 +28,6 @@ const ProductResult = () => {
     document.body.style.overflow = "hidden";
     return () => (document.body.style.overflow = "auto");
   }, []);
-  const deltaEtoSimilarity = (deltaE) => {
-    // ΔE = 0 → 100% 유사
-    // ΔE = 10 이상 → 0% 가까움
-    const similarity = Math.max(0, 100 - deltaE * 10);
-    return `${similarity.toFixed(0)}%`;
-  };
 
   return (
     <div className="ProductResult_wrap container2">
@@ -104,9 +98,6 @@ const ProductResult = () => {
                   {/* 피니시 + 유사도 */}
                   <div className="pr-col-meta">
                     <span className="pr-finish">{item.finish}</span>
-                    <span className="pr-score">
-                      {deltaEtoSimilarity(item.deltaE)}
-                    </span>
                     {item.price && (
                       <span className="pr-price">
                         {item.price.toLocaleString()}원
