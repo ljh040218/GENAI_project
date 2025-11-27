@@ -1,7 +1,7 @@
 import os
 import json
 import psycopg2
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 from openai import OpenAI
 import numpy as np
 
@@ -96,6 +96,76 @@ class VectorDB:
             return []
 
 
+class IntentClassifier:
+    def __init__(self, openai_api_key: str | None = None):
+        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY가 설정되어 있지 않습니다.")
+        self.client = OpenAI(api_key=api_key)
+    
+    def classify(self, user_text: str) -> str:
+        text = user_text.strip()
+        
+        recommend_keywords = ["추천", "골라줘", "골라 줄", "뭐가 나을까", "어떤 게 나을까", "바꾸고 싶어요", "바꿔줄래", "골라봐"]
+        explain_keywords = ["뭐야", "뭐에요", "뭐예요", "차이", "설명해줘", "알려줘"]
+        trend_keywords = ["트렌드", "유행", "요즘", "올해", "2026", "신상", "셀럽", "아이돌", "무대 메이크업"]
+        
+        if any(k in text for k in recommend_keywords):
+            if any(k in text for k in explain_keywords) or any(k in text for k in trend_keywords):
+                return "both"
+            return "recommend"
+        
+        if any(k in text for k in trend_keywords):
+            return "trend"
+        
+        if any(k in text for k in explain_keywords):
+            return "explain"
+        
+        prompt = f"""
+너는 뷰티 AI Assistant의 인텐트 분석기야.
+
+아래 사용자 문장을 보고 intent를 다음 중 하나로 분류해:
+
+1) "recommend": 제품 추천이 핵심
+2) "explain": 색조 이론/톤/개념 설명만 필요
+3) "trend": 최신 정보, 시즌 트렌드, 셀럽 메이크업 질문
+4) "both": 설명+추천이 섞인 경우
+
+반드시 아래 JSON만 출력:
+{{
+  "intent": "recommend"
+}}
+
+분석할 문장:
+"{user_text}"
+"""
+        
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You must output ONLY valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.0,
+                max_tokens=80
+            )
+            
+            raw = response.choices[0].message.content.strip()
+            raw = raw.replace("```json", "").replace("```", "").strip()
+            
+            data = json.loads(raw)
+            intent = data.get("intent", "recommend")
+            
+            if intent not in ["recommend", "explain", "trend", "both"]:
+                intent = "recommend"
+            
+            return intent
+            
+        except Exception:
+            return "recommend"
+
+
 class FeedbackParser:
     def __init__(self, openai_api_key: str | None = None):
         api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
@@ -103,72 +173,81 @@ class FeedbackParser:
             raise ValueError("OPENAI_API_KEY가 설정되어 있지 않습니다.")
         self.client = OpenAI(api_key=api_key)
     
-    def parse_feedback_to_preferences(self, user_text: str) -> Dict:
-        prompt = f"""당신은 메이크업 추천을 위한 개인화 선호도 분석 AI입니다.
+    def parse_feedback_to_preferences(self, user_text: str) -> Dict[str, Any]:
+        prompt = f"""
+너는 K-뷰티 색조 분석가야.
 
-사용자의 피드백 문장을 읽고 다음 항목을 JSON으로 추출하세요:
+사용자 문장에서 취향 정보를 JSON으로 추출해줘.
 
-- desired_tone: "warm" | "cool" | "neutral" | null
-- depth: "lighter" | "deeper" | "similar" | null
-- mood: ["mlbb", "rosy", "vivid", "soft", ...] (리스트)
-- finish: ["matte", "glow", "cream", "satin", ...] (리스트)
-- store_type: ["oliveyoung", "roadshop", "department", ...] (리스트)
-- dislike_keywords: 사용자가 피하고 싶은 느낌이나 키워드 (리스트)
+사용자 문장:
+"{user_text}"
 
-사용자 피드백: "{user_text}"
-
-반드시 아래와 같은 JSON만 출력하세요:
-
+JSON 형식:
 {{
-  "desired_tone": null,
-  "depth": null,
-  "mood": [],
-  "finish": [],
-  "store_type": [],
-  "dislike_keywords": []
+  "tone": "cool / warm / neutral / unknown 중 하나",
+  "finish": "glossy / matte / velvet / tint / unknown 중 하나",
+  "brightness": "밝음 / 중간 / 어두움 / unknown 중 하나",
+  "saturation": "선명 / 은은 / 뮤트 / unknown 중 하나",
+  "like_keywords": ["사용자가 선호한다고 언급한 키워드 목록"],
+  "dislike_keywords": ["사용자가 피하고 싶다고 한 키워드 목록"],
+  "brand": "언급한 브랜드가 있으면 적어, 없으면 빈 문자열"
 }}
+
+반드시 위 JSON 형식만 출력해.
 """
         
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a strict JSON-only preference parser."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You must output ONLY valid JSON with the specified keys.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
-                temperature=0.2,
-                max_tokens=300
+                temperature=0.1,
+                max_tokens=300,
             )
             
             raw = response.choices[0].message.content.strip()
             raw = raw.replace("```json", "").replace("```", "").strip()
             
-            parsed = json.loads(raw)
-            return parsed
+            try:
+                data = json.loads(raw)
+            except Exception:
+                start = raw.find("{")
+                end = raw.rfind("}")
+                if start != -1 and end != -1:
+                    data = json.loads(raw[start : end + 1])
+                else:
+                    data = {}
             
-        except json.JSONDecodeError:
             return {
-                "desired_tone": None,
-                "depth": None,
-                "mood": [],
-                "finish": [],
-                "store_type": [],
-                "dislike_keywords": []
+                "tone": data.get("tone", "unknown"),
+                "finish": data.get("finish", "unknown"),
+                "brightness": data.get("brightness", "unknown"),
+                "saturation": data.get("saturation", "unknown"),
+                "like_keywords": data.get("like_keywords", []),
+                "dislike_keywords": data.get("dislike_keywords", []),
+                "brand": data.get("brand", "")
             }
+            
         except Exception as e:
             print(f"Feedback parsing error: {e}")
             return {
-                "desired_tone": None,
-                "depth": None,
-                "mood": [],
-                "finish": [],
-                "store_type": [],
-                "dislike_keywords": []
+                "tone": "unknown",
+                "finish": "unknown",
+                "brightness": "unknown",
+                "saturation": "unknown",
+                "like_keywords": [],
+                "dislike_keywords": [],
+                "brand": ""
             }
 
 
 class ProductReranker:
-    def score_product(
+    def score_product_text_based(
         self, 
         product: Dict, 
         parsed_pref: Dict, 
@@ -178,44 +257,59 @@ class ProductReranker:
         
         if "deltaE" in product:
             dE = product["deltaE"]
-            color_score = max(0, 1 - dE / 20)
-            score += 0.5 * color_score
+            color_score = (10 - min(dE, 10)) * 0.5
+            score += color_score
         
-        preferred_finish = parsed_pref.get("finish", [])
-        if preferred_finish and product.get("finish"):
-            finish_map = {
-                "matte": "matte",
-                "glossy": "glow",
-                "glow": "glow",
-                "satin": "satin",
-                "cream": "cream"
-            }
-            product_finish = finish_map.get(product["finish"].lower(), product["finish"].lower())
-            if product_finish in [f.lower() for f in preferred_finish]:
-                score += 0.2
+        finish = (product.get("finish", "")).lower()
+        parsed_finish = parsed_pref.get("finish", "unknown").lower()
         
-        depth = parsed_pref.get("depth")
-        if depth and "deltaE" in product:
-            if depth == "similar" and product["deltaE"] < 5:
-                score += 0.1
-            elif depth == "deeper":
-                score += 0.1
-            elif depth == "lighter":
-                score += 0.1
+        if parsed_finish != "unknown" and parsed_finish in finish:
+            score += 2.5
         
-        moods = parsed_pref.get("mood", [])
+        moods = parsed_pref.get("like_keywords", [])
         product_name = product.get("product_name", "").lower()
         shade_name = product.get("shade_name", "").lower()
         combined_text = f"{product_name} {shade_name}"
         
         for mood in moods:
             if mood.lower() in combined_text:
-                score += 0.1
+                score += 2.0
         
         dislikes = parsed_pref.get("dislike_keywords", [])
         for dislike in dislikes:
             if dislike.lower() in combined_text:
-                score -= 0.3
+                score -= 3.0
+        
+        if parsed_pref.get("brand") and parsed_pref["brand"] in product.get("brand", ""):
+            score += 1.5
+        
+        return score
+    
+    def score_product_profile_based(
+        self, 
+        product: Dict, 
+        parsed_pref: Dict, 
+        user_profile: Dict
+    ) -> float:
+        score = 0.0
+        
+        if "deltaE" in product:
+            dE = product["deltaE"]
+            color_score = (10 - min(dE, 10)) * 0.5
+            score += color_score
+        
+        finish = (product.get("finish", "")).lower()
+        
+        if finish in [f.lower() for f in user_profile.get("finish_preference", [])]:
+            score += 2.5
+        
+        if product.get("brand") in user_profile.get("fav_brands", []):
+            score += 1.5
+        
+        for avoid in user_profile.get("avoid", []):
+            combined_text = f"{product.get('product_name', '')} {product.get('shade_name', '')}".lower()
+            if avoid.lower() in combined_text:
+                score -= 2.0
         
         return score
     
@@ -223,26 +317,37 @@ class ProductReranker:
         self, 
         candidates: List[Dict], 
         parsed_pref: Dict, 
-        user_profile: Dict
-    ) -> List[Dict]:
-        scored = []
-        for product in candidates:
-            score = self.score_product(product, parsed_pref, user_profile)
-            scored.append((score, product))
+        user_profile: Dict,
+        top_k: int = 3
+    ) -> Tuple[List[Dict], List[Dict]]:
+        scored_text = [
+            (self.score_product_text_based(p, parsed_pref, user_profile), p)
+            for p in candidates
+        ]
+        scored_text.sort(key=lambda x: x[0], reverse=True)
+        text_based = [p for s, p in scored_text[:top_k]]
         
-        scored.sort(key=lambda x: x[0], reverse=True)
-        return [p for s, p in scored[:3]]
+        scored_profile = [
+            (self.score_product_profile_based(p, parsed_pref, user_profile), p)
+            for p in candidates
+        ]
+        scored_profile.sort(key=lambda x: x[0], reverse=True)
+        profile_based = [p for s, p in scored_profile[:top_k]]
+        
+        return text_based, profile_based
 
 
 class RAGAgent:
     def __init__(
         self, 
         vector_db: VectorDB,
+        intent_classifier: IntentClassifier,
         feedback_parser: FeedbackParser,
         reranker: ProductReranker,
         openai_api_key: str | None = None
     ):
         self.vector_db = vector_db
+        self.intent_classifier = intent_classifier
         self.feedback_parser = feedback_parser
         self.reranker = reranker
         
@@ -251,64 +356,114 @@ class RAGAgent:
             raise ValueError("OPENAI_API_KEY가 설정되어 있지 않습니다.")
         self.client = OpenAI(api_key=api_key)
     
-    def generate_explanation(self, products: List[Dict], category: str) -> List[str]:
+    def format_product_list(self, products: List[Dict]) -> str:
         if not products:
-            return []
+            return "없음"
         
-        category_kr = {"lips": "립", "cheeks": "치크", "eyes": "아이섀도우"}.get(category, "메이크업")
+        lines = []
+        for i, p in enumerate(products, start=1):
+            line = (
+                f"{i}번) {p.get('brand','')} {p.get('product_name','')} "
+                f"{p.get('shade_name','')}"
+                f" / 피니쉬: {p.get('finish','')}"
+                f" / ΔE: {p.get('deltaE',0):.2f}"
+            )
+            lines.append(line)
+        return "\n".join(lines)
+    
+    def generate_explanation(
+        self,
+        user_text: str,
+        user_profile: Dict,
+        parsed_pref: Dict,
+        memories: List[Dict],
+        text_based: List[Dict],
+        profile_based: List[Dict],
+        web_context: str | None = None
+    ) -> Dict[str, Any]:
+        history_snippets = [m.get("text", "") for m in memories[-3:]]
+        history_text = "\n".join(history_snippets) if history_snippets else "이전 대화 없음"
         
-        prompt = f"""당신은 K-뷰티 메이크업 전문가입니다.
+        text_rec_block = self.format_product_list(text_based)
+        profile_rec_block = self.format_product_list(profile_based)
+        
+        profile_summary = ", ".join(
+            f"{k}={v}" for k, v in user_profile.items()
+        ) if user_profile else "정보 없음"
+        
+        web_block = web_context if web_context else "없음"
+        
+        prompt = f"""
+너는 K-뷰티 AI Beauty Assistant야.
 
-아래 Top3 {category_kr} 제품의 추천 이유를 각각 2문장으로 간결하게 작성하세요.
+[사용자 질문]
+{user_text}
 
-제품 정보:
-"""
-        
-        for rank, prod in enumerate(products, start=1):
-            prompt += f"""
-{rank}위: {prod['brand']} {prod['product_name']}
-"""
-        
-        prompt += """
+[사용자 프로필]
+{profile_summary}
+
+[추출된 선호(pref)]
+{json.dumps(parsed_pref, ensure_ascii=False)}
+
+[이전 대화 요약]
+{history_text}
+
+[사용자 피드백 기반 재추천 후보(user_text_based)]
+{text_rec_block}
+
+[사용자 프로필 기반 재추천 후보(user_profile_based)]
+{profile_rec_block}
+
+[웹 검색/트렌드 정보(web_context)]
+{web_block}
+
+위 정보를 참고해서 다음 규칙을 따라서 답변을 출력해.
+
 규칙:
-1) 각 제품당 정확히 2문장
-2) 사용자 피드백을 반영했다는 점 강조
-3) MLBB/rosy/warm/cool/데일리 등 감성 단어 사용
-4) 아래 JSON만 출력
-
-{
-  "reasons": [
-    "1위 추천 이유",
-    "2위 추천 이유",
-    "3위 추천 이유"
-  ]
-}
+1) 반드시 한국어로 답변합니다.
+2) 답변은 하나의 긴 메시지로 작성하되, 다음 구조를 따릅니다.
+   - 1단락: 사용자의 요청과 상황을 공감하며 요약
+   - 2단락: [사용자 피드백 기반 재추천] 제품 1~3개 이름과 그 이유 설명
+   - 3단락: [사용자 프로필 기반 재추천] 제품 1~3개 이름과 그 이유 설명
+   - (필요하다면) 4단락: 웹/트렌드 정보가 있을 경우, 관련된 팁이나 설명 추가
+3) 제품을 언급할 때는 브랜드 + 제품명 + 쉐이드명을 꼭 포함하세요.
+4) 존재하지 않는 제품이나 우리가 제공하지 않은 정보(지속력, 성분 등)는 만들어내지 마세요.
+5) 자연스러운 문장으로 출력하세요.
 """
         
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You are a professional beauty analyst. Output only valid JSON."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are a precise K-beauty assistant.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
-                temperature=0.5,
-                max_tokens=400
+                temperature=0.4,
+                max_tokens=1000,
             )
             
-            raw = response.choices[0].message.content.strip()
-            raw = raw.replace("```json", "").replace("```", "").strip()
+            assistant_message = response.choices[0].message.content.strip()
             
-            data = json.loads(raw)
-            reasons = data.get("reasons", [])
+            return {
+                "assistant_message": assistant_message,
+                "user_text_based": text_based,
+                "user_profile_based": profile_based,
+                "parsed_preferences": parsed_pref,
+                "intent": "processed"
+            }
             
-            while len(reasons) < len(products):
-                reasons.append("피드백을 반영해 추천된 제품입니다.")
-            
-            return reasons[:len(products)]
-            
-        except Exception:
-            return ["피드백을 반영해 추천된 제품입니다."] * len(products)
+        except Exception as e:
+            print(f"Generation error: {e}")
+            return {
+                "assistant_message": "죄송합니다. 응답 생성 중 오류가 발생했습니다.",
+                "user_text_based": text_based,
+                "user_profile_based": profile_based,
+                "parsed_preferences": parsed_pref,
+                "intent": "error"
+            }
     
     def process_message(
         self,
@@ -318,6 +473,8 @@ class RAGAgent:
         user_profile: Dict,
         category: str
     ) -> Dict:
+        intent = self.intent_classifier.classify(message)
+        
         parsed_pref = self.feedback_parser.parse_feedback_to_preferences(message)
         
         import uuid
@@ -329,26 +486,48 @@ class RAGAgent:
             metadata={
                 "preferences": parsed_pref,
                 "category": category,
+                "intent": intent,
                 "timestamp": str(uuid.uuid1())
             }
         )
         
         similar_feedbacks = self.vector_db.search_similar_feedbacks(message, user_id, top_k=3)
         
-        results = self.reranker.rerank_products(
+        if intent == "explain":
+            return self.generate_explanation(
+                user_text=message,
+                user_profile=user_profile,
+                parsed_pref=parsed_pref,
+                memories=similar_feedbacks,
+                text_based=[],
+                profile_based=[],
+                web_context=None
+            )
+        
+        if intent == "trend":
+            return self.generate_explanation(
+                user_text=message,
+                user_profile=user_profile,
+                parsed_pref=parsed_pref,
+                memories=similar_feedbacks,
+                text_based=[],
+                profile_based=[],
+                web_context="최신 트렌드 정보는 웹 검색을 통해 제공될 예정입니다."
+            )
+        
+        text_based, profile_based = self.reranker.rerank_products(
             current_recommendations, 
             parsed_pref, 
-            user_profile
+            user_profile,
+            top_k=3
         )
         
-        reasons = self.generate_explanation(results, category)
-        
-        for i, product in enumerate(results):
-            product["reason"] = reasons[i] if i < len(reasons) else "피드백을 반영해 추천된 제품입니다."
-        
-        return {
-            "agent_message": "피드백 반영해서 다시 골라봤어요!",
-            "parsed_preferences": parsed_pref,
-            "similar_past_feedbacks": similar_feedbacks,
-            "results": results
-        }
+        return self.generate_explanation(
+            user_text=message,
+            user_profile=user_profile,
+            parsed_pref=parsed_pref,
+            memories=similar_feedbacks,
+            text_based=text_based,
+            profile_based=profile_based,
+            web_context=None
+        )

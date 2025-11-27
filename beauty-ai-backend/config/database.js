@@ -1,3 +1,6 @@
+const pool = require('../config/database');
+const axios = require('axios');
+
 // config/database.js
 const { Pool } = require('pg');
 require('dotenv').config();

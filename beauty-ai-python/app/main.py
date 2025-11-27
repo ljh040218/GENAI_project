@@ -28,6 +28,7 @@ from .face_matcher import FaceMatcher
 from .product_matcher import ProductMatcher
 from .rag_agent import (
     VectorDB, 
+    IntentClassifier,
     FeedbackParser, 
     ProductReranker,
     RAGAgent
@@ -36,7 +37,7 @@ from .rag_agent import (
 app = FastAPI(
     title="K-Beauty AI Image Analysis API",
     description="얼굴 이미지 분석 및 K-뷰티 제품 추천 API",
-    version="1.0.0"
+    version="2.0.0"
 )
 
 app.add_middleware(
@@ -58,11 +59,13 @@ product_matcher = ProductMatcher(
 )
 
 vector_db = VectorDB(database_url=VECTOR_DATABASE_URL, openai_api_key=OPENAI_API_KEY)
+intent_classifier = IntentClassifier(openai_api_key=OPENAI_API_KEY)
 feedback_parser = FeedbackParser(openai_api_key=OPENAI_API_KEY)
 product_reranker = ProductReranker()
 
 rag_agent = RAGAgent(
     vector_db=vector_db,
+    intent_classifier=intent_classifier,
     feedback_parser=feedback_parser,
     reranker=product_reranker,
     openai_api_key=OPENAI_API_KEY
@@ -91,18 +94,32 @@ class AgentRequest(BaseModel):
     category: str
 
 
+class FeedbackQuery(BaseModel):
+    user_id: str
+    query: str
+    top_k: int = 5
+
+
 @app.get("/")
 async def root():
     return {
         "message": "K-Beauty AI Image Analysis API",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "status": "running",
+        "features": {
+            "intent_classification": "recommend/explain/trend/both",
+            "dual_recommendations": "text_based + profile_based",
+            "rag_memory": "pgvector embeddings"
+        },
         "endpoints": {
             "health": "/health",
             "analyze_image": "/api/analyze/image",
             "analyze_color": "/api/analyze/color",
             "product_recommend": "/api/product/recommend",
-            "agent_message": "/api/agent/message"
+            "agent_message": "/api/agent/message",
+            "memory_search": "/api/memory/search",
+            "memory_stats": "/api/memory/stats/{user_id}",
+            "memory_clear": "/api/memory/clear/{user_id}"
         }
     }
 
@@ -117,7 +134,10 @@ async def health_check():
             "face_matcher": "ready",
             "database": "connected" if DATABASE_URL else "not configured",
             "vector_db": "connected" if VECTOR_DATABASE_URL else "not configured",
-            "openai": "ready" if OPENAI_API_KEY else "not configured"
+            "openai": "ready" if OPENAI_API_KEY else "not configured",
+            "intent_classifier": "ready",
+            "rag_agent": "ready",
+            "memory_api": "ready"
         }
     }
 
@@ -348,6 +368,129 @@ async def product_recommend(
         raise
     except Exception as e:
         logger.error(f"Error in product recommendation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/memory/search", tags=["Memory Management"])
+async def search_feedbacks(query: FeedbackQuery):
+    """
+    과거 피드백 검색 (벡터 유사도 기반)
+    
+    사용 사례:
+    - 프론트엔드에서 "이전에 비슷한 요청 했었나요?" 표시
+    - 디버깅: 사용자가 어떤 피드백을 남겼는지 확인
+    """
+    try:
+        results = vector_db.search_similar_feedbacks(
+            query_text=query.query,
+            user_id=query.user_id,
+            top_k=query.top_k
+        )
+        
+        return {
+            "success": True,
+            "query": query.query,
+            "results": results
+        }
+        
+    except Exception as e:
+        logger.error(f"Feedback search error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/memory/stats/{user_id}", tags=["Memory Management"])
+async def get_user_memory_stats(user_id: str):
+    """
+    사용자 피드백 통계
+    
+    사용 사례:
+    - 프론트엔드에서 "총 N번의 피드백을 주셨어요" 표시
+    - 관리자 대시보드: 사용자별 활동량
+    """
+    try:
+        conn = vector_db.get_connection()
+        cur = conn.cursor()
+        
+        # 총 피드백 수
+        cur.execute("""
+            SELECT COUNT(*) 
+            FROM feedback_embeddings 
+            WHERE user_id = %s
+        """, (user_id,))
+        total_count = cur.fetchone()[0]
+        
+        # 최근 피드백
+        cur.execute("""
+            SELECT text, created_at
+            FROM feedback_embeddings 
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT 5
+        """, (user_id,))
+        recent_feedbacks = [
+            {"text": row[0], "created_at": row[1].isoformat()}
+            for row in cur.fetchall()
+        ]
+        
+        # Intent 분포
+        cur.execute("""
+            SELECT metadata->>'intent' as intent, COUNT(*) as count
+            FROM feedback_embeddings 
+            WHERE user_id = %s
+            GROUP BY metadata->>'intent'
+        """, (user_id,))
+        intent_distribution = {row[0]: row[1] for row in cur.fetchall()}
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "total_feedbacks": total_count,
+            "recent_feedbacks": recent_feedbacks,
+            "intent_distribution": intent_distribution
+        }
+        
+    except Exception as e:
+        logger.error(f"Stats error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/memory/clear/{user_id}", tags=["Memory Management"])
+async def clear_user_memory(user_id: str):
+    """
+    사용자 피드백 기록 삭제
+    
+    사용 사례:
+    - 프론트엔드에서 "메모리 초기화" 버튼
+    - GDPR 준수: 사용자 데이터 삭제 요청
+    
+    주의: 복구 불가능
+    """
+    try:
+        conn = vector_db.get_connection()
+        cur = conn.cursor()
+        
+        cur.execute("""
+            DELETE FROM feedback_embeddings 
+            WHERE user_id = %s
+        """, (user_id,))
+        
+        deleted_count = cur.rowcount
+        conn.commit()
+        
+        cur.close()
+        conn.close()
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "deleted_count": deleted_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Delete error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
