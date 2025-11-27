@@ -1,7 +1,3 @@
-const pool = require('../config/database');
-const axios = require('axios');
-
-// config/database.js
 const { Pool } = require('pg');
 require('dotenv').config();
 
@@ -15,7 +11,7 @@ if (!connectionString) {
 const pool = new Pool({
   connectionString,
   ssl: {
-    rejectUnauthorized: false, // Railway requires SSL
+    rejectUnauthorized: false,
   },
 });
 
