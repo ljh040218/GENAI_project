@@ -6,11 +6,7 @@ import { FiChevronLeft, FiHome } from "react-icons/fi";
 
 import romandImg from "../assets/img/mainface/romand.png"; // FIXED
 
-// ΔE → 유사도 %
-const deltaEtoSimilarity = (deltaE) => {
-  const similarity = Math.max(0, 100 - deltaE * 10);
-  return `${similarity.toFixed(0)}%`;
-};
+
 // 🔥 백엔드 응답 → UI 구조로 변환
 const convertApiResult = (api) => {
   if (!api) return { LIPS: [], CHEEKS: [], EYES: [] };
@@ -24,7 +20,6 @@ const convertApiResult = (api) => {
       shade: p.shade_name,
       finish: p.finish,
       price: p.price,
-      similarity: deltaEtoSimilarity(p.deltaE),
       reason: p.reason,
     }));
 
@@ -142,7 +137,7 @@ const handleTabClick = (tab) => {
             {/* 피니시 + 유사도 + 가격 */}
             <div className="fr-col-meta">
               <span className="fr-finish">{m.finish}</span>
-              <span className="fr-score">{m.similarity}</span>
+              
 
               {m.price && (
                 <span className="fr-price">{m.price.toLocaleString()}원</span>
