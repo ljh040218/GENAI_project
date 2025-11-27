@@ -1,0 +1,243 @@
+.MainProduct_wrap {
+  background-color: #ffebeb;
+  text-align: center;
+  font-family: "Pretendard Variable", sans-serif;
+  color: #a85565;
+  padding-top: 30px;
+  margin-top: 10px;
+
+  /* 상단바 */
+  .topbar {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    padding: 16px 20px;
+
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 26px;
+      color: #c05b6d;
+      cursor: pointer;
+    }
+  }
+
+  /* 업로드 영역 */
+  .upload-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+
+    .upload-title {
+      font-size: 25px;
+      font-weight: 700;
+      color: #e4657f;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    .product-upload-icon {
+      font-size: 120px;
+      background: linear-gradient(135deg, #f58595, #f6a8b9);
+      color: white;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      margin-bottom: 25px;
+    }
+
+    .upload-btn {
+      width: 230px;
+      height: 52px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(90deg, #f27f9a, #f9aebc);
+      color: #fff;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
+
+      &:active {
+        transform: scale(0.97);
+      }
+    }
+  }
+
+  /* 주의사항 */
+  .notice-box {
+    margin-top: 30px;
+    text-align: left;
+    padding: 0 26px 40px;
+
+    .notice-title {
+      display: flex;
+      align-items: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: #f27f9a;
+      margin-bottom: 10px;
+
+      span {
+        font-size: 15px;
+        margin-right: 5px;
+      }
+    }
+
+    ul {
+      list-style: decimal;
+      padding-left: 22px;
+      line-height: 1.6;
+      font-size: 13px;
+      color: #9a7a7a;
+      word-break: keep-all;
+
+      li {
+        margin-bottom: 8px;
+
+        strong {
+          color: #f27f9a;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  /* 팝업 */
+  .popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+
+    .popup {
+      background-color: #fff;
+      border: 2px solid #f58a9c;
+      border-radius: 18px;
+      padding: 28px 22px;
+      text-align: center;
+      width: 85%;
+      max-width: 320px;
+      color: #a85565;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+
+      .popup-icon {
+        font-size: 48px;
+        color: #f58a9c;
+        margin-bottom: 10px;
+      }
+
+      h3 {
+        font-size: 17px;
+        font-weight: bold;
+        color: #e4637c;
+        margin-bottom: 8px;
+      }
+
+      p {
+        font-size: 14px;
+        color: #a87c84;
+        line-height: 1.4;
+      }
+
+      .popup-btn {
+        margin-top: 20px;
+        width: 100%;
+        padding: 10px;
+        background-color: #f58a9c;
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.2s ease;
+
+        &:hover {
+          background-color: #e4637c;
+        }
+      }
+    }
+  }
+  .category-popup {
+  padding: 25px 20px;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #e4657f;
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: #a87c84;
+    margin-bottom: 20px;
+  }
+
+  .category-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    button {
+      padding: 12px 0;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      font-weight: 700;
+      background: #f58aa0;
+      color: #fff;
+      cursor: pointer;
+
+      &:active {
+        transform: scale(0.97);
+      }
+    }
+  }
+
+  .popup-close {
+  margin-top: 18px;
+  width: 100%;
+  height: 45px;
+
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  border: 2px solid #f3a3b8;
+
+  color: #d65f80;
+  font-weight: 600;
+  font-size: 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #e67c95;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+}
+}

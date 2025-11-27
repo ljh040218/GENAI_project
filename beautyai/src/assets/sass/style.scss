@@ -2,8 +2,12 @@
 
 // setting
 @use "setting/vars";
-@use "setting/resets";
 @use "setting/common";
-@use 'setting/home';
-@use 'login/login';
-@use 'login/signup';
+@use "login/login";
+@use "login/signup";
+@use "home/home";
+@use "mainface/mainface";
+@use "mainface/faceresult";
+@use "profile/profilesetting";
+@use "profile/profileview";
+@use "chat/chat";

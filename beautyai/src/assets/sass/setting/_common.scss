@@ -1,17 +1,18 @@
-button, a {
-    cursor: pointer;
-    background-color: var(--none);
+button,
+a {
+  cursor: pointer;
+  background-color: var(--none);
 }
 
 body {
-    background-color: var(--black);
+  background-color: var(--black);
 }
 
 // 각 컴포넌트 가장 바깥 div에 해당 클래스를 넣으면 자동으로 크기가 설정됩니다.
 .container {
   width: 100%;
   margin: 0 auto;
-  background-color: #161616;
+  background-color: #ffebeb;
   min-width: 393px;
   max-width: 420px;
   height: 100vh;
@@ -38,9 +39,9 @@ body {
 
 // 해당 클래스를 붙이면 display가 무조건 none이 됩니다.
 .none {
-    display: none !important;
+  display: none !important;
 }
 
 input {
-    outline: none;
+  outline: none;
 }
