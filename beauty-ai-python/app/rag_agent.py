@@ -4,79 +4,79 @@ import psycopg2
 from typing import Dict, List, Tuple, Optional, Any
 from openai import OpenAI
 import numpy as np
+import logging
 
+# 로깅 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class VectorDB:
-    def __init__(self, database_url: str, openai_api_key: str | None = None):
-        self.database_url = database_url
+    def __init__(self):
+        # 두 개의 DB URL을 환경변수에서 로드
+        self.vector_db_url = os.getenv("VECTOR_DATABASE_URL")
+        self.general_db_url = os.getenv("DATABASE_URL")
+        self.api_key = os.getenv("OPENAI_API_KEY")
         
-        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
-        if not api_key:
+        if not self.vector_db_url or not self.general_db_url:
+            raise ValueError("데이터베이스 URL(VECTOR_DATABASE_URL, DATABASE_URL)이 설정되지 않았습니다.")
+        if not self.api_key:
             raise ValueError("OPENAI_API_KEY가 설정되어 있지 않습니다.")
-        self.client = OpenAI(api_key=api_key)
+            
+        self.client = OpenAI(api_key=self.api_key)
     
-    def get_connection(self):
-        return psycopg2.connect(self.database_url)
+    def get_vector_connection(self):
+        """네온(Vector) DB 연결"""
+        return psycopg2.connect(self.vector_db_url)
+
+    def get_general_connection(self):
+        """일반(PostgreSQL) DB 연결"""
+        return psycopg2.connect(self.general_db_url)
     
     def create_embedding(self, text: str) -> List[float]:
-        response = self.client.embeddings.create(
-            model="text-embedding-3-small",
-            input=text
-        )
-        return response.data[0].embedding
-    
-    def save_feedback(
-        self, 
-        feedback_id: str,
-        user_id: str,
-        text: str,
-        metadata: Dict
-    ):
+        """텍스트를 벡터로 변환"""
         try:
-            conn = self.get_connection()
+            response = self.client.embeddings.create(
+                model="text-embedding-3-small",
+                input=text
+            )
+            return response.data[0].embedding
+        except Exception as e:
+            logger.error(f"Embedding creation failed: {e}")
+            return []
+    
+    def save_feedback(self, feedback_id: str, user_id: str, text: str, metadata: Dict):
+        """사용자 피드백(채팅) 저장"""
+        try:
+            conn = self.get_vector_connection()
             cur = conn.cursor()
-            
             embedding = self.create_embedding(text)
             
             cur.execute("""
                 INSERT INTO feedback_embeddings 
                 (feedback_id, user_id, embedding, text, metadata)
                 VALUES (%s, %s, %s, %s, %s)
-            """, (
-                feedback_id,
-                user_id,
-                embedding,
-                text,
-                json.dumps(metadata)
-            ))
+            """, (feedback_id, user_id, embedding, text, json.dumps(metadata)))
             
             conn.commit()
             cur.close()
             conn.close()
-            
         except Exception as e:
-            print(f"Error saving feedback: {e}")
-    
-    def search_similar_feedbacks(
-        self, 
-        query_text: str, 
-        user_id: str, 
-        top_k: int = 5
-    ) -> List[Dict]:
+            logger.error(f"Save feedback failed: {e}")
+
+    def search_similar_feedbacks(self, query_text: str, user_id: str, top_k: int = 3) -> List[Dict]:
+        """과거 대화 검색"""
         try:
-            conn = self.get_connection()
+            conn = self.get_vector_connection()
             cur = conn.cursor()
-            
             query_embedding = self.create_embedding(query_text)
             
             cur.execute("""
-                SELECT text, metadata, 
-                       embedding <=> %s::vector as distance
+                SELECT text, metadata, embedding <=> %s::vector as distance
                 FROM feedback_embeddings
                 WHERE user_id = %s
-                ORDER BY embedding <=> %s::vector
+                ORDER BY distance ASC
                 LIMIT %s
-            """, (query_embedding, user_id, query_embedding, top_k))
+            """, (query_embedding, user_id, top_k))
             
             results = []
             for row in cur.fetchall():
@@ -88,383 +88,171 @@ class VectorDB:
             
             cur.close()
             conn.close()
-            
             return results
+        except Exception as e:
+            logger.error(f"Search feedbacks failed: {e}")
+            return []
+
+    def search_products(self, query_text: str, category: str, top_k: int = 5) -> List[Dict]:
+        """
+        [핵심] 벡터 DB에서 의미 기반 제품 검색
+        """
+        try:
+            conn = self.get_vector_connection()
+            cur = conn.cursor()
+            query_embedding = self.create_embedding(query_text)
+            
+            # 카테고리 매핑 (프론트엔드 값 -> DB 값)
+            # 예: 'lip' -> 'lips' (DB에 저장된 형태에 따라 조정 필요)
+            category_map = {"lip": "lips", "eye": "eyes", "cheek": "cheeks"}
+            db_category = category_map.get(category, category)
+
+            # 벡터 유사도 검색 (L2 Distance)
+            cur.execute("""
+                SELECT id, product_id, brand, product_name, color_name, price, text, metadata, 
+                       embedding <=> %s::vector as distance
+                FROM product_embeddings
+                WHERE category = %s
+                ORDER BY distance ASC
+                LIMIT %s
+            """, (query_embedding, db_category, top_k))
+            
+            vector_results = []
+            for row in cur.fetchall():
+                vector_results.append({
+                    "vector_uuid": str(row[0]),
+                    "product_id": str(row[1]), # 일반 DB와 연결할 Key
+                    "brand": row[2],
+                    "product_name": row[3],
+                    "shade_name": row[4],
+                    "price": row[5],
+                    "rag_text": row[6], # 검색된 텍스트 원문
+                    "metadata": row[7],
+                    "distance": float(row[8])
+                })
+            
+            cur.close()
+            conn.close()
+            
+            # 검색 결과가 없으면 빈 리스트 반환
+            if not vector_results:
+                return []
+
+            # [교차 검증] 일반 DB에서 최신 정보(가격, 존재여부) 확인
+            return self.verify_with_general_db(vector_results)
             
         except Exception as e:
-            print(f"Error searching feedbacks: {e}")
+            logger.error(f"Product search failed: {e}")
             return []
+
+    def verify_with_general_db(self, vector_results: List[Dict]) -> List[Dict]:
+        """
+        [교차 검증] 벡터 DB에서 찾은 제품이 일반 DB에 실제로 있는지 확인하고 정보 보정
+        """
+        try:
+            conn = self.get_general_connection()
+            cur = conn.cursor()
+            
+            # product_id 목록 추출
+            # product_id가 일반 DB의 id 컬럼(INT or String)과 타입이 맞아야 함
+            ids = [item['product_id'] for item in vector_results]
+            
+            if not ids:
+                return vector_results
+
+            # 일반 DB 조회 (최신 가격 확인용)
+            # 만약 일반 DB의 ID가 정수형(INT)이라면 형변환 주의
+            format_strings = ','.join(['%s'] * len(ids))
+            cur.execute(f"SELECT id, price, name, image_url FROM products WHERE id IN ({format_strings})", tuple(ids))
+            
+            real_products = {str(row[0]): {"price": row[1], "name": row[2], "image_url": row[3]} for row in cur.fetchall()}
+            
+            verified_results = []
+            for item in vector_results:
+                pid = item['product_id']
+                if pid in real_products:
+                    # 일반 DB에 존재하는 제품만 리스트에 추가 (할루시네이션 방지)
+                    # 가격 정보를 최신으로 업데이트
+                    item['price'] = real_products[pid]['price']
+                    item['image_url'] = real_products[pid]['image_url']
+                    verified_results.append(item)
+            
+            cur.close()
+            conn.close()
+            return verified_results
+
+        except Exception as e:
+            logger.error(f"General DB verification failed: {e}")
+            # 일반 DB 연결 실패 시 벡터 DB 결과라도 반환 (장애 대응)
+            return vector_results
 
 
 class IntentClassifier:
-    def __init__(self, openai_api_key: str | None = None):
-        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY가 설정되어 있지 않습니다.")
-        self.client = OpenAI(api_key=api_key)
-    
-    def classify(self, user_text: str) -> str:
-        text = user_text.strip()
-        
-        recommend_keywords = ["추천", "골라줘", "골라 줄", "뭐가 나을까", "어떤 게 나을까", "바꾸고 싶어요", "바꿔줄래", "골라봐"]
-        explain_keywords = ["뭐야", "뭐에요", "뭐예요", "차이", "설명해줘", "알려줘"]
-        trend_keywords = ["트렌드", "유행", "요즘", "올해", "2026", "신상", "셀럽", "아이돌", "무대 메이크업"]
-        
-        if any(k in text for k in recommend_keywords):
-            if any(k in text for k in explain_keywords) or any(k in text for k in trend_keywords):
-                return "both"
-            return "recommend"
-        
-        if any(k in text for k in trend_keywords):
-            return "trend"
-        
-        if any(k in text for k in explain_keywords):
-            return "explain"
-        
-        prompt = f"""
-너는 뷰티 AI Assistant의 인텐트 분석기야.
+    def __init__(self, openai_client: OpenAI):
+        self.client = openai_client
 
-아래 사용자 문장을 보고 intent를 다음 중 하나로 분류해:
-
-1) "recommend": 제품 추천이 핵심
-2) "explain": 색조 이론/톤/개념 설명만 필요
-3) "trend": 최신 정보, 시즌 트렌드, 셀럽 메이크업 질문
-4) "both": 설명+추천이 섞인 경우
-
-반드시 아래 JSON만 출력:
-{{
-  "intent": "recommend"
-}}
-
-분석할 문장:
-"{user_text}"
-"""
-        
+    def classify(self, message: str) -> str:
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
-                    {"role": "system", "content": "You must output ONLY valid JSON."},
-                    {"role": "user", "content": prompt}
+                    {"role": "system", "content": "Analyze the user's intent. Return only one of: 'recommend' (wants product suggestion), 'explain' (asks why/how), 'trend' (asks for popularity), 'chat' (general talk)."},
+                    {"role": "user", "content": message}
                 ],
-                temperature=0.0,
-                max_tokens=80
+                temperature=0.3
             )
-            
-            raw = response.choices[0].message.content.strip()
-            raw = raw.replace("```json", "").replace("```", "").strip()
-            
-            data = json.loads(raw)
-            intent = data.get("intent", "recommend")
-            
-            if intent not in ["recommend", "explain", "trend", "both"]:
-                intent = "recommend"
-            
-            return intent
-            
-        except Exception:
+            intent = response.choices[0].message.content.strip().lower()
+            return intent if intent in ['recommend', 'explain', 'trend'] else 'recommend'
+        except:
             return "recommend"
 
 
 class FeedbackParser:
-    def __init__(self, openai_api_key: str | None = None):
-        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY가 설정되어 있지 않습니다.")
-        self.client = OpenAI(api_key=api_key)
-    
-    def parse_feedback_to_preferences(self, user_text: str) -> Dict[str, Any]:
-        prompt = f"""
-너는 K-뷰티 색조 분석가야.
+    def __init__(self, openai_client: OpenAI):
+        self.client = openai_client
 
-사용자 문장에서 취향 정보를 JSON으로 추출해줘.
-
-사용자 문장:
-"{user_text}"
-
-JSON 형식:
-{{
-  "tone": "cool / warm / neutral / unknown 중 하나",
-  "finish": "glossy / matte / velvet / tint / unknown 중 하나",
-  "brightness": "밝음 / 중간 / 어두움 / unknown 중 하나",
-  "saturation": "선명 / 은은 / 뮤트 / unknown 중 하나",
-  "like_keywords": ["사용자가 선호한다고 언급한 키워드 목록"],
-  "dislike_keywords": ["사용자가 피하고 싶다고 한 키워드 목록"],
-  "brand": "언급한 브랜드가 있으면 적어, 없으면 빈 문자열"
-}}
-
-반드시 위 JSON 형식만 출력해.
-"""
-        
+    def parse_feedback_to_preferences(self, message: str) -> Dict:
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
+                    {"role": "system", "content": """
+                    Extract beauty preferences from the user message.
+                    Return JSON format:
                     {
-                        "role": "system",
-                        "content": "You must output ONLY valid JSON with the specified keys.",
-                    },
-                    {"role": "user", "content": prompt},
+                        "tone": "warm" | "cool" | "neutral" | "unknown",
+                        "finish": "matte" | "glossy" | "satin" | "unknown",
+                        "like_keywords": ["keyword1", "keyword2"],
+                        "dislike_keywords": ["keyword1", "keyword2"]
+                    }
+                    """},
+                    {"role": "user", "content": message}
                 ],
-                temperature=0.1,
-                max_tokens=300,
+                response_format={"type": "json_object"}
             )
-            
-            raw = response.choices[0].message.content.strip()
-            raw = raw.replace("```json", "").replace("```", "").strip()
-            
-            try:
-                data = json.loads(raw)
-            except Exception:
-                start = raw.find("{")
-                end = raw.rfind("}")
-                if start != -1 and end != -1:
-                    data = json.loads(raw[start : end + 1])
-                else:
-                    data = {}
-            
-            return {
-                "tone": data.get("tone", "unknown"),
-                "finish": data.get("finish", "unknown"),
-                "brightness": data.get("brightness", "unknown"),
-                "saturation": data.get("saturation", "unknown"),
-                "like_keywords": data.get("like_keywords", []),
-                "dislike_keywords": data.get("dislike_keywords", []),
-                "brand": data.get("brand", "")
-            }
-            
-        except Exception as e:
-            print(f"Feedback parsing error: {e}")
-            return {
-                "tone": "unknown",
-                "finish": "unknown",
-                "brightness": "unknown",
-                "saturation": "unknown",
-                "like_keywords": [],
-                "dislike_keywords": [],
-                "brand": ""
-            }
+            return json.loads(response.choices[0].message.content)
+        except:
+            return {"tone": "unknown", "finish": "unknown", "like_keywords": [], "dislike_keywords": []}
 
 
 class ProductReranker:
-    def score_product_text_based(
-        self, 
-        product: Dict, 
-        parsed_pref: Dict, 
-        user_profile: Dict
-    ) -> float:
-        score = 0.0
-        
-        if "deltaE" in product:
-            dE = product["deltaE"]
-            color_score = (10 - min(dE, 10)) * 0.5
-            score += color_score
-        
-        finish = (product.get("finish", "")).lower()
-        parsed_finish = parsed_pref.get("finish", "unknown").lower()
-        
-        if parsed_finish != "unknown" and parsed_finish in finish:
-            score += 2.5
-        
-        moods = parsed_pref.get("like_keywords", [])
-        product_name = product.get("product_name", "").lower()
-        shade_name = product.get("shade_name", "").lower()
-        combined_text = f"{product_name} {shade_name}"
-        
-        for mood in moods:
-            if mood.lower() in combined_text:
-                score += 2.0
-        
-        dislikes = parsed_pref.get("dislike_keywords", [])
-        for dislike in dislikes:
-            if dislike.lower() in combined_text:
-                score -= 3.0
-        
-        if parsed_pref.get("brand") and parsed_pref["brand"] in product.get("brand", ""):
-            score += 1.5
-        
-        return score
-    
-    def score_product_profile_based(
-        self, 
-        product: Dict, 
-        parsed_pref: Dict, 
-        user_profile: Dict
-    ) -> float:
-        score = 0.0
-        
-        if "deltaE" in product:
-            dE = product["deltaE"]
-            color_score = (10 - min(dE, 10)) * 0.5
-            score += color_score
-        
-        finish = (product.get("finish", "")).lower()
-        
-        if finish in [f.lower() for f in user_profile.get("finish_preference", [])]:
-            score += 2.5
-        
-        if product.get("brand") in user_profile.get("fav_brands", []):
-            score += 1.5
-        
-        for avoid in user_profile.get("avoid", []):
-            combined_text = f"{product.get('product_name', '')} {product.get('shade_name', '')}".lower()
-            if avoid.lower() in combined_text:
-                score -= 2.0
-        
-        return score
-    
-    def rerank_products(
-        self, 
-        candidates: List[Dict], 
-        parsed_pref: Dict, 
-        user_profile: Dict,
-        top_k: int = 3
-    ) -> Tuple[List[Dict], List[Dict]]:
-        scored_text = [
-            (self.score_product_text_based(p, parsed_pref, user_profile), p)
-            for p in candidates
-        ]
-        scored_text.sort(key=lambda x: x[0], reverse=True)
-        text_based = [p for s, p in scored_text[:top_k]]
-        
-        scored_profile = [
-            (self.score_product_profile_based(p, parsed_pref, user_profile), p)
-            for p in candidates
-        ]
-        scored_profile.sort(key=lambda x: x[0], reverse=True)
-        profile_based = [p for s, p in scored_profile[:top_k]]
-        
-        return text_based, profile_based
+    def __init__(self, openai_client: OpenAI):
+        self.client = openai_client
+
+    def rerank_products(self, candidates: List[Dict], user_pref: Dict, user_profile: Dict, top_k: int = 3):
+        # 여기서는 간단히 필터링만 수행하거나 그대로 반환
+        # 복잡한 로직은 VectorDB 검색 단계에서 이미 수행됨
+        return candidates[:top_k], candidates[:top_k]
 
 
 class RAGAgent:
-    def __init__(
-        self, 
-        vector_db: VectorDB,
-        intent_classifier: IntentClassifier,
-        feedback_parser: FeedbackParser,
-        reranker: ProductReranker,
-        openai_api_key: str | None = None
-    ):
+    def __init__(self, vector_db: VectorDB):
         self.vector_db = vector_db
-        self.intent_classifier = intent_classifier
-        self.feedback_parser = feedback_parser
-        self.reranker = reranker
-        
-        api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY가 설정되어 있지 않습니다.")
-        self.client = OpenAI(api_key=api_key)
-    
-    def format_product_list(self, products: List[Dict]) -> str:
-        if not products:
-            return "없음"
-        
-        lines = []
-        for i, p in enumerate(products, start=1):
-            line = (
-                f"{i}번) {p.get('brand','')} {p.get('product_name','')} "
-                f"{p.get('shade_name','')}"
-                f" / 피니쉬: {p.get('finish','')}"
-                f" / ΔE: {p.get('deltaE',0):.2f}"
-            )
-            lines.append(line)
-        return "\n".join(lines)
-    
-    def generate_explanation(
-        self,
-        user_text: str,
-        user_profile: Dict,
-        parsed_pref: Dict,
-        memories: List[Dict],
-        text_based: List[Dict],
-        profile_based: List[Dict],
-        web_context: str | None = None
-    ) -> Dict[str, Any]:
-        history_snippets = [m.get("text", "") for m in memories[-3:]]
-        history_text = "\n".join(history_snippets) if history_snippets else "이전 대화 없음"
-        
-        text_rec_block = self.format_product_list(text_based)
-        profile_rec_block = self.format_product_list(profile_based)
-        
-        profile_summary = ", ".join(
-            f"{k}={v}" for k, v in user_profile.items()
-        ) if user_profile else "정보 없음"
-        
-        web_block = web_context if web_context else "없음"
-        
-        prompt = f"""
-너는 K-뷰티 AI Beauty Assistant야.
+        self.client = vector_db.client
+        self.intent_classifier = IntentClassifier(self.client)
+        self.feedback_parser = FeedbackParser(self.client)
+        self.reranker = ProductReranker(self.client)
 
-[사용자 질문]
-{user_text}
-
-[사용자 프로필]
-{profile_summary}
-
-[추출된 선호(pref)]
-{json.dumps(parsed_pref, ensure_ascii=False)}
-
-[이전 대화 요약]
-{history_text}
-
-[사용자 피드백 기반 재추천 후보(user_text_based)]
-{text_rec_block}
-
-[사용자 프로필 기반 재추천 후보(user_profile_based)]
-{profile_rec_block}
-
-[웹 검색/트렌드 정보(web_context)]
-{web_block}
-
-위 정보를 참고해서 다음 규칙을 따라서 답변을 출력해.
-
-규칙:
-1) 반드시 한국어로 답변합니다.
-2) 답변은 하나의 긴 메시지로 작성하되, 다음 구조를 따릅니다.
-   - 1단락: 사용자의 요청과 상황을 공감하며 요약
-   - 2단락: [사용자 피드백 기반 재추천] 제품 1~3개 이름과 그 이유 설명
-   - 3단락: [사용자 프로필 기반 재추천] 제품 1~3개 이름과 그 이유 설명
-   - (필요하다면) 4단락: 웹/트렌드 정보가 있을 경우, 관련된 팁이나 설명 추가
-3) 제품을 언급할 때는 브랜드 + 제품명 + 쉐이드명을 꼭 포함하세요.
-4) 존재하지 않는 제품이나 우리가 제공하지 않은 정보(지속력, 성분 등)는 만들어내지 마세요.
-5) 자연스러운 문장으로 출력하세요.
-"""
-        
-        try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a precise K-beauty assistant.",
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.4,
-                max_tokens=1000,
-            )
-            
-            assistant_message = response.choices[0].message.content.strip()
-            
-            return {
-                "assistant_message": assistant_message,
-                "user_text_based": text_based,
-                "user_profile_based": profile_based,
-                "parsed_preferences": parsed_pref,
-                "intent": "processed"
-            }
-            
-        except Exception as e:
-            print(f"Generation error: {e}")
-            return {
-                "assistant_message": "죄송합니다. 응답 생성 중 오류가 발생했습니다.",
-                "user_text_based": text_based,
-                "user_profile_based": profile_based,
-                "parsed_preferences": parsed_pref,
-                "intent": "error"
-            }
-    
     def process_message(
         self,
         user_id: str,
@@ -473,10 +261,13 @@ class RAGAgent:
         user_profile: Dict,
         category: str
     ) -> Dict:
+        # 1. 의도 파악
         intent = self.intent_classifier.classify(message)
         
+        # 2. 선호도 추출
         parsed_pref = self.feedback_parser.parse_feedback_to_preferences(message)
         
+        # 3. 채팅 내용 저장 (Memory)
         import uuid
         feedback_id = str(uuid.uuid4())
         self.vector_db.save_feedback(
@@ -491,43 +282,103 @@ class RAGAgent:
             }
         )
         
+        # 4. 과거 대화 맥락 검색 (Context)
         similar_feedbacks = self.vector_db.search_similar_feedbacks(message, user_id, top_k=3)
         
-        if intent == "explain":
-            return self.generate_explanation(
-                user_text=message,
-                user_profile=user_profile,
-                parsed_pref=parsed_pref,
-                memories=similar_feedbacks,
-                text_based=[],
-                profile_based=[],
-                web_context=None
-            )
+        # ==========================================================
+        # [핵심 로직] Intent에 따른 RAG 처리
+        # ==========================================================
         
-        if intent == "trend":
-            return self.generate_explanation(
-                user_text=message,
-                user_profile=user_profile,
-                parsed_pref=parsed_pref,
-                memories=similar_feedbacks,
-                text_based=[],
-                profile_based=[],
-                web_context="최신 트렌드 정보는 웹 검색을 통해 제공될 예정입니다."
-            )
+        retrieved_products = []
         
-        text_based, profile_based = self.reranker.rerank_products(
-            current_recommendations, 
-            parsed_pref, 
-            user_profile,
-            top_k=3
+        # 추천이 필요한 경우 DB 검색 수행
+        if intent in ['recommend', 'trend'] or (intent == 'explain' and not current_recommendations):
+            # 검색어 생성: 사용자 질문 + 추출된 키워드
+            search_query = f"{message} {' '.join(parsed_pref['like_keywords'])}"
+            if user_profile.get('tone'):
+                search_query += f" {user_profile['tone']}"
+            
+            # DB 검색 (Vector -> General 검증)
+            retrieved_products = self.vector_db.search_products(search_query, category, top_k=5)
+        
+        # 기존 추천 제품과 새로 검색된 제품 병합 (중복 제거)
+        final_candidates = retrieved_products
+        
+        # 답변 생성
+        response_text = self.generate_response(
+            message, 
+            user_profile, 
+            final_candidates, 
+            similar_feedbacks,
+            intent
         )
         
-        return self.generate_explanation(
-            user_text=message,
-            user_profile=user_profile,
-            parsed_pref=parsed_pref,
-            memories=similar_feedbacks,
-            text_based=text_based,
-            profile_based=profile_based,
-            web_context=None
-        )
+        return {
+            "success": True,
+            "assistant_message": response_text,
+            "user_text_based": final_candidates, # 디버깅용
+            "user_profile_based": final_candidates,
+            "parsed_preferences": parsed_pref,
+            "intent": intent
+        }
+
+    def generate_response(
+        self, 
+        user_text: str, 
+        profile: Dict, 
+        products: List[Dict], 
+        memories: List[Dict],
+        intent: str
+    ) -> str:
+        """
+        검색된 제품 정보를 바탕으로 답변 생성 (Hallucination 방지 프롬프트 적용)
+        """
+        
+        # 제품 정보를 문자열로 변환 (프롬프트 주입용)
+        products_context = ""
+        if products:
+            for idx, p in enumerate(products):
+                products_context += f"""
+                [제품 {idx+1}]
+                - 브랜드: {p['brand']}
+                - 이름: {p['product_name']} ({p['shade_name']})
+                - 가격: {p['price']}원
+                - 특징: {p['rag_text']}
+                """
+        else:
+            products_context = "검색된 적합한 제품이 없습니다."
+
+        system_prompt = f"""
+        당신은 K-Beauty 퍼스널 컬러 전문 AI 컨설턴트입니다.
+        
+        [사용자 프로필]
+        - 톤: {profile.get('tone', '알 수 없음')}
+        - 선호 브랜드: {', '.join(profile.get('fav_brands', []))}
+        - 선호 피니시: {', '.join(profile.get('finish_preference', []))}
+        
+        [검색된 제품 목록 (DB 데이터)]
+        {products_context}
+        
+        [과거 대화 기억]
+        {[m['text'] for m in memories]}
+        
+        [지시사항]
+        1. 반드시 위 [검색된 제품 목록]에 있는 제품 중에서만 추천하세요. **없는 제품을 지어내지 마세요.**
+        2. 사용자의 질문("{user_text}")에 답변하되, 왜 이 제품이 사용자의 프로필(톤, 취향)에 맞는지 논리적으로 설명하세요.
+        3. 제품이 검색되지 않았다면 솔직하게 "원하시는 조건에 딱 맞는 제품을 찾지 못했어요"라고 말하고 대안을 물어보세요.
+        4. 어조는 친절하고 전문적인 뷰티 컨설턴트처럼 하세요.
+        """
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_text}
+                ],
+                temperature=0.7
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"Generation failed: {e}")
+            return "죄송합니다. 답변을 생성하는 도중 오류가 발생했습니다."
