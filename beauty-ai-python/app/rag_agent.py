@@ -5,6 +5,7 @@ from typing import Dict, List, Tuple, Optional, Any
 from openai import OpenAI
 import numpy as np
 import logging
+import uuid # UUID 생성을 위해 추가
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -42,32 +43,38 @@ class VectorDB:
             return response.data[0].embedding
         except Exception as e:
             logger.error(f"Embedding creation failed: {e}")
-            return []
-    
+            return [0.0] * 1536  # 실패 시 0 벡터 반환
+
     def save_feedback(self, feedback_id: str, user_id: str, text: str, metadata: Dict):
         """사용자 피드백(채팅) 저장"""
         try:
             conn = self.get_vector_connection()
             cur = conn.cursor()
+            
             embedding = self.create_embedding(text)
+            
+            # JSON 메타데이터 직렬화
+            import json
+            metadata_json = json.dumps(metadata)
             
             cur.execute("""
                 INSERT INTO feedback_embeddings 
                 (feedback_id, user_id, embedding, text, metadata)
                 VALUES (%s, %s, %s, %s, %s)
-            """, (feedback_id, user_id, embedding, text, json.dumps(metadata)))
+            """, (feedback_id, user_id, embedding, text, metadata_json))
             
             conn.commit()
             cur.close()
             conn.close()
         except Exception as e:
-            logger.error(f"Save feedback failed: {e}")
+            logger.error(f"Feedback save failed: {e}")
 
     def search_similar_feedbacks(self, query_text: str, user_id: str, top_k: int = 3) -> List[Dict]:
-        """과거 대화 검색"""
+        """과거 대화 맥락 검색"""
         try:
             conn = self.get_vector_connection()
             cur = conn.cursor()
+            
             query_embedding = self.create_embedding(query_text)
             
             cur.execute("""
@@ -90,168 +97,135 @@ class VectorDB:
             conn.close()
             return results
         except Exception as e:
-            logger.error(f"Search feedbacks failed: {e}")
+            logger.error(f"Feedback search failed: {e}")
             return []
 
     def search_products(self, query_text: str, category: str, top_k: int = 5) -> List[Dict]:
-        """
-        [핵심] 벡터 DB에서 의미 기반 제품 검색
-        """
+        """제품 검색 (Semantic Search)"""
         try:
             conn = self.get_vector_connection()
             cur = conn.cursor()
+            
             query_embedding = self.create_embedding(query_text)
             
-            # 카테고리 매핑 (프론트엔드 값 -> DB 값)
-            # 예: 'lip' -> 'lips' (DB에 저장된 형태에 따라 조정 필요)
-            category_map = {"lip": "lips", "eye": "eyes", "cheek": "cheeks"}
-            db_category = category_map.get(category, category)
-
-            # 벡터 유사도 검색 (L2 Distance)
+            # 카테고리가 일치하는 제품 중에서 의미적 유사도 검색
             cur.execute("""
-                SELECT id, product_id, brand, product_name, color_name, price, text, metadata, 
+                SELECT brand, product_name, color_name, price, text, metadata,
                        embedding <=> %s::vector as distance
                 FROM product_embeddings
                 WHERE category = %s
                 ORDER BY distance ASC
                 LIMIT %s
-            """, (query_embedding, db_category, top_k))
+            """, (query_embedding, category, top_k))
             
-            vector_results = []
+            results = []
             for row in cur.fetchall():
-                vector_results.append({
-                    "vector_uuid": str(row[0]),
-                    "product_id": str(row[1]), # 일반 DB와 연결할 Key
-                    "brand": row[2],
-                    "product_name": row[3],
-                    "shade_name": row[4],
-                    "price": row[5],
-                    "rag_text": row[6], # 검색된 텍스트 원문
-                    "metadata": row[7],
-                    "distance": float(row[8])
+                results.append({
+                    "brand": row[0],
+                    "product_name": row[1],
+                    "shade_name": row[2],
+                    "price": row[3],
+                    "text": row[4],       # rag_text
+                    "metadata": row[5],
+                    "distance": float(row[6]),
+                    "finish": row[5].get("finish", "unknown") if row[5] else "unknown"
                 })
             
             cur.close()
             conn.close()
-            
-            # 검색 결과가 없으면 빈 리스트 반환
-            if not vector_results:
-                return []
-
-            # [교차 검증] 일반 DB에서 최신 정보(가격, 존재여부) 확인
-            return self.verify_with_general_db(vector_results)
-            
+            return results
         except Exception as e:
             logger.error(f"Product search failed: {e}")
             return []
 
-    def verify_with_general_db(self, vector_results: List[Dict]) -> List[Dict]:
-        """
-        [교차 검증] 벡터 DB에서 찾은 제품이 일반 DB에 실제로 있는지 확인하고 정보 보정
-        """
-        try:
-            conn = self.get_general_connection()
-            cur = conn.cursor()
-            
-            # product_id 목록 추출
-            # product_id가 일반 DB의 id 컬럼(INT or String)과 타입이 맞아야 함
-            ids = [item['product_id'] for item in vector_results]
-            
-            if not ids:
-                return vector_results
-
-            # 일반 DB 조회 (최신 가격 확인용)
-            # 만약 일반 DB의 ID가 정수형(INT)이라면 형변환 주의
-            format_strings = ','.join(['%s'] * len(ids))
-            cur.execute(f"SELECT id, price, name, image_url FROM products WHERE id IN ({format_strings})", tuple(ids))
-            
-            real_products = {str(row[0]): {"price": row[1], "name": row[2], "image_url": row[3]} for row in cur.fetchall()}
-            
-            verified_results = []
-            for item in vector_results:
-                pid = item['product_id']
-                if pid in real_products:
-                    # 일반 DB에 존재하는 제품만 리스트에 추가 (할루시네이션 방지)
-                    # 가격 정보를 최신으로 업데이트
-                    item['price'] = real_products[pid]['price']
-                    item['image_url'] = real_products[pid]['image_url']
-                    verified_results.append(item)
-            
-            cur.close()
-            conn.close()
-            return verified_results
-
-        except Exception as e:
-            logger.error(f"General DB verification failed: {e}")
-            # 일반 DB 연결 실패 시 벡터 DB 결과라도 반환 (장애 대응)
-            return vector_results
-
 
 class IntentClassifier:
-    def __init__(self, openai_client: OpenAI):
-        self.client = openai_client
-
     def classify(self, message: str) -> str:
-        try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "Analyze the user's intent. Return only one of: 'recommend' (wants product suggestion), 'explain' (asks why/how), 'trend' (asks for popularity), 'chat' (general talk)."},
-                    {"role": "user", "content": message}
-                ],
-                temperature=0.3
-            )
-            intent = response.choices[0].message.content.strip().lower()
-            return intent if intent in ['recommend', 'explain', 'trend'] else 'recommend'
-        except:
+        # 간단한 키워드 기반 분류 (실제로는 LLM이나 별도 모델 사용 권장)
+        if any(word in message for word in ["왜", "이유", "설명"]):
+            return "explain"
+        elif any(word in message for word in ["유행", "트렌드", "인기"]):
+            return "trend"
+        elif any(word in message for word in ["추천", "찾아줘", "골라줘", "어때"]):
             return "recommend"
+        else:
+            return "both" # 기본값
 
 
 class FeedbackParser:
-    def __init__(self, openai_client: OpenAI):
-        self.client = openai_client
-
     def parse_feedback_to_preferences(self, message: str) -> Dict:
-        try:
-            response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": """
-                    Extract beauty preferences from the user message.
-                    Return JSON format:
-                    {
-                        "tone": "warm" | "cool" | "neutral" | "unknown",
-                        "finish": "matte" | "glossy" | "satin" | "unknown",
-                        "like_keywords": ["keyword1", "keyword2"],
-                        "dislike_keywords": ["keyword1", "keyword2"]
-                    }
-                    """},
-                    {"role": "user", "content": message}
-                ],
-                response_format={"type": "json_object"}
-            )
-            return json.loads(response.choices[0].message.content)
-        except:
-            return {"tone": "unknown", "finish": "unknown", "like_keywords": [], "dislike_keywords": []}
+        # 간단한 파싱 로직
+        preferences = {
+            "tone": "unknown",
+            "finish": "unknown",
+            "brightness": "unknown",
+            "saturation": "unknown",
+            "like_keywords": [],
+            "dislike_keywords": [],
+            "brand": ""
+        }
+        
+        # 키워드 추출 예시
+        if "쿨톤" in message: preferences["tone"] = "cool"
+        if "웜톤" in message: preferences["tone"] = "warm"
+        if "매트" in message: preferences["finish"] = "matte"
+        if "촉촉" in message or "글로시" in message: preferences["finish"] = "glossy"
+        
+        # 명사 추출 로직 대신 간단히 전체 메시지를 키워드로 활용하거나
+        # 형태소 분석기를 붙일 수 있음. 여기서는 메시지 자체를 검색 쿼리로 활용.
+        preferences["like_keywords"].append(message) 
+        
+        return preferences
 
 
 class ProductReranker:
-    def __init__(self, openai_client: OpenAI):
-        self.client = openai_client
-
-    def rerank_products(self, candidates: List[Dict], user_pref: Dict, user_profile: Dict, top_k: int = 3):
-        # 여기서는 간단히 필터링만 수행하거나 그대로 반환
-        # 복잡한 로직은 VectorDB 검색 단계에서 이미 수행됨
-        return candidates[:top_k], candidates[:top_k]
+    def rerank_products(self, candidates: List[Dict], parsed_pref: Dict, user_profile: Dict, top_k: int = 3):
+        # 간단한 점수 로직 (실제로는 복잡한 알고리즘 가능)
+        scored_candidates = []
+        
+        for p in candidates:
+            score = 0.0
+            
+            # 1. 텍스트 검색 유사도 (이미 DB에서 계산됨, 거리니까 역수 취급하거나 -distance)
+            if "distance" in p:
+                score += (1.0 - p["distance"]) * 50  # 가중치 50
+            
+            # 2. 프로필 매칭 (톤)
+            p_meta = p.get("metadata", {})
+            p_tone = p_meta.get("tone", "") if p_meta else ""
+            u_tone = user_profile.get("tone", "")
+            
+            if u_tone and p_tone and (u_tone in p_tone or p_tone in u_tone):
+                score += 30
+            
+            # 3. 선호 제형
+            p_finish = p.get("finish", "")
+            u_finish = parsed_pref.get("finish", "")
+            if u_finish and p_finish and u_finish == p_finish:
+                score += 20
+                
+            scored_candidates.append((score, p))
+            
+        # 점수 내림차순 정렬
+        scored_candidates.sort(key=lambda x: x[0], reverse=True)
+        
+        # 상위 k개 반환
+        final_list = [item[1] for item in scored_candidates[:top_k]]
+        
+        # 여기서는 text_based와 profile_based를 단순히 동일하게 반환하거나 나누어 반환 가능
+        # 편의상 동일하게 반환
+        return final_list, final_list
 
 
 class RAGAgent:
     def __init__(self, vector_db: VectorDB):
         self.vector_db = vector_db
-        self.client = vector_db.client
-        self.intent_classifier = IntentClassifier(self.client)
-        self.feedback_parser = FeedbackParser(self.client)
-        self.reranker = ProductReranker(self.client)
+        self.intent_classifier = IntentClassifier()
+        self.feedback_parser = FeedbackParser()
+        self.reranker = ProductReranker()
+        
+        # LLM 클라이언트 (VectorDB에 있는거 재사용하거나 새로 생성)
+        self.client = self.vector_db.client
 
     def process_message(
         self,
@@ -267,8 +241,7 @@ class RAGAgent:
         # 2. 선호도 추출
         parsed_pref = self.feedback_parser.parse_feedback_to_preferences(message)
         
-        # 3. 채팅 내용 저장 (Memory)
-        import uuid
+        # 3. 사용자 채팅 저장 (메모리)
         feedback_id = str(uuid.uuid4())
         self.vector_db.save_feedback(
             feedback_id=feedback_id,
@@ -282,91 +255,141 @@ class RAGAgent:
             }
         )
         
-        # 4. 과거 대화 맥락 검색 (Context)
+        # 4. 관련 과거 대화 검색 (Context)
         similar_feedbacks = self.vector_db.search_similar_feedbacks(message, user_id, top_k=3)
         
-        # ==========================================================
-        # [핵심 로직] Intent에 따른 RAG 처리
-        # ==========================================================
+        # (1) 단순 설명/트렌드 질문
+        if intent == "explain":
+            return self.generate_explanation(
+                user_text=message,
+                user_profile=user_profile,
+                parsed_pref=parsed_pref,
+                memories=similar_feedbacks,
+                text_based=[],
+                profile_based=[],
+                web_context=None
+            )
         
-        retrieved_products = []
+        if intent == "trend":
+            return self.generate_explanation(
+                user_text=message,
+                user_profile=user_profile,
+                parsed_pref=parsed_pref,
+                memories=similar_feedbacks,
+                text_based=[],
+                profile_based=[],
+                web_context="최신 트렌드 정보는 웹 검색을 통해 제공될 예정입니다."
+            )
         
-        # 추천이 필요한 경우 DB 검색 수행
-        if intent in ['recommend', 'trend'] or (intent == 'explain' and not current_recommendations):
-            # 검색어 생성: 사용자 질문 + 추출된 키워드
-            search_query = f"{message} {' '.join(parsed_pref['like_keywords'])}"
-            if user_profile.get('tone'):
-                search_query += f" {user_profile['tone']}"
-            
-            # DB 검색 (Vector -> General 검증)
-            retrieved_products = self.vector_db.search_products(search_query, category, top_k=5)
+        # (2) 제품 추천 요청 (recommend or both)
+        # 검색 쿼리 확장
+        search_query = f"{message} {' '.join(parsed_pref['like_keywords'])}"
         
-        # 기존 추천 제품과 새로 검색된 제품 병합 (중복 제거)
-        final_candidates = retrieved_products
-        
-        # 답변 생성
-        response_text = self.generate_response(
-            message, 
-            user_profile, 
-            final_candidates, 
-            similar_feedbacks,
-            intent
+        # [중요] 검색 개수 6개로 증가 (다양성 확보)
+        db_products = self.vector_db.search_products(
+            query_text=search_query, 
+            category=category, 
+            top_k=6 
         )
         
-        return {
-            "success": True,
-            "assistant_message": response_text,
-            "user_text_based": final_candidates, # 디버깅용
-            "user_profile_based": final_candidates,
-            "parsed_preferences": parsed_pref,
-            "intent": intent
-        }
-
-    def generate_response(
-        self, 
-        user_text: str, 
-        profile: Dict, 
-        products: List[Dict], 
-        memories: List[Dict],
-        intent: str
-    ) -> str:
-        """
-        검색된 제품 정보를 바탕으로 답변 생성 (Hallucination 방지 프롬프트 적용)
-        """
+        # 후보군 병합 (DB검색 결과 + 현재 보고 있는 추천 목록)
+        candidates = db_products 
         
-        # 제품 정보를 문자열로 변환 (프롬프트 주입용)
+        # 만약 DB 검색 결과가 적으면 기존 추천도 포함
+        if len(candidates) < 2:
+            # current_recommendations 형식이 DB형식과 다를 수 있어 변환 필요할 수 있음
+            # 여기서는 단순 병합 시도 (에러 방지 위해 try-except 안쓰고 리스트만 합침)
+            candidates.extend(current_recommendations)
+
+        # 리랭킹
+        text_based, profile_based = self.reranker.rerank_products(
+            candidates, 
+            parsed_pref, 
+            user_profile,
+            top_k=3
+        )
+        
+        return self.generate_explanation(
+            user_text=message,
+            user_profile=user_profile,
+            parsed_pref=parsed_pref,
+            memories=similar_feedbacks,
+            text_based=text_based,
+            profile_based=profile_based,
+            web_context=None
+        )
+
+    def generate_explanation(
+        self,
+        user_text: str,
+        user_profile: Dict,
+        parsed_pref: Dict,
+        memories: List[Dict],
+        text_based: List[Dict],
+        profile_based: List[Dict],
+        web_context: Optional[str]
+    ) -> Dict:
+        
+        # 프롬프트에 넣을 제품 목록 텍스트 생성
+        candidates = text_based + profile_based
+        
+        # 중복 제거 (product_name 기준)
+        seen = set()
+        unique_candidates = []
+        for p in candidates:
+            name = p.get('product_name', '')
+            if name and name not in seen:
+                seen.add(name)
+                unique_candidates.append(p)
+        
         products_context = ""
-        if products:
-            for idx, p in enumerate(products):
+        if unique_candidates:
+            for idx, p in enumerate(unique_candidates):
+                # rag_text가 있으면 쓰고, 없으면 기본 정보 조합
+                desc = p.get('text', '')
+                if not desc:
+                    desc = f"{p.get('color_name', '')} 색상, {p.get('finish', '')} 피니시"
+                
                 products_context += f"""
                 [제품 {idx+1}]
-                - 브랜드: {p['brand']}
-                - 이름: {p['product_name']} ({p['shade_name']})
-                - 가격: {p['price']}원
-                - 특징: {p['rag_text']}
+                - 브랜드: {p.get('brand', 'Unknown')}
+                - 이름: {p.get('product_name', 'Unknown')} ({p.get('shade_name', p.get('color_name', ''))})
+                - 가격: {p.get('price', 0)}원
+                - 특징: {desc}
                 """
         else:
             products_context = "검색된 적합한 제품이 없습니다."
 
+        # ==========================================================
+        # [수정된 시스템 프롬프트]
+        # 변수명 오류 수정: {message} -> {user_text}
+        # ==========================================================
         system_prompt = f"""
-        당신은 K-Beauty 퍼스널 컬러 전문 AI 컨설턴트입니다.
+        당신은 융통성 있고 설득력 있는 K-Beauty AI 뷰티 컨설턴트입니다.
         
         [사용자 프로필]
-        - 톤: {profile.get('tone', '알 수 없음')}
-        - 선호 브랜드: {', '.join(profile.get('fav_brands', []))}
-        - 선호 피니시: {', '.join(profile.get('finish_preference', []))}
+        - 퍼스널 컬러: {user_profile.get('tone', '알 수 없음')}
+        - 선호 브랜드: {', '.join(user_profile.get('fav_brands', []))}
+        - 선호 피니시: {', '.join(user_profile.get('finish_preference', []))}
         
-        [검색된 제품 목록 (DB 데이터)]
+        [검색된 후보 제품 목록]
         {products_context}
         
-        [과거 대화 기억]
-        {[m['text'] for m in memories]}
+        [사용자 질문]
+        "{user_text}"
         
-        [지시사항]
-        1. 반드시 위 [검색된 제품 목록]에 있는 제품 중에서만 추천하세요. **없는 제품을 지어내지 마세요.**
-        2. 사용자의 질문("{user_text}")에 답변하되, 왜 이 제품이 사용자의 프로필(톤, 취향)에 맞는지 논리적으로 설명하세요.
-        3. 제품이 검색되지 않았다면 솔직하게 "원하시는 조건에 딱 맞는 제품을 찾지 못했어요"라고 말하고 대안을 물어보세요.
-        4. 어조는 친절하고 전문적인 뷰티 컨설턴트처럼 하세요.
+        [필수 지시사항 (반드시 따를 것)]
+        1. **무조건 하나 이상의 제품을 추천하세요.** 완벽한 조건(가격, 톤 등)에 맞는 제품이 없더라도, 후보 제품 중 가장 근접한 제품을 선택하세요.
+        
+        2. **'톤 크로스(Tone-Cross)' 추천을 허용합니다.**
+           - 만약 사용자는 '여쿨'인데 검색된 제품이 '웜톤'용이라면, 추천을 포기하지 말고 다음과 같이 설득하세요:
+           - 예시: "고객님은 여름 쿨톤이시지만, 이 제품은 맑게 발색되어 웜톤 컬러임에도 고객님께 분위기 있게 어우러질 수 있어 추천드려요."
+           - 예시: "원하시는 매트 제형은 아니지만, 이 제품은 세미-글로우라서 부담스럽지 않게 사용하실 수 있어요."
+        
+        3. **추천 근거를 구체적으로 제시하세요.**
+           - 제품의 특징(rag_text)을 인용해서 "이 제품의 OO 성분이~", "리뷰에서 OO라고 해서~" 라고 말하세요.
+           
+        4. 없는 제품을 지어내지는 마세요. 반드시 [검색된 후보 제품 목록] 안에 있는 것 중에서만 고르세요.
         """
 
         try:
@@ -378,7 +401,15 @@ class RAGAgent:
                 ],
                 temperature=0.7
             )
-            return response.choices[0].message.content
+            assistant_message = response.choices[0].message.content
         except Exception as e:
-            logger.error(f"Generation failed: {e}")
-            return "죄송합니다. 답변을 생성하는 도중 오류가 발생했습니다."
+            logger.error(f"LLM generation failed: {e}")
+            assistant_message = "죄송합니다. 답변을 생성하는 중에 오류가 발생했습니다."
+
+        return {
+            "assistant_message": assistant_message,
+            "user_text_based": text_based,
+            "user_profile_based": profile_based,
+            "parsed_preferences": parsed_pref,
+            "intent": "processed"
+        }
