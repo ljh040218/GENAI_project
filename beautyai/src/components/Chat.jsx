@@ -4,36 +4,75 @@ import { FiSend, FiChevronLeft, FiHome } from "react-icons/fi";
 import "../assets/sass/chat/chat.scss";
 import ChatLogo from "../assets/img/chat/chatbot_lg.svg";
 import VizyIcon from "../assets/img/chat/chatbot_icon.svg";
+const API_BASE = "https://pythonapi-production-8efe.up.railway.app";
+const user = JSON.parse(localStorage.getItem("user"));
+const token = localStorage.getItem("accessToken");
+
 
 const ChatBot = () => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]); // 🔥 메시지 리스트 추가
   const navigate = useNavigate();
   const bottomRef = useRef(null);
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!input.trim()) return;
 
-    // 1) 사용자 메시지 추가
-    setMessages((prev) => [...prev, { role: "user", text: input }]);
+  const userMessage = input;
 
-    // 2) 입력창 초기화
-    setInput("");
 
-    // 3) TODO: 여기서 API 호출 후 챗봇 응답 추가
-    // 예시로 0.5초 후에 임시 응답 추가
-    setTimeout(() => {
+  // ✅ UI에 사용자 메시지 먼저 출력
+  setMessages((prev) => [...prev, { role: "user", text: userMessage }]); setInput("");
+
+  try {
+    const res = await fetch(`${API_BASE}/api/agent/message`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        user_id: user?.id || user?.email || "guest",
+        message: userMessage,
+        current_recommendations: [],
+        category: "lips",
+
+        user_profile: {
+          tone: user?.tone || null,
+          fav_brands: user?.fav_brands || [],
+          finish_preference: user?.finish_preference || [],
+          price_range: user?.price_range || []
+        }
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
       setMessages((prev) => [
         ...prev,
-        { role: "bot", text: "이건 예시 챗봇 응답입니다!" },
+        {
+          role: "bot",
+          text: data.assistant_message,
+          products: data.recommendations || []
+        }
       ]);
-    }, 500);
-  };
+    } else {
+      throw new Error("Agent error");
+    }
+
+  } catch (err) {
+    console.error(err);
+    setMessages((prev) => [
+      ...prev,
+      { role: "bot", text: "🚨 서버와 통신할 수 없습니다." }
+    ]);
+  }
+};
+
   
 useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
+  bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+}, [messages]);
      useEffect(() => {
         document.body.style.overflow = "hidden";
         return () => (document.body.style.overflow = "auto");
@@ -59,19 +98,37 @@ useEffect(() => {
         {/* 중간은 여백 (나중에 대화 로그 영역이 될 자리) */}
         <div className="cb-body">
           {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`cb-msg-row ${msg.role === "user" ? "user" : "bot"}`}
-            >
-              {msg.role === "bot" && (
-                <div className="cb-avatar">
-                  <img src={VizyIcon} alt="VZ" />
-                </div>
-              )}
+  <div key={i} className={`cb-msg-row ${msg.role === "user" ? "user" : "bot"}`}>
+    
+    {msg.role === "bot" && (
+      <div className="cb-avatar">
+        <img src={VizyIcon} alt="VZ" />
+      </div>
+    )}
 
-              <div className={`cb-msg-bubble ${msg.role}`}>{msg.text}</div>
+    <div className="cb-msg-container">
+      <div className={`cb-msg-bubble ${msg.role}`}>{msg.text}</div>
+
+
+
+      {/* ✅ 여기로 이동 */}
+      {msg.products && msg.products.length > 0 && (
+        <div className="cb-product-list horizontal">
+          {msg.products.map((p, idx) => (
+            <div key={idx} className="cb-product-card">
+              <strong>{p.brand}</strong>
+              <p>{p.product_name}</p>
+              <p>{p.shade_name}</p>
+              <p>{p.finish}</p>
+              <p>{p.price?.toLocaleString()}원</p>
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  </div>
+))}
+
           <div ref={bottomRef} />
         </div>
 
