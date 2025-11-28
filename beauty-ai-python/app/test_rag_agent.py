@@ -2,7 +2,7 @@ import requests
 import json
 from typing import Dict, List
 
-BASE_URL = "https://beauty-ai-python-production.up.railway.app"
+BASE_URL = "https://pythonapi-production-8efe.up.railway.app"
 
 class RAGAgentTester:
     def __init__(self, base_url: str = BASE_URL):
