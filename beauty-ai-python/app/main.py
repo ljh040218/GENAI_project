@@ -13,6 +13,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# 환경변수 로드 확인
 DATABASE_URL = os.getenv("DATABASE_URL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 VECTOR_DATABASE_URL = os.getenv("VECTOR_DATABASE_URL")
@@ -24,15 +25,10 @@ if not OPENAI_API_KEY:
 if not VECTOR_DATABASE_URL:
     raise ValueError("VECTOR_DATABASE_URL environment variable is required")
 
+# 모듈 임포트
 from .face_matcher import FaceMatcher
 from .product_matcher import ProductMatcher
-from .rag_agent import (
-    VectorDB, 
-    IntentClassifier,
-    FeedbackParser, 
-    ProductReranker,
-    RAGAgent
-)
+from .rag_agent import VectorDB, RAGAgent
 
 app = FastAPI(
     title="K-Beauty AI Image Analysis API",
@@ -48,6 +44,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 1. 기존 매처 초기화 (유지)
 face_matcher = FaceMatcher(
     database_url=DATABASE_URL,
     openai_api_key=OPENAI_API_KEY
@@ -58,19 +55,11 @@ product_matcher = ProductMatcher(
     openai_api_key=OPENAI_API_KEY
 )
 
-vector_db = VectorDB(database_url=VECTOR_DATABASE_URL, openai_api_key=OPENAI_API_KEY)
-intent_classifier = IntentClassifier(openai_api_key=OPENAI_API_KEY)
-feedback_parser = FeedbackParser(openai_api_key=OPENAI_API_KEY)
-product_reranker = ProductReranker()
+# 2. VectorDB 초기화 (인자 제거 -> 환경변수 자동 로드)
+vector_db = VectorDB() 
 
-rag_agent = RAGAgent(
-    vector_db=vector_db,
-    intent_classifier=intent_classifier,
-    feedback_parser=feedback_parser,
-    reranker=product_reranker,
-    openai_api_key=OPENAI_API_KEY
-)
-
+# 3. RAG Agent 초기화 (vector_db만 주입하면 됨)
+rag_agent = RAGAgent(vector_db=vector_db)
 
 class ColorInput(BaseModel):
     lab_L: float
@@ -78,13 +67,11 @@ class ColorInput(BaseModel):
     lab_b: float
     category: str
 
-
 class AnalysisResponse(BaseModel):
     success: bool
     lips: Optional[Dict] = None
     cheeks: Optional[Dict] = None
     eyeshadow: Optional[Dict] = None
-
 
 class AgentRequest(BaseModel):
     user_id: str
@@ -92,7 +79,6 @@ class AgentRequest(BaseModel):
     current_recommendations: List[Dict]
     user_profile: Dict
     category: str
-
 
 class FeedbackQuery(BaseModel):
     user_id: str
@@ -147,6 +133,7 @@ async def agent_message(request: AgentRequest):
     try:
         logger.info(f"Agent message from user {request.user_id}: {request.message}")
         
+        # RAG Agent 실행
         result = rag_agent.process_message(
             user_id=request.user_id,
             message=request.message,
@@ -187,6 +174,7 @@ async def analyze_image(file: UploadFile = File(...)):
             "eyeshadow": None
         }
         
+        # 립 분석
         if face_colors["lips"]:
             logger.info("Analyzing lips...")
             lip_recommendations, lip_info = face_matcher.recommend_products(
@@ -219,6 +207,7 @@ async def analyze_image(file: UploadFile = File(...)):
                     "recommendations": lip_recommendations
                 }
         
+        # 치크 분석
         if face_colors["cheeks"]:
             logger.info("Analyzing cheeks...")
             cheek_recommendations, cheek_info = face_matcher.recommend_products(
@@ -251,6 +240,7 @@ async def analyze_image(file: UploadFile = File(...)):
                     "recommendations": cheek_recommendations
                 }
         
+        # 아이섀도우 분석
         if face_colors["eyeshadow"]:
             logger.info("Analyzing eyeshadow...")
             eye_recommendations, eye_info = face_matcher.recommend_products(
@@ -373,13 +363,6 @@ async def product_recommend(
 
 @app.post("/api/memory/search", tags=["Memory Management"])
 async def search_feedbacks(query: FeedbackQuery):
-    """
-    과거 피드백 검색 (벡터 유사도 기반)
-    
-    사용 사례:
-    - 프론트엔드에서 "이전에 비슷한 요청 했었나요?" 표시
-    - 디버깅: 사용자가 어떤 피드백을 남겼는지 확인
-    """
     try:
         results = vector_db.search_similar_feedbacks(
             query_text=query.query,
@@ -400,18 +383,11 @@ async def search_feedbacks(query: FeedbackQuery):
 
 @app.get("/api/memory/stats/{user_id}", tags=["Memory Management"])
 async def get_user_memory_stats(user_id: str):
-    """
-    사용자 피드백 통계
-    
-    사용 사례:
-    - 프론트엔드에서 "총 N번의 피드백을 주셨어요" 표시
-    - 관리자 대시보드: 사용자별 활동량
-    """
     try:
-        conn = vector_db.get_connection()
+        # VectorDB 내장 메서드를 사용하거나 직접 연결
+        conn = vector_db.get_vector_connection() # get_connection -> get_vector_connection (rag_agent.py 메서드명 확인)
         cur = conn.cursor()
         
-        # 총 피드백 수
         cur.execute("""
             SELECT COUNT(*) 
             FROM feedback_embeddings 
@@ -419,7 +395,6 @@ async def get_user_memory_stats(user_id: str):
         """, (user_id,))
         total_count = cur.fetchone()[0]
         
-        # 최근 피드백
         cur.execute("""
             SELECT text, created_at
             FROM feedback_embeddings 
@@ -432,7 +407,6 @@ async def get_user_memory_stats(user_id: str):
             for row in cur.fetchall()
         ]
         
-        # Intent 분포
         cur.execute("""
             SELECT metadata->>'intent' as intent, COUNT(*) as count
             FROM feedback_embeddings 
@@ -459,17 +433,8 @@ async def get_user_memory_stats(user_id: str):
 
 @app.delete("/api/memory/clear/{user_id}", tags=["Memory Management"])
 async def clear_user_memory(user_id: str):
-    """
-    사용자 피드백 기록 삭제
-    
-    사용 사례:
-    - 프론트엔드에서 "메모리 초기화" 버튼
-    - GDPR 준수: 사용자 데이터 삭제 요청
-    
-    주의: 복구 불가능
-    """
     try:
-        conn = vector_db.get_connection()
+        conn = vector_db.get_vector_connection()
         cur = conn.cursor()
         
         cur.execute("""
