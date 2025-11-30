@@ -11,3 +11,6 @@
 @use "./profile/profilesetting";
 @use "./profile/profileview";
 @use "./chat/chat";
+html {
+  zoom: 0.85;
+}
