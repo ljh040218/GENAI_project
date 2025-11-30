@@ -13,13 +13,13 @@ const ChatBot = () => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([]); // 🔥 메시지 리스트 추가
   const navigate = useNavigate();
+   const [showDeleteBtn, setShowDeleteBtn] = useState(false);
   const bottomRef = useRef(null);
   const handleSubmit = async (e) => {
   e.preventDefault();
   if (!input.trim()) return;
 
   const userMessage = input;
-
 
   // ✅ UI에 사용자 메시지 먼저 출력
   setMessages((prev) => [...prev, { role: "user", text: userMessage }]); setInput("");
@@ -69,6 +69,45 @@ const ChatBot = () => {
   }
 };
 
+const handleClearChat = async () => {
+  const USER_ID = user?.id || user?.email || "guest";
+
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/memory/clear/${USER_ID}`,
+      {
+        method: "DELETE"
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (data.success) {
+
+      // UI Clear
+      setMessages([]);
+      setShowDeleteBtn(false);
+
+      alert(`기록 ${data.deleted_count}개가 삭제되었습니다.`);
+    } else {
+      alert("삭제 실패");
+    }
+
+  } catch (err) {
+    console.error("메모리 삭제 실패:", err);
+    alert("서버와 통신 오류");
+  }
+};
+
+  useEffect(() => {                         // 🔥 봇 응답 오면 버튼 표시
+    if (messages.length > 0 && messages[messages.length - 1].role === "bot") {
+      setShowDeleteBtn(true);
+    }
+  }, [messages]);
   
 useEffect(() => {
   bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -128,6 +167,13 @@ useEffect(() => {
     </div>
   </div>
 ))}
+{showDeleteBtn && (
+    <div className="cb-clear-wrapper">
+      <button className="cb-clear-btn" onClick={handleClearChat}>
+        대화 내용 삭제하기
+      </button>
+    </div>
+  )}
 
           <div ref={bottomRef} />
         </div>
