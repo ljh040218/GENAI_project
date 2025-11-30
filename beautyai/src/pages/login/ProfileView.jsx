@@ -42,6 +42,9 @@ export default function ProfileView() {
     });
     const data = await res.json();
     if (res.ok) setUserInfo(data.user);
+
+        localStorage.setItem("user_basic", JSON.stringify(data.user));
+
   };
 
   // 뷰티 프로필
@@ -53,6 +56,8 @@ export default function ProfileView() {
     const data = await res.json();
     if (res.ok && data.profile) {
       setProfile(data.profile);
+          localStorage.setItem("user_beauty", JSON.stringify(data.profile));
+
     }
   };
 
