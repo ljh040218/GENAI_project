@@ -146,36 +146,87 @@ class VectorDB:
             logger.error(f"Error searching products: {e}")
             return []
 
-
 class IntentClassifier:
-    def classify(self, text: str) -> str:
-        # [PDF 반영] 트렌드/유행 관련 키워드 -> 웹 검색 트리거
-        trend_keywords = ["유행", "트렌드", "요즘", "지금 뜨는", "핫한", "인기", "신상"]
-        if any(word in text for word in trend_keywords):
-            return "trend"
-            
-        if any(word in text for word in ["왜", "이유", "설명", "뭐야", "알려줘"]):
-            return "explain"
-            
-        return "recommend"
+    def __init__(self):
+        api_key = os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=api_key)
+
+    def classify(self, user_message: str) -> str:
+        prompt = f"""
+        사용자 메시지: "{user_message}"
+        
+        위 메시지의 의도를 다음 중 하나로 분류해:
+        - "trend": 최신 뷰티 트렌드, 유행 정보, 시즌별 트렌드 질문
+        - "explain": MLBB, 쿨톤/웜톤, 채도, 톤 크로스 등 색조 이론/개념 설명 요청
+        - "recommend": 제품 추천 또는 재추천 요청 (기본값)
+        
+        JSON 형식으로 출력:
+        {{
+          "intent": "trend / explain / recommend 중 하나"
+        }}
+        """
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "You must output ONLY valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.1,
+                max_tokens=50
+            )
+
+            raw = response.choices[0].message.content.strip()
+
+            if raw.startswith("```json"):
+                raw = raw[7:]
+            if raw.endswith("```"):
+                raw = raw[:-3]
+            raw = raw.strip()
+
+            try:
+                data = json.loads(raw)
+                intent = data.get("intent", "recommend")
+            except:
+                start = raw.find("{")
+                end = raw.rfind("}")
+                if start != -1 and end != -1:
+                    try:
+                        data = json.loads(raw[start:end+1])
+                        intent = data.get("intent", "recommend")
+                    except:
+                        intent = "recommend"
+                else:
+                    intent = "recommend"
+
+            if intent not in ["trend", "explain", "recommend"]:
+                intent = "recommend"
+
+            return intent
+
+        except Exception as e:
+            logger.error(f"Intent classification failed: {e}")
+            return "recommend"
+
 
 class FeedbackParser:
     def __init__(self, api_key: str):
         self.client = OpenAI(api_key=api_key)
 
-    def parse_preference(self, user_text: str) -> Dict[str, Any]:
-        """
-        user_text에서 톤/피니쉬/밝기/채도/좋아하는 키워드/싫어하는 키워드 추출 (LLM 사용)
-        """
+    def parse_preference(self, feedback_text: str) -> Dict:
         prompt = f"""
-        너는 K-뷰티 색조 분석가야.
+        사용자 피드백: "{feedback_text}"
         
-        사용자 문장에서 취향 정보를 JSON으로 추출해줘.
+        위 피드백에서 다음 정보를 추출해:
+        1. tone: 쿨톤/웜톤/뉴트럴 여부 (cool/warm/neutral/unknown)
+        2. finish: 글로시/매트/벨벳/틴트 선호 (glossy/matte/velvet/tint/unknown)
+        3. brightness: 밝기 선호 (밝음/중간/어두움/unknown)
+        4. saturation: 채도 선호 (선명/은은/뮤트/unknown)
+        5. like_keywords: 좋아하는 키워드 리스트
+        6. dislike_keywords: 싫어하는 키워드 리스트
         
-        사용자 문장:
-        "{user_text}"
-        
-        JSON 형식:
+        반드시 아래 JSON 형식으로 출력:
         {{
           "tone": "cool / warm / neutral / unknown 중 하나",
           "finish": "glossy / matte / velvet / tint / unknown 중 하나",
@@ -190,7 +241,7 @@ class FeedbackParser:
 
         try:
             res = self.client.chat.completions.create(
-                model="gpt-4o-mini",  # gpt-4.1-mini는 존재하지 않으므로 gpt-4o-mini 사용
+                model="gpt-4o-mini",
                 messages=[
                     {
                         "role": "system",
@@ -204,7 +255,6 @@ class FeedbackParser:
 
             raw = res.choices[0].message.content.strip()
             
-            # JSON 포맷팅 클린업 (```json ... ``` 제거)
             if raw.startswith("```json"):
                 raw = raw[7:]
             if raw.endswith("```"):
@@ -214,7 +264,6 @@ class FeedbackParser:
             try:
                 data = json.loads(raw)
             except Exception:
-                # 혹시 앞뒤 잡다한 텍스트가 섞였을 때 대비
                 start = raw.find("{")
                 end = raw.rfind("}")
                 if start != -1 and end != -1:
@@ -243,29 +292,23 @@ class RAGAgent:
         self.vector_db = vector_db
         self.intent_classifier = IntentClassifier()
         
-        # OpenAI 클라이언트 및 파서 초기화
         api_key = os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=api_key)
         self.feedback_parser = FeedbackParser(api_key=api_key)
 
     def perform_web_search(self, query: str) -> str:
-        """
-        [PDF 반영] 웹 검색 도구 (DuckDuckGo Search 활용)
-        """
         if DDGS is None:
             return "웹 검색 라이브러리(duckduckgo-search)가 설치되지 않아 검색할 수 없습니다."
 
         try:
             logger.info(f"Web Searching for: {query}")
             
-            # 검색 실행 (상위 3개 결과)
             with DDGS() as ddgs:
                 results = list(ddgs.text(query, max_results=3))
             
             if not results:
                 return "검색 결과가 없습니다."
             
-            # 검색 결과를 LLM이 읽기 좋은 텍스트로 변환
             context_text = "\n".join([
                 f"- 제목: {r['title']}\n  내용: {r['body']}\n  링크: {r['href']}"
                 for r in results
@@ -284,15 +327,12 @@ class RAGAgent:
         user_profile: Dict,
         category: str
     ) -> Dict:
-        # 1. 의도 파악
         intent = self.intent_classifier.classify(message)
         logger.info(f"🤖 User Intent: {intent}")
-        
-        # 2. 선호도 추출 (LLM 기반)
+
         parsed_pref = self.feedback_parser.parse_preference(message)
         logger.info(f"🧠 Parsed User Preference: {parsed_pref}")
-        
-        # 3. 사용자 채팅 저장
+
         feedback_id = str(uuid.uuid4())
         self.vector_db.save_feedback(
             feedback_id=feedback_id,
@@ -305,104 +345,158 @@ class RAGAgent:
                 "timestamp": str(uuid.uuid1())
             }
         )
-        
-        # 4. 과거 대화 맥락 검색
+
         similar_feedbacks = self.vector_db.search_similar_feedbacks(message, user_id, top_k=3)
-        
-        # ==================================================================
-        # [분기 처리] 트렌드 질문(웹검색) vs 제품 추천(DB검색)
-        # ==================================================================
-        
+
         if intent == "trend":
-            # (A) 웹 검색 수행
             search_context = self.perform_web_search(message)
-            
-            # (B) 트렌드 답변 생성
             return self.generate_trend_response(
                 user_text=message,
                 user_profile=user_profile,
                 parsed_pref=parsed_pref,
                 search_context=search_context
             )
-            
-        else:
-            # (A) 제품 추천 (기존 로직) - DB 검색
-            # 검색 쿼리 확장: LLM이 추출한 키워드 활용
-            like_keywords_str = " ".join(parsed_pref.get('like_keywords', []))
-            search_query = f"{message} {like_keywords_str} {like_keywords_str}"
-            
-            # DB 검색 (top_k=10)
-            db_products = self.vector_db.search_products(
-                query_text=search_query, 
-                category=category, 
-                top_k=10 
-            )
-            
-            # 재정렬 로직 (매트/글로시 우선순위)
-            user_finish = parsed_pref.get("finish", "unknown")
-            if user_finish in ["matte", "velvet"]:
-                target_keywords = ["매트", "세미매트", "보송", "벨벳", "무광", "파우더리"]
-                db_products.sort(
-                    key=lambda x: any(k in x['rag_text'] for k in target_keywords), 
-                    reverse=True
-                )
-            elif user_finish in ["glossy", "tint"]:
-                target_keywords = ["글로시", "촉촉", "광택", "탕후루", "물막", "수분"]
-                db_products.sort(
-                    key=lambda x: any(k in x['rag_text'] for k in target_keywords), 
-                    reverse=True
-                )
-            
-            final_candidates = db_products[:5]
-            
-            # DB 결과가 없으면 기존 추천 사용
-            if not final_candidates and current_recommendations:
-                 for item in current_recommendations:
-                     final_candidates.append({
-                         "brand": item.get("brand", ""),
-                         "product_name": item.get("product_name", ""),
-                         "shade_name": item.get("shade_name", ""),
-                         "rag_text": f"{item.get('brand')} {item.get('product_name')}. 기존 추천 제품입니다.",
-                         "price": item.get("price", 0),
-                         "finish": item.get("finish", "unknown")
-                     })
 
-            # (B) 추천 답변 생성
-            return self.generate_explanation(
+        if intent == "explain":
+            return self.generate_explain_response(
                 user_text=message,
                 user_profile=user_profile,
                 parsed_pref=parsed_pref,
-                memories=similar_feedbacks,
-                candidate_products=final_candidates
+                memories=similar_feedbacks
             )
 
-    def generate_trend_response(
+        like_keywords_str = " ".join(parsed_pref.get('like_keywords', []))
+        search_query = f"{message} {like_keywords_str} {like_keywords_str}"
+
+        db_products = self.vector_db.search_products(
+            query_text=search_query,
+            category=category,
+            top_k=20
+        )
+
+        for p in db_products:
+            p["score"] = self.score_product(
+                product=p,
+                parsed_pref=parsed_pref,
+                user_profile=user_profile,
+            )
+
+        db_products.sort(key=lambda x: x.get("score", 0.0), reverse=True)
+        final_candidates = db_products[:5]
+
+        if not final_candidates and current_recommendations:
+            for item in current_recommendations:
+                final_candidates.append({
+                    "brand": item.get("brand", ""),
+                    "product_name": item.get("product_name", ""),
+                    "shade_name": item.get("shade_name", ""),
+                    "rag_text": f"{item.get('brand')} {item.get('product_name')}. 기존 추천 제품입니다.",
+                    "price": item.get("price", 0),
+                    "finish": item.get("finish", "unknown")
+                })
+
+        return self.generate_recommend_response(
+            user_text=message,
+            user_profile=user_profile,
+            parsed_pref=parsed_pref,
+            memories=similar_feedbacks,
+            candidate_products=final_candidates
+        )
+
+    def score_product(
+        self,
+        product: Dict,
+        parsed_pref: Dict,
+        user_profile: Dict
+    ) -> float:
+        score = 0.0
+
+        user_tone = user_profile.get("tone", "").lower()
+        pref_tone = parsed_pref.get("tone", "").lower()
+        product_metadata = product.get("metadata", {})
+        
+        if isinstance(product_metadata, str):
+            try:
+                product_metadata = json.loads(product_metadata)
+            except:
+                product_metadata = {}
+
+        product_pc = product_metadata.get("personal_color", "")
+        
+        for keyword in parsed_pref.get("like_keywords", []):
+            if keyword.lower() in product.get("rag_text", "").lower():
+                score += 1.5
+        
+        for keyword in parsed_pref.get("dislike_keywords", []):
+            if keyword.lower() in product.get("rag_text", "").lower():
+                score -= 2.0
+
+        return score
+
+    def generate_recommend_response(
         self,
         user_text: str,
         user_profile: Dict,
         parsed_pref: Dict,
-        search_context: str
+        memories: List[Dict],
+        candidate_products: List[Dict]
     ) -> Dict:
-        """웹 검색 결과를 바탕으로 트렌드 정보를 설명하는 답변 생성"""
-        
+        top_candidates = candidate_products[:2] if candidate_products else []
+
+        if top_candidates:
+            products_context = "\n".join([
+                f"""
+[제품 {idx+1}]
+- 브랜드: {p['brand']}
+- 이름: {p['product_name']} ({p['shade_name']})
+- 가격: {p['price']}원
+- 상세정보/리뷰요약: {p.get('rag_text', '정보 없음')}
+""" for idx, p in enumerate(top_candidates)
+            ])
+        else:
+            products_context = "검색된 적합한 제품이 없습니다."
+
         system_prompt = f"""
-        당신은 최신 K-Beauty 트렌드를 꿰뚫고 있는 뷰티 에디터입니다.
-        제공된 [웹 검색 결과]를 바탕으로 사용자의 질문에 답변하세요.
-        
-        [사용자 프로필]
-        - 톤: {user_profile.get('tone', '알 수 없음')}
-        - 관심사: {user_text}
-        
-        [웹 검색 결과]
-        {search_context}
-        
-        [지시사항]
-        1. 검색 결과에서 공통적으로 언급되는 핵심 트렌드(색상, 제형, 브랜드 등)를 요약하세요.
-        2. 사용자의 프로필(퍼스널 컬러 등)과 연관 지어 팁을 주세요. (예: "요즘 글로시 립이 유행인데, 고객님 같은 여쿨에겐 이런 핑크가 좋아요")
-        3. 검색 정보가 부족하면 일반적인 최신 뷰티 상식으로 답변하되, 출처는 언급하지 마세요.
-        4. 친절하고 전문적인 어조(해요체)를 사용하세요.
-        """
-        
+당신은 융통성 있고 설득력 있는 K-Beauty AI 뷰티 에이전트입니다.
+단순 정보 나열이 아니라, 퍼스널 컬러 전문가처럼 사용자를 설득해야 합니다.
+
+[사용자 프로필]
+- 퍼스널 컬러: {user_profile.get('tone', '알 수 없음')}
+- 선호 브랜드: {', '.join(user_profile.get('fav_brands', []))}
+- 선호 피니시: {', '.join(user_profile.get('finish_preference', []))}
+
+[현재 대화에서 파악된 사용자 의도]
+- 원하는 톤: {parsed_pref.get('tone')}
+- 원하는 피니시: {parsed_pref.get('finish')}
+- 선호 키워드: {', '.join(parsed_pref.get('like_keywords', []))}
+
+[후보 제품 목록 (DB 기반)]
+{products_context}
+
+[사용자 질문/불만]
+"{user_text}"
+
+[답변 형식 규칙 - 반드시 지킬 것]
+1) 반드시 한국어(해요체)로 답변합니다.
+2) 답변은 하나의 긴 메시지로 작성하되, 다음 3개 단락 구조를 따릅니다.
+   - 1단락: 사용자의 요청과 상황을 공감하며 자연스럽게 요약합니다.
+   - 2단락: 추천 제품 1번(제품 1개)에 대해,
+     - 어떤 점이 사용자의 피드백/취향에 잘 맞는지,
+     - 제형, 컬러 톤, 채도, 각질 부각 여부 등 구체적인 장점을 들어 설명합니다.
+   - 3단락: 추천 제품 2번(제품 1개)에 대해,
+     - 2단락과는 조금 다른 포인트(예: 데일리/행사용, 채도 차이)를 중심으로 설명하고
+     - 어떤 상황에서 2번을 더 추천하는지 정리해 줍니다.
+3) 후보 리스트에 **없는** 브랜드명이나 제품명은 절대 언급하지 마세요.
+4) 추천 제품은 최대 2개까지입니다.
+   - 후보가 2개 이상이면, 상위 2개만 골라서 추천합니다.
+   - 후보가 1개 뿐이라면, 2단락에서 그 제품만 자연스럽게 추천하고
+     3단락에서는 "이 제품 하나만으로도 충분한 이유"나 활용 팁을 설명합니다.
+5) '추천 불가'라는 표현은 절대 사용하지 말고,
+   항상 후보 중에서 상대적으로 더 나은 선택지를 제안합니다.
+6) 제품 설명에는 위 [후보 제품 목록]에 포함된 정보(브랜드/제품명/컬러/요약 정보)를 중심으로만 사용합니다.
+7) 문단 사이에는 빈 줄(한 줄 개행)을 넣어 자연스럽게 구분해 주세요.
+"""
+
         try:
             response = self.client.chat.completions.create(
                 model="gpt-4o",
@@ -412,76 +506,55 @@ class RAGAgent:
                 ],
                 temperature=0.7
             )
+
+            assistant_message = response.choices[0].message.content
+
             return {
-                "success": True,
-                "intent": "trend",
-                "assistant_message": response.choices[0].message.content,
-                "recommendations": [], 
-                "parsed_preferences": parsed_pref
+                "assistant_message": assistant_message,
+                "recommendations": top_candidates,
+                "parsed_preferences": parsed_pref,
+                "intent": "recommend"
             }
         except Exception as e:
-            logger.error(f"Trend generation failed: {e}")
+            logger.error(f"LLM generation failed: {e}")
             return {
-                "success": False,
-                "intent": "error",
-                "assistant_message": "최신 트렌드를 불러오는 데 실패했습니다.",
+                "assistant_message": "죄송합니다. 재추천 답변을 생성하는 중에 문제가 발생했어요.",
                 "recommendations": [],
-                "parsed_preferences": parsed_pref
+                "parsed_preferences": parsed_pref,
+                "intent": "error"
             }
 
-    def generate_explanation(
+    def generate_explain_response(
         self,
         user_text: str,
         user_profile: Dict,
         parsed_pref: Dict,
-        memories: List[Dict],
-        candidate_products: List[Dict]
+        memories: List[Dict]
     ) -> Dict:
-        
-        if candidate_products:
-            products_context = "\n".join([
-                f"""
-                [제품 {idx+1}]
-                - 브랜드: {p['brand']}
-                - 이름: {p['product_name']} ({p['shade_name']})
-                - 가격: {p['price']}원
-                - 상세정보/리뷰요약: {p.get('rag_text', '정보 없음')}
-                """ for idx, p in enumerate(candidate_products)
-            ])
-        else:
-            products_context = "검색된 적합한 제품이 없습니다."
-
         system_prompt = f"""
-        당신은 융통성 있고 설득력 있는 K-Beauty AI 뷰티 에이전트입니다.
-        단순히 정보를 나열하지 말고, 퍼스널 컬러 전문가처럼 사용자를 설득하세요.
+당신은 한국어에 능숙한 K-Beauty 색조 이론 전문가입니다.
+사용자의 질문에 대해 개념을 차근차근 설명해주는 역할입니다.
 
-        [사용자 프로필]
-        - 퍼스널 컬러: {user_profile.get('tone', '알 수 없음')}
-        - 선호 브랜드: {', '.join(user_profile.get('fav_brands', []))}
-        - 선호 피니시: {', '.join(user_profile.get('finish_preference', []))}
-        
-        [현재 대화에서 파악된 사용자 의도]
-        - 원하는 톤: {parsed_pref.get('tone')}
-        - 원하는 피니시: {parsed_pref.get('finish')}
-        - 선호 키워드: {', '.join(parsed_pref.get('like_keywords', []))}
-        
-        [검색된 후보 제품 목록 (DB 기반)]
-        {products_context}
-        
-        [사용자 질문/불만]
-        "{user_text}"
-        
-        [행동 지침 (매우 중요)]
-        1. **'추천 불가'라고 말하지 마세요.** 후보 제품 목록 중에서 사용자의 요구사항(텍스처, 색감 등)에 **가장 근접한 1~3개**를 반드시 골라내세요.
-        
-        2. **'톤 크로스(Tone-Cross)'와 '유사 속성'을 허용하세요.**
-           - 사용자가 '매트'를 원하는데 검색 결과에 '세미매트'나 '벨벳'만 있다면? -> "완전한 매트는 아니지만, 속은 촉촉하고 겉은 보송한 **세미매트** 제형이라 고객님께 더 잘 맞을 수 있어요!"라고 설득하세요.
+[사용자 프로필]
+- 퍼스널 컬러(있다면): {user_profile.get('tone', '알 수 없음')}
 
-        3. **근거를 제시하세요.**
-           - 제품 정보(rag_text)에 있는 "각질 부각 없음", "지속력 좋음" 등의 멘트를 인용해서 추천 이유를 설명하세요.
-           
-        4. 답변은 친절하고 공감하는 말투(해요체)로 작성하세요.
-        """
+[현재 대화에서 파악된 사용자 의도]
+- 원하는 톤: {parsed_pref.get('tone')}
+- 원하는 피니시: {parsed_pref.get('finish')}
+- 선호 키워드: {', '.join(parsed_pref.get('like_keywords', []))}
+
+[답변 형식 규칙]
+1) 반드시 한국어(해요체)로 답변합니다.
+2) 제품을 직접 추천하거나, 구체적인 브랜드/제품명을 언급하지 않습니다.
+3) 대신, 사용자가 헷갈려하는 개념(예: MLBB, 쿨톤/웜톤, 채도, 톤 크로스 등)을
+   - 쉬운 예시,
+   - 비교 설명,
+   - 실제 메이크업 상황 예시
+   를 활용해서 설명해 주세요.
+4) 마지막 부분에는 사용자가 실제로 제품을 고를 때 적용할 수 있는
+   간단한 체크리스트나 팁(예: "테스트해볼 때 이런 점을 확인해보세요")을 추가해 주세요.
+5) 말투는 친절하고 부담스럽지 않게, 뷰티 유튜버가 설명해 주듯이 작성해 주세요.
+"""
 
         try:
             response = self.client.chat.completions.create(
@@ -490,22 +563,74 @@ class RAGAgent:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_text}
                 ],
-                temperature=0.7 
+                temperature=0.7
             )
-            
+
             assistant_message = response.choices[0].message.content
-            
+
             return {
                 "assistant_message": assistant_message,
-                "recommendations": candidate_products[:3], 
+                "recommendations": [],
                 "parsed_preferences": parsed_pref,
-                "intent": "recommend"
+                "intent": "explain"
             }
-            
         except Exception as e:
-            logger.error(f"LLM generation failed: {e}")
+            logger.error(f"Explain generation failed: {e}")
             return {
-                "assistant_message": "죄송합니다. 답변을 생성하는 중에 문제가 발생했어요.",
+                "assistant_message": "죄송합니다. 설명을 생성하는 중에 문제가 발생했어요.",
+                "recommendations": [],
+                "parsed_preferences": parsed_pref,
+                "intent": "error"
+            }
+
+    def generate_trend_response(
+        self,
+        user_text: str,
+        user_profile: Dict,
+        parsed_pref: Dict,
+        search_context: str
+    ) -> Dict:
+        system_prompt = f"""
+당신은 최신 K-Beauty 트렌드를 설명하는 전문가입니다.
+
+[사용자 프로필]
+- 퍼스널 컬러: {user_profile.get('tone', '알 수 없음')}
+
+[웹 검색 결과]
+{search_context}
+
+[사용자 질문]
+"{user_text}"
+
+[답변 규칙]
+1) 반드시 한국어(해요체)로 답변합니다.
+2) 웹 검색 결과를 바탕으로 최신 트렌드를 설명합니다.
+3) 구체적인 제품명보다는 트렌드 경향(색상, 텍스처, 스타일 등)에 집중합니다.
+4) 친근하고 정보성 있는 톤으로 작성합니다.
+"""
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_text}
+                ],
+                temperature=0.7
+            )
+
+            assistant_message = response.choices[0].message.content
+
+            return {
+                "assistant_message": assistant_message,
+                "recommendations": [],
+                "parsed_preferences": parsed_pref,
+                "intent": "trend"
+            }
+        except Exception as e:
+            logger.error(f"Trend generation failed: {e}")
+            return {
+                "assistant_message": "죄송합니다. 트렌드 정보를 생성하는 중에 문제가 발생했어요.",
                 "recommendations": [],
                 "parsed_preferences": parsed_pref,
                 "intent": "error"
