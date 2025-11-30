@@ -131,14 +131,27 @@ class VectorDB:
             
             query_embedding = self.create_embedding(query_text)
             
-            cur.execute("""
-                SELECT brand, product_name, color_name, price, text, metadata,
-                       embedding <=> %s::vector as distance
-                FROM product_embeddings
-                WHERE category = %s
-                ORDER BY distance ASC
-                LIMIT %s
-            """, (query_embedding, category, top_k))
+            # category가 'unknown'인 경우 WHERE 절에서 제외하여 검색 범위 넓힘 (선택적)
+            # 현재는 정확성을 위해 WHERE category = %s 유지
+            if category == "unknown":
+                 logger.warning("Category is 'unknown'. Searching without category filter.")
+                 # 카테고리 필터 없이 검색하는 경우:
+                 cur.execute("""
+                    SELECT brand, product_name, color_name, price, text, metadata,
+                           embedding <=> %s::vector as distance
+                    FROM product_embeddings
+                    ORDER BY distance ASC
+                    LIMIT %s
+                 """, (query_embedding, top_k))
+            else:
+                cur.execute("""
+                    SELECT brand, product_name, color_name, price, text, metadata,
+                           embedding <=> %s::vector as distance
+                    FROM product_embeddings
+                    WHERE category = %s
+                    ORDER BY distance ASC
+                    LIMIT %s
+                """, (query_embedding, category, top_k))
             
             results = []
             for row in cur.fetchall():
@@ -157,7 +170,7 @@ class VectorDB:
             
             cur.close()
             conn.close()
-            logger.info(f"🔍 [DB Search] Found {len(results)} products for query: '{query_text}'")
+            logger.info(f"🔍 [DB Search] Found {len(results)} products for query: '{query_text}' in category: '{category}'")
             return results
             
         except Exception as e:
@@ -302,7 +315,7 @@ class FeedbackParser:
         return {
             "tone": data.get("tone", "unknown"),
             "finish": data.get("finish", "unknown"),
-            "category": normalize_category(data.get("category")), # <--- normalize_category 적용
+            "category": normalize_category(data.get("category")),
             "brightness": data.get("brightness", "unknown"),
             "saturation": data.get("saturation", "unknown"),
             "like_keywords": data.get("like_keywords", []),
@@ -347,13 +360,22 @@ class RAGAgent:
         message: str,
         current_recommendations: List[Dict],
         user_profile: Dict,
-        category: str
+        category: str # <--- 이 인자는 기존 API의 기본값일 수 있음
     ) -> Dict:
         intent = self.intent_classifier.classify(message)
         logger.info(f"🤖 User Intent: {intent}")
 
         parsed_pref = self.feedback_parser.parse_preference(message)
         logger.info(f"🧠 Parsed User Preference: {parsed_pref}")
+        
+        # 🌟 핵심 수정: 사용자가 메시지에서 요청한 카테고리를 최우선으로 사용
+        search_category = parsed_pref.get("category", "unknown")
+        if search_category == "unknown":
+            # 메시지에서 카테고리 파악이 안되면, API에 전달된 기본 category 인자 사용 (예: 'lips')
+            search_category = category
+            
+        logger.info(f"🔎 Final Search Category determined: {search_category}")
+
 
         feedback_id = str(uuid.uuid4())
         self.vector_db.save_feedback(
@@ -362,7 +384,8 @@ class RAGAgent:
             text=message,
             metadata={
                 "preferences": parsed_pref,
-                "category": category,
+                # DB 저장 시에는 메시지에서 파악된 카테고리 사용
+                "category": parsed_pref.get("category", "unknown"), 
                 "intent": intent,
                 "timestamp": str(uuid.uuid1())
             }
@@ -392,7 +415,7 @@ class RAGAgent:
 
         db_products = self.vector_db.search_products(
             query_text=search_query,
-            category=category,
+            category=search_category, # 🌟 수정된 카테고리 사용
             top_k=20
         )
 
@@ -509,15 +532,15 @@ class RAGAgent:
    - 3단락: 추천 제품 2번(제품 1개)에 대해,
      - 2단락과는 조금 다른 포인트(예: 데일리/행사용, 채도 차이)를 중심으로 설명하고
      - 어떤 상황에서 2번을 더 추천하는지 정리해 줍니다.
-4) 후보 리스트에 **없는** 브랜드명이나 제품명은 절대 언급하지 마세요.
-5) 추천 제품은 최대 2개까지입니다.
+3) 후보 리스트에 **없는** 브랜드명이나 제품명은 절대 언급하지 마세요.
+4) 추천 제품은 최대 2개까지입니다.
    - 후보가 2개 이상이면, 상위 2개만 골라서 추천합니다.
    - 후보가 1개 뿐이라면, 2단락에서 그 제품만 자연스럽게 추천하고
      3단락에서는 "이 제품 하나만으로도 충분한 이유"나 활용 팁을 설명합니다.
-6) '추천 불가'라는 표현은 절대 사용하지 말고,
+5) '추천 불가'라는 표현은 절대 사용하지 말고,
    항상 후보 중에서 상대적으로 더 나은 선택지를 제안합니다.
-7) 제품 설명에는 위 [후보 제품 목록]에 포함된 정보(브랜드/제품명/컬러/요약 정보)를 중심으로만 사용합니다.
-8) 문단 사이에는 빈 줄(한 줄 개행)을 넣어 자연스럽게 구분해 주세요.
+6) 제품 설명에는 위 [후보 제품 목록]에 포함된 정보(브랜드/제품명/컬러/요약 정보)를 중심으로만 사용합니다.
+7) 문단 사이에는 빈 줄(한 줄 개행)을 넣어 자연스럽게 구분해 주세요.
 """
 
         try:
