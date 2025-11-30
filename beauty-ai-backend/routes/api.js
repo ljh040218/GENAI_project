@@ -23,17 +23,33 @@ router.post('/agent/chat', authMiddleware, async (req, res) => {
       [userId]
     );
 
-    const userProfile = profileResult.rows.length > 0 ? {
-      personal_color: profileResult.rows[0].personal_color,
-      skin_undertone: profileResult.rows[0].skin_undertone,
-      skin_type: profileResult.rows[0].skin_type,
-      contrast_level: profileResult.rows[0].contrast_level,
-      preferred_finish: profileResult.rows[0].preferred_finish,
-      preferred_store: profileResult.rows[0].preferred_store,
-      price_range_min: profileResult.rows[0].price_range_min,
-      price_range_max: profileResult.rows[0].price_range_max,
-      preferences: profileResult.rows[0].preferences
-    } : {};
+    let userProfile = {
+      tone: null,
+      fav_brands: [],
+      finish_preference: [],
+      price_range: []
+    };
+
+    if (profileResult.rows.length > 0) {
+      const profile = profileResult.rows[0];
+      
+      userProfile.tone = profile.skin_undertone || null;
+      
+      userProfile.finish_preference = profile.preferred_finish 
+        ? [profile.preferred_finish] 
+        : [];
+      
+      userProfile.price_range = [
+        profile.price_range_min || 0,
+        profile.price_range_max || 100000
+      ];
+      
+      if (profile.preferences && typeof profile.preferences === 'object') {
+        userProfile.fav_brands = Array.isArray(profile.preferences.fav_brands) 
+          ? profile.preferences.fav_brands 
+          : [];
+      }
+    }
 
     const response = await axios.post(
       `${process.env.PYTHON_API_URL}/api/agent/message`,
