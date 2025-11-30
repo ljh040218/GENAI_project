@@ -4,8 +4,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "../assets/sass/mainface/faceresult.scss";
 import { FiChevronLeft, FiHome } from "react-icons/fi";
 
-import romandImg from "../assets/img/mainface/romand.png"; // FIXED
-
 
 // 🔥 백엔드 응답 → UI 구조로 변환
 const convertApiResult = (api) => {
@@ -47,7 +45,7 @@ const FaceResult = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   const currentMatches = pythonResults[active] || [];
-
+const topProduct = currentMatches[0]; 
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => (document.body.style.overflow = "auto");
@@ -100,13 +98,20 @@ const handleTabClick = (tab) => {
         </p>
       </section>
 
-      {/* 제품 미리보기 */}
-      <section className="fr-product">
-        <div className="prod-img">
-          <img src={romandImg} alt="product" />
-        </div>
-        <div className="prod-name">Top 3 추천 제품</div>
-      </section>
+     <section className="fr-product">
+  <div className="prod-img">
+    {topProduct?.image && <img src={topProduct.image} alt="추천 제품" />}
+  </div>
+
+  <div className="prod-name">
+    {topProduct && (
+      <>
+        <span className="brand">{topProduct.brand}</span>
+        <span className="name"> {topProduct.name}</span>
+      </>
+    )}
+  </div>
+</section>
 
       {/* BottomSheet */}
 <div className={`bsheet ${isSheetOpen ? "open" : ""}`}>

@@ -114,6 +114,7 @@
     text-align: center;
 
     .prod-img img {
+      margin-top: -20px;;
       width: 110px;
       height: 110px;
       object-fit: contain;
@@ -327,7 +328,19 @@
     color: #666;
   }
 }
+.prod-name {
+  font-weight: 400;
+  margin-top: 1px;
+  text-align: center;
 
+  .brand {
+    color:  #e4657f;
+  }
+
+  .name {
+    color: #333;
+  }
+}
 /* 기본 패딩 */
 .bsheet .fr-content {
   padding: 16px 16px 22px;
