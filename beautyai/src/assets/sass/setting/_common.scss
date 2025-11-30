@@ -5,7 +5,7 @@ a {
 }
 
 body {
-  background-color: var(--black);
+  background-color: #ffebeb;
 }
 
 // 각 컴포넌트 가장 바깥 div에 해당 클래스를 넣으면 자동으로 크기가 설정됩니다.
@@ -27,7 +27,7 @@ body {
 .container2 {
   width: 100%;
   margin: 0 auto;
-  background-color: #161616;
+  background-color: #ffebeb;
   min-width: 393px;
   max-width: 420px;
   height: 100vh;
@@ -44,4 +44,34 @@ body {
 
 input {
   outline: none;
+}
+/* ✅ iPhone 16 FIX - LOGIN */
+
+.Login_wrap.container {
+  width: 100%;
+  max-width: 393px;
+  margin: 0 auto;
+  padding: 48px 16px 40px;
+}
+
+/* 로고 크기 */
+.Login_wrap .logo-box img {
+  width: 280px;
+}
+
+/* 입력 */
+.Login_wrap .input-group input {
+  height: 44px;
+  font-size: 14px;
+}
+
+/* 버튼 */
+.Login_wrap .login-btn {
+  height: 46px;
+  font-size: 15px;
+}
+
+/* footer 링크 */
+.Login_wrap .signup-link {
+  font-size: 13px;
 }

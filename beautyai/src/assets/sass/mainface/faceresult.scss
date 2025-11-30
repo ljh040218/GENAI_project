@@ -5,20 +5,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: calc(100vh + 100px);
-  padding-bottom: 160px;
+  min-height: 100dvh;
+overflow-y: auto;
 
   /* 🔥 화면의 위에서부터 바로 시작하도록 */
   justify-content: flex-start;
-  padding-top: 30px;
-  margin-top: 10px;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+margin-top: 0;
   overflow: hidden;
 
   .fr-topbar {
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    padding: 16px 20px; // MainFace와 동일
+     position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 50%;
+  margin-top: 20px;
+  transform: translateX(-50%);
+
+  width: 100%;
+  max-width: 420px;
+  height: 56px;
+
+  background: #ffebeb;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
+
+  z-index: 50;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
     .fr-home-btn {
       background: none;
       border: none;
@@ -44,7 +58,7 @@
   .fr-title {
     font-size: 25px;
     font-weight: 700;
-    margin-bottom: 18px;
+    margin-top: 80px;
     color: #e4657f;
     width: 90%;
     text-align: center;
@@ -109,7 +123,7 @@
   }
 
   .fr-product {
-    margin-top: 50px;
+    margin-top: 35px;
     width: 90%;
     text-align: center;
 
@@ -128,7 +142,7 @@
 /* BottomSheet (FaceResult) */
 .bsheet {
   position: fixed;
-  bottom: 0;
+  bottom: env(safe-area-inset-bottom, 0px);
   left: 50%;
   width: 100%;
   max-width: 420px;
@@ -345,6 +359,4 @@
 .bsheet .fr-content {
   padding: 16px 16px 22px;
 }
-}html {
-  zoom: 0.85;
 }

@@ -28,10 +28,7 @@ export default function ProfileView() {
     Promise.all([fetchUserInfo(tk), fetchBeautyProfile(tk)]).then(() => {
       setIsLoading(false); // 🔥 모든 fetch 끝나면 로딩 종료
     });
-     document.body.style.overflow = "hidden";
-  return () => {
-    document.body.style.overflow = "auto";
-  };
+    
 
   }, []);
 

@@ -2,91 +2,97 @@
   @import '../setting/common';
 
   width: 100%;
-  height: 100vh;                     // 🔥 전체 화면 고정
-  background-color: #fff7f9;
+  height: 100dvh;                     // 🔥 전체 화면 고정
+  background-color:  #FFEBEB;
 
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;                // 🔥 fixed 버튼 기준
 
-  max-width: 420px;
+  max-width: 393px;
   margin: 0 auto;
   font-family: 'Pretendard Variable', sans-serif;
   overflow: hidden;                  // 🔥 body 스크롤 방지
 
   /* ===== 탑바 ===== */
-.ps-topbar {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  .ps-topbar {
+    position: fixed;
+    top: env(safe-area-inset-top, 0px);
+    left: 50%;
+    transform: translateX(-50%);
 
-  width: 100%;
-  max-width: 420px;           // ✔ 앱 화면과 동일한 폭
-  height: 60px;
-margin-top: 50px;
-  background: #fff7f9;
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  box-sizing: border-box;     // ✔ padding 포함 계산
-  z-index: 50;
+    width: 100%;
+    max-width: 420px;
+    height: 56px;
+    background:  #FFEBEB;
 
-  border-bottom: 1px solid rgba(0,0,0,0.04);  // ✔ 자연스럽게 보이도록
-}
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    box-sizing: border-box;
 
-.ps-back-btn {
-  background: none;
-  border: none;
-  color: #d45d76;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+    z-index: 50;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
 
-.ps-topbar h2 {
-  flex: 1;
-  text-align: center;
-  font-size: 20px;
-  font-weight: 700;
-  color: #d45d76;
-  margin-right: 40px;   // ← 뒤로가기 버튼 공간 확보
-}
+  .ps-back-btn {
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    color: #d45d76;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-  /* ===== 스크롤 가능한 입력 영역 ===== */
+  .ps-topbar h2 {
+    flex: 1;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #d45d76;
+    margin-right: 40px;
+  }
+  /* ===== 스크롤 영역 ===== */
   .ps-content {
     width: 100%;
     flex: 1;
-         // 🔥 이 영역만 스크롤
-    padding: 80px 20px 120px;        // 🔥 아래 버튼 공간 확보
-    box-sizing: border-box;
-    margin-top: 60px;
+    overflow-y: auto;
+
     max-width: 420px;
+    box-sizing: border-box;
+
+    padding: calc(env(safe-area-inset-top, 0px) + 70px) 20px 
+             calc(env(safe-area-inset-bottom, 0px) + 120px);
+
   }
 
   .ps-block {
-    margin-bottom: 25px;
+    margin-bottom: 22px;
 
     label {
-      font-size: 14px;
+      font-size: 13px;
       color: #a8858f;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       display: block;
     }
+
 
     select,
     input {
       width: 100%;
-      height: 48px;
-      padding: 0 16px;
+      height: 46px;
+      padding: 0 14px;
       background: #fff;
       border-radius: 10px;
-      border: 2px solid #ffd7df;
-      font-size: 15px;
+      border: 1.8px solid #ffd7df;
+      font-size: 14px;
+      appearance: none;
+
       &:focus {
+        outline: none;
         border-color: #f3a6b4;
       }
     }
@@ -102,29 +108,27 @@ margin-top: 50px;
     }
   }
 
-  /* ===== 하단 고정 버튼 ===== */
+  /* ===== 하단 버튼 ===== */
   .ps-save-btn {
-    position: fixed;                 // 🔥 하단 고정!!!
-    bottom: 20px;
+    position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    width: 90%;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+
+    width: 88%;
     max-width: 340px;
     height: 52px;
 
     background-color: #f28a9a;
     color: white;
-    border-radius: 12px;
+    border-radius: 14px;
     border: none;
     font-size: 16px;
     font-weight: 700;
     z-index: 15;
 
     &:active {
-      transform: translateX(-50%) scale(0.97);
+      transform: translateX(-50%) scale(0.96);
     }
   }
-}
-html {
-  zoom: 0.85;
 }

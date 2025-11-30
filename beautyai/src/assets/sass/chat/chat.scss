@@ -1,21 +1,34 @@
 .ChatBot_wrap {
   width: 100%;
   background-color: #ffebeb;
-  position: relative;
+
   display: flex;
   flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  justify-content: flex-start;
-  padding-top: 30px;
+  align-items: stretch;
+
+  min-height: 100dvh;
   overflow: hidden;
 
   /* topbar */
   .cb-topbar {
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    padding: 16px 20px;
+    position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 50%;
+  margin-top: 20px;
+  transform: translateX(-50%);
+
+  width: 100%;
+  max-width: 420px;
+  height: 56px;
+
+  background: #ffebeb;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
+
+  z-index: 50;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
     .cb-home-btn {
       background: none;
       border: none;
@@ -41,7 +54,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 40px; // 여백 확보
+    margin-top: 80px; // 여백 확보
     gap: 1px;
 
     .cb-logo {
@@ -57,14 +70,10 @@
     }
   }
   .cb-body {
-    flex: 1; // 🔥 위에서 아래까지 남는 공간을 다 차지
-    width: 100%;
-    padding: 24px 0;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    gap: 14px;
+   height: calc(100dvh - 56px - env(safe-area-inset-top, 0px));
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   }
   /* bot row */
   .cb-msg-row.bot {
@@ -99,6 +108,7 @@
   /* user bubble */
   .cb-msg-bubble.user {
     max-width: 75%;
+    flex-direction: column;
     background: #ff5f8a;
     color: white;
     padding: 10px 14px;
@@ -114,8 +124,8 @@
     flex-direction: column;
     padding: 20px;
     gap: 16px;
-    margin-bottom: 50px;
-    padding: 0 16px calc(env(safe-area-inset-bottom, 10px) + 20px);
+    margin-bottom: 0;
+    padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
     box-sizing: border-box;
   }
 
@@ -207,8 +217,10 @@
 ---------------------------------------- */
 .cb-msg-container {
   display: flex;
+  
   flex-direction: column;
   gap: 8px;
+  margin-top: 6px;
 }
 
 /* 가로 정렬 카드 리스트 */
@@ -217,9 +229,35 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
   max-width: 85%; // ✅ 사용자 말풍선과 같은 넓이
-  margin-right: auto; // ✅ 오른쪽 정렬 핵심
-  margin-right: 10px; // ✅ 사용자 말풍선 여백 맞추기
+align-self: flex-start;
   overflow: hidden; // ✅ 가로 스크롤 방지
+   flex-direction: column;   /* ✅ 가로 → 세로 */
+   margin-left: -40px;
+   
+  
+}
+.cb-profile-hint.with-spinner {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  font-size: 13px;
+  color: #d67b8e;
+}
+
+.loader {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #eee;
+  border-top: 2px solid #d67b8e;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* 개별 카드 크기 자동 맞춤 */

@@ -211,10 +211,12 @@ const ChatBot = () => {
 
         {/* 프로필 아직 로딩 중이면 안내 문구 (선택사항) */}
         {isProfileLoading && (
-          <div className="cb-profile-hint">
-            프로필 정보를 불러오는 중입니다...
-          </div>
-        )}
+  <div className="cb-profile-hint with-spinner">
+    <span className="loader"></span>
+    프로필 정보를 불러오는 중입니다...
+  </div>
+)}
+
 
         <div className="cb-body">
           {messages.map((msg, i) => (
