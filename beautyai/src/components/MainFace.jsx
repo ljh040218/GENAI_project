@@ -6,6 +6,7 @@ import { FiChevronLeft } from "react-icons/fi";
 import { FaUserCircle } from "react-icons/fa";
 
 
+
 const PYTHON_API = "https://pythonapi-production-8efe.up.railway.app";
 
 const MainFace = () => {
@@ -14,6 +15,8 @@ const MainFace = () => {
 
   const [showPopup, setShowPopup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
 
   // 파일 선택창 열기
   const openFilePicker = () => fileInputRef.current.click();
@@ -131,28 +134,37 @@ const MainFace = () => {
         </ul>
       </div>
       {/* 로딩 팝업 */}
-      {showPopup && (
-        <div className="popup-overlay">
-          <div className="popup">
-            <div className="popup-icon">
-              <FaUserCircle />
-            </div>
+      {/* 로딩 팝업 */}
+{showPopup && (
+  <div className="popup-overlay">
+    <div className="popup">
 
-            <h3>{isLoading ? "이미지 분석 중..." : "완료!"}</h3>
-            <p>
-              {isLoading
-                ? "AI가 얼굴을 분석하고 있습니다..."
-                : "얼굴 인식이 완료되었습니다!"}
-            </p>
+      <div className="popup-icon">
+        <FaUserCircle />
+      </div>
 
-            {!isLoading && (
-              <button className="popup-btn" onClick={() => setShowPopup(false)}>
-                확인
-              </button>
-            )}
-          </div>
-        </div>
+      {/* ✅ 로딩 중 */}
+      {isLoading && (
+        <>
+          <h3 className="loading-title">이미지 분석 중</h3>
+          <div className="loading-spinner"></div>
+          <p className="loading-text">AI가 얼굴을 분석하고 있어요</p>
+        </>
       )}
+
+      {/* ✅ 완료 */}
+      {!isLoading && (
+        <>
+          <h3>완료!</h3>
+          <p>얼굴 인식이 완료되었습니다!</p>
+          <button className="popup-btn" onClick={() => setShowPopup(false)}>
+            확인
+          </button>
+        </>
+      )}
+    </div>
+  </div>
+)}
     </div>
   );
 };

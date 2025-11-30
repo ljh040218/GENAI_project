@@ -1,21 +1,35 @@
 
 .MainFace_wrap {
+  width: 100%;
+  min-height: 100dvh;
   background-color: #ffebeb;
-  text-align: center;
-  font-family: "Pretendard Variable", sans-serif;
-  color: #a85565;
-  min-height: 100dvh;      // ✅ 모바일 실제 화면 대응
-  overflow-y: auto;       // ✅ 스크롤 가능
-  padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  max-width: 420px;
+  margin: 0 auto;
+  font-family: 'Pretendard Variable', sans-serif;
+  color: #a85565;
   /* 상단바 */
   .topbar {
-    width: 100%;
-    display: flex;
-    justify-content: flex-start;
-    padding-top: env(safe-area-inset-top, 0px);
-  padding-left: 20px;
-  padding-right: 20px;
+    position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 420px;
+  height: 56px;
+
+  background: #ffebeb;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  z-index: 100;
 
     .back-btn {
       background: none;
@@ -78,9 +92,13 @@
 
   /* 주의사항 */
   .notice-box {
-    margin-top: 30px;
-    text-align: left;
-    padding: 0 26px 40px;
+   max-height: 180px;          // ✅ 박스 높이 제한 (원하는 높이로 조절 가능)
+  overflow-y: auto;           // ✅ 내부만 스크롤
+  -webkit-overflow-scrolling: touch;
+
+  border-radius: 14px;
+  padding: 14px 16px 16px;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.03);
 
     .notice-title {
       display: flex;
@@ -178,5 +196,20 @@
         }
       }
     }
+  }.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 4px solid #f3c4cf;
+  border-top: 4px solid #e4657f;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 10px auto 6px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
+}
+
 }

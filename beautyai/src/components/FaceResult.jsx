@@ -98,20 +98,7 @@ const handleTabClick = (tab) => {
         </p>
       </section>
 
-     <section className="fr-product">
-  <div className="prod-img">
-    {topProduct?.image && <img src={topProduct.image} alt="추천 제품" />}
-  </div>
-
-  <div className="prod-name">
-    {topProduct && (
-      <>
-        <span className="brand">{topProduct.brand}</span>
-        <span className="name"> {topProduct.name}</span>
-      </>
-    )}
-  </div>
-</section>
+     
 
       {/* BottomSheet */}
 <div className={`bsheet ${isSheetOpen ? "open" : ""}`}>

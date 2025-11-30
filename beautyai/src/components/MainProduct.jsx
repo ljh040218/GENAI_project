@@ -182,21 +182,34 @@ const MainProduct = () => {
       )}
 
       {showLoadingPopup && (
-        <div className="popup-overlay">
-          <div className="popup">
-            <div className="popup-icon">
-              <FaCamera />
-            </div>
+  <div className="popup-overlay">
+    <div className="popup loading-popup">
 
-            <h3>{isLoading ? "이미지 분석 중..." : "완료!"}</h3>
-            <p>
-              {isLoading
-                ? "AI가 제품 이미지를 분석하고 있습니다..."
-                : "분석이 완료되었습니다!"}
-            </p>
-          </div>
-        </div>
+      <div className="popup-icon">
+        <FaCamera />
+      </div>
+
+      {/* ✅ 로딩 중 */}
+      {isLoading && (
+        <>
+          <h3 className="loading-title">이미지 분석 중</h3>
+          <div className="loading-spinner"></div>
+          <p className="loading-text">AI가 제품 이미지를 분석하고 있어요</p>
+        </>
       )}
+
+      {/* ✅ 완료 */}
+      {!isLoading && (
+        <>
+          <h3>완료!</h3>
+          <p>분석이 완료되었습니다!</p>
+        </>
+      )}
+
+    </div>
+  </div>
+)}
+
     </div>
   );
 };
