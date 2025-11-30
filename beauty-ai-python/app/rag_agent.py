@@ -158,11 +158,12 @@ class VectorDB:
                 meta = row[5] if row[5] else {}
                 
                 results.append({
-                    "brand": row[0],
-                    "product_name": row[1],
-                    "shade_name": row[2],
+                    # NULL 값(NoneType)이 .lower()에서 오류를 일으키지 않도록 안전하게 변환
+                    "brand": str(row[0]) if row[0] is not None else "",
+                    "product_name": str(row[1]) if row[1] is not None else "",
+                    "shade_name": str(row[2]) if row[2] is not None else "",
                     "price": row[3],
-                    "rag_text": row[4], 
+                    "rag_text": str(row[4]) if row[4] is not None else "", 
                     "metadata": meta,
                     "distance": float(row[6]),
                     "finish": meta.get("texture", "unknown") 
@@ -468,14 +469,43 @@ class RAGAgent:
 
         product_pc = product_metadata.get("personal_color", "")
         
+        # 1. 일반 키워드 점수 (기존 로직 유지)
+        # rag_text는 VectorDB.search_products에서 NoneType 오류를 방지하도록 수정됨
+        rag_text_lower = product.get("rag_text", "").lower()
+        
         for keyword in parsed_pref.get("like_keywords", []):
-            if keyword.lower() in product.get("rag_text", "").lower():
+            if keyword.lower() in rag_text_lower:
                 score += 1.5
         
         for keyword in parsed_pref.get("dislike_keywords", []):
-            if keyword.lower() in product.get("rag_text", "").lower():
+            if keyword.lower() in rag_text_lower:
                 score -= 2.0
 
+        # 2. 🌟 핵심 수정: 선호 브랜드/명시적 브랜드 언급에 강력한 가산점 부여
+        
+        # 2-1. 사용자 프로필의 선호 브랜드
+        fav_brands = [b.lower() for b in user_profile.get("fav_brands", [])]
+        # brand는 VectorDB.search_products에서 NoneType 오류를 방지하도록 수정됨
+        product_brand = product.get("brand", "").lower()
+        
+        if product_brand in fav_brands:
+            score += 3.0 # 프로필 선호 브랜드에 높은 가산점
+            
+        # 2-2. 대화에서 명시적으로 언급된 브랜드 키워드
+        # '크리니크 블러셔 추천해줘'처럼 키워드에 브랜드가 포함될 경우
+        brand_keywords = ["크리니크", "맥", "샤넬"] # 자주 언급될 수 있는 브랜드 목록 (예시)
+        explicit_keywords = parsed_pref.get("like_keywords", [])
+        
+        for keyword in explicit_keywords:
+            keyword_lower = keyword.lower()
+            if keyword_lower in brand_keywords or keyword_lower == product_brand:
+                # 사용자가 명시적으로 요구한 브랜드에 매우 높은 가산점
+                score += 5.0 
+                break # 하나의 브랜드만 매칭되어도 충분
+                
+        # 3. 톤 매칭 로직 (필요하다면 추가)
+        # 예: user_tone과 product_pc가 일치하면 score += 1.0 (현재는 제외하고 요청 문제만 해결)
+        
         return score
 
     def generate_recommend_response(
