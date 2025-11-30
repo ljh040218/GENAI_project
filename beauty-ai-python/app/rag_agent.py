@@ -488,6 +488,7 @@ class RAGAgent:
         
         if product_brand in fav_brands:
             score += 3.0
+            logger.info(f"💰 Brand match: {product_brand} → +3.0")
             
         brand_keywords = ["크리니크", "맥", "샤넬", "롬앤", "3ce", "헤라", "에뛰드", "클리오"]
         explicit_keywords = parsed_pref.get("like_keywords", [])
@@ -496,6 +497,7 @@ class RAGAgent:
             keyword_lower = keyword.lower()
             if keyword_lower in brand_keywords or keyword_lower == product_brand:
                 score += 5.0 
+                logger.info(f"🎯 Explicit brand keyword: {keyword_lower} → +5.0")
                 break
         
         if pref_tone and pref_tone != "unknown":
@@ -505,17 +507,25 @@ class RAGAgent:
         else:
             final_tone = ""
         
+        logger.info(f"🎨 Tone scoring: user_tone={user_tone}, pref_tone={pref_tone}, final_tone={final_tone}, product_pc={product_pc}")
+        
         if final_tone and product_pc:
             if final_tone == "warm" or final_tone == "웜":
                 if "웜" in product_pc or "warm" in product_pc or "봄" in product_pc or "가을" in product_pc:
                     score += 2.0
+                    logger.info(f"✅ Warm match: {product_pc} → +2.0")
                 elif "쿨" in product_pc or "cool" in product_pc or "여름" in product_pc or "겨울" in product_pc:
                     score -= 3.0
+                    logger.info(f"❌ Cool penalty for warm user: {product_pc} → -3.0")
             elif final_tone == "cool" or final_tone == "쿨":
                 if "쿨" in product_pc or "cool" in product_pc or "여름" in product_pc or "겨울" in product_pc:
                     score += 2.0
+                    logger.info(f"✅ Cool match: {product_pc} → +2.0")
                 elif "웜" in product_pc or "warm" in product_pc or "봄" in product_pc or "가을" in product_pc:
                     score -= 3.0
+                    logger.info(f"❌ Warm penalty for cool user: {product_pc} → -3.0")
+        
+        logger.info(f"📊 Final score for {product.get('brand')} {product.get('shade_name')}: {score}")
         
         return score
 
