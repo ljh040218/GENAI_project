@@ -416,11 +416,30 @@ class RAGAgent:
             )
 
         like_keywords_str = " ".join(parsed_pref.get('like_keywords', []))
-        search_query = f"{message} {like_keywords_str} {like_keywords_str}"
-
+        
+        pref_tone = parsed_pref.get("tone", "")
+        user_tone = user_profile.get("tone", "")
+        
+        tone_keyword = ""
+        if pref_tone and pref_tone != "unknown":
+            if pref_tone == "warm" or pref_tone == "웜":
+                tone_keyword = "웜톤 따뜻한 봄 가을"
+            elif pref_tone == "cool" or pref_tone == "쿨":
+                tone_keyword = "쿨톤 시원한 여름"
+            logger.info(f"🎯 Using pref_tone for search: {pref_tone}")
+        elif user_tone and user_tone != "unknown":
+            if user_tone == "warm" or user_tone == "웜":
+                tone_keyword = "웜톤 따뜻한 봄 가을"
+            elif user_tone == "cool" or user_tone == "쿨":
+                tone_keyword = "쿨톤 시원한 여름"
+            logger.info(f"🎯 Using user_tone for search: {user_tone}")
+        
+        search_query = f"{message} {like_keywords_str} {tone_keyword}".strip()
+        logger.info(f"🔍 Final search query: '{search_query}'")
+        
         db_products = self.vector_db.search_products(
             query_text=search_query,
-            category=search_category, # 🌟 수정된 카테고리 사용
+            category=search_category,
             top_k=20
         )
 
