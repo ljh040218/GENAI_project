@@ -255,12 +255,16 @@ class FeedbackParser:
         
         사용자 문장에서 취향 정보를 JSON으로 추출해줘.
         
+        **중요**: "겨울", "여름", "봄", "가을"은 계절이지 퍼스널컬러가 아니야.
+        - "겨울 트렌드", "여름 메이크업" 같은 표현은 tone을 "unknown"으로 설정해.
+        - 퍼스널컬러는 "쿨톤", "웜톤", "뉴트럴"처럼 명확히 언급된 경우에만 추출해.
+        
         사용자 문장:
         "{user_text}"
         
         JSON 형식:
         {{
-          "tone": "cool / warm / neutral / unknown 중 하나",
+          "tone": "cool / warm / neutral / unknown 중 하나 (계절 != 퍼스널컬러)",
           "finish": "glossy / matte / velvet / tint / unknown 중 하나",
           "category": "lips / cheeks / eyes / unknown 중 하나",
           "brightness": "밝음 / 중간 / 어두움 / unknown 중 하나",
@@ -467,10 +471,8 @@ class RAGAgent:
             except:
                 product_metadata = {}
 
-        product_pc = product_metadata.get("personal_color", "")
+        product_pc = (product_metadata.get("personal_color") or "").lower()
         
-        # 1. 일반 키워드 점수 (기존 로직 유지)
-        # rag_text는 VectorDB.search_products에서 NoneType 오류를 방지하도록 수정됨
         rag_text_lower = (product.get("rag_text") or "").lower()
         
         for keyword in parsed_pref.get("like_keywords", []):
@@ -481,30 +483,39 @@ class RAGAgent:
             if keyword.lower() in rag_text_lower:
                 score -= 2.0
 
-        # 2. 🌟 핵심 수정: 선호 브랜드/명시적 브랜드 언급에 강력한 가산점 부여
-        
-        # 2-1. 사용자 프로필의 선호 브랜드
         fav_brands = [b.lower() for b in user_profile.get("fav_brands", []) if b]
-        # brand는 VectorDB.search_products에서 NoneType 오류를 방지하도록 수정됨
         product_brand = (product.get("brand") or "").lower()
         
         if product_brand in fav_brands:
-            score += 3.0 # 프로필 선호 브랜드에 높은 가산점
+            score += 3.0
             
-        # 2-2. 대화에서 명시적으로 언급된 브랜드 키워드
-        # '크리니크 블러셔 추천해줘'처럼 키워드에 브랜드가 포함될 경우
-        brand_keywords = ["크리니크", "맥", "샤넬"] # 자주 언급될 수 있는 브랜드 목록 (예시)
+        brand_keywords = ["크리니크", "맥", "샤넬", "롬앤", "3ce", "헤라", "에뛰드", "클리오"]
         explicit_keywords = parsed_pref.get("like_keywords", [])
         
         for keyword in explicit_keywords:
             keyword_lower = keyword.lower()
             if keyword_lower in brand_keywords or keyword_lower == product_brand:
-                # 사용자가 명시적으로 요구한 브랜드에 매우 높은 가산점
                 score += 5.0 
-                break # 하나의 브랜드만 매칭되어도 충분
-                
-        # 3. 톤 매칭 로직 (필요하다면 추가)
-        # 예: user_tone과 product_pc가 일치하면 score += 1.0 (현재는 제외하고 요청 문제만 해결)
+                break
+        
+        if pref_tone and pref_tone != "unknown":
+            final_tone = pref_tone
+        elif user_tone and user_tone != "unknown":
+            final_tone = user_tone
+        else:
+            final_tone = ""
+        
+        if final_tone and product_pc:
+            if final_tone == "warm" or final_tone == "웜":
+                if "웜" in product_pc or "warm" in product_pc or "봄" in product_pc or "가을" in product_pc:
+                    score += 2.0
+                elif "쿨" in product_pc or "cool" in product_pc or "여름" in product_pc or "겨울" in product_pc:
+                    score -= 3.0
+            elif final_tone == "cool" or final_tone == "쿨":
+                if "쿨" in product_pc or "cool" in product_pc or "여름" in product_pc or "겨울" in product_pc:
+                    score += 2.0
+                elif "웜" in product_pc or "warm" in product_pc or "봄" in product_pc or "가을" in product_pc:
+                    score -= 3.0
         
         return score
 
@@ -535,10 +546,14 @@ class RAGAgent:
 당신은 융통성 있고 설득력 있는 K-Beauty AI 뷰티 에이전트입니다.
 단순 정보 나열이 아니라, 퍼스널 컬러 전문가처럼 사용자를 설득해야 합니다.
 
-[사용자 프로필]
+[사용자 프로필 - 최우선 기준]
 - 퍼스널 컬러: {user_profile.get('tone', '알 수 없음')}
 - 선호 브랜드: {', '.join([b for b in user_profile.get('fav_brands', []) if b])}
 - 선호 피니시: {', '.join([f for f in user_profile.get('finish_preference', []) if f])}
+
+**중요**: 사용자의 퍼스널 컬러는 '{user_profile.get('tone', '알 수 없음')}'입니다. 
+제품 추천 시 반드시 이 퍼스널 컬러에 맞는 제품을 우선 추천하세요.
+"겨울 트렌드", "여름 메이크업" 등은 계절이며 퍼스널컬러가 아닙니다.
 
 [현재 대화에서 파악된 사용자 의도]
 - 원하는 톤: {parsed_pref.get('tone')}
