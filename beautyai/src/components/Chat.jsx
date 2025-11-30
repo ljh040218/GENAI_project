@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiSend, FiChevronLeft, FiHome } from "react-icons/fi";
 import "../assets/sass/chat/chat.scss";
 import ChatLogo from "../assets/img/chat/chatbot_lg.svg";
 import VizyIcon from "../assets/img/chat/chatbot_icon.svg";
 
-const API_BASE = "https://pythonapi-production-8efe.up.railway.app";  // 🐍 RAG/에이전트
+const API_BASE = "https://pythonapi-production-8efe.up.railway.app"; // 🐍 RAG/에이전트
 const NODE_API = "https://genaiproject-production.up.railway.app/api"; // 🟢 유저/프로필
 
 const ChatBot = () => {
@@ -14,7 +16,7 @@ const ChatBot = () => {
   const [showDeleteBtn, setShowDeleteBtn] = useState(false);
 
   // 🔥 여기서 진짜 프로필을 관리
-  const [userBasic, setUserBasic] = useState(null);   // { id, email, username ... }
+  const [userBasic, setUserBasic] = useState(null); // { id, email, username ... }
   const [userBeauty, setUserBeauty] = useState(null); // { skin_undertone, preferred_finish ... }
   const [isProfileLoading, setIsProfileLoading] = useState(true);
 

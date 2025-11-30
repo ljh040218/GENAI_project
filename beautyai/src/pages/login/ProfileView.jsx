@@ -28,11 +28,10 @@ export default function ProfileView() {
     Promise.all([fetchUserInfo(tk), fetchBeautyProfile(tk)]).then(() => {
       setIsLoading(false); // 🔥 모든 fetch 끝나면 로딩 종료
     });
-     document.body.style.overflow = "hidden";
-  return () => {
-    document.body.style.overflow = "auto";
-  };
-
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
   }, []);
 
   // 회원 정보
@@ -61,9 +60,29 @@ export default function ProfileView() {
     }
   };
 
+  // userInfo + profile을 localStorage("user")에 머지
+  useEffect(() => {
+    if (!userInfo) return; // 최소 userInfo는 있어야 저장
+
+    const merged = {
+      ...userInfo, // id, email, nickname 등
+      tone: profile?.personal_color ?? null,
+      fav_brands: profile?.preferred_store ?? [],
+      finish_preference: profile?.preferred_finish ?? [],
+      price_range:
+        profile?.price_range_min != null && profile?.price_range_max != null
+          ? [profile.price_range_min, profile.price_range_max]
+          : [],
+    };
+
+    // 디버깅용
+    console.log("🔐 merged user for localStorage:", merged);
+
+    localStorage.setItem("user", JSON.stringify(merged));
+  }, [userInfo, profile]);
+
   return (
     <div className="ProfileView_wrap">
-
       {/* ======================= 🔥 로딩 팝업 ======================= */}
       {isLoading && (
         <div className="pv-loading-overlay">
@@ -99,24 +118,46 @@ export default function ProfileView() {
             <div className="pv-section">
               <h3>뷰티 프로필</h3>
 
-              <div className="pv-item"><label>퍼스널 컬러</label><p>{profile.personal_color}</p></div>
-              <div className="pv-item"><label>언더톤</label><p>{profile.skin_undertone}</p></div>
-              <div className="pv-item"><label>피부 타입</label><p>{profile.skin_type}</p></div>
-              <div className="pv-item"><label>명암 대비</label><p>{profile.contrast_level}</p></div>
-              <div className="pv-item"><label>선호 피니시</label><p>{profile.preferred_finish}</p></div>
-              <div className="pv-item"><label>선호 매장</label><p>{profile.preferred_store}</p></div>
+              <div className="pv-item">
+                <label>퍼스널 컬러</label>
+                <p>{profile.personal_color}</p>
+              </div>
+              <div className="pv-item">
+                <label>언더톤</label>
+                <p>{profile.skin_undertone}</p>
+              </div>
+              <div className="pv-item">
+                <label>피부 타입</label>
+                <p>{profile.skin_type}</p>
+              </div>
+              <div className="pv-item">
+                <label>명암 대비</label>
+                <p>{profile.contrast_level}</p>
+              </div>
+              <div className="pv-item">
+                <label>선호 피니시</label>
+                <p>{profile.preferred_finish}</p>
+              </div>
+              <div className="pv-item">
+                <label>선호 매장</label>
+                <p>{profile.preferred_store}</p>
+              </div>
 
               <div className="pv-item">
                 <label>가격대</label>
                 <p>
-                  {profile.price_range_min !== null && profile.price_range_max !== null
+                  {profile.price_range_min !== null &&
+                  profile.price_range_max !== null
                     ? `${profile.price_range_min} ~ ${profile.price_range_max}원`
                     : "설정 안 함"}
                 </p>
               </div>
             </div>
 
-            <button className="pv-edit-btn" onClick={() => navigate("/profileedit")}>
+            <button
+              className="pv-edit-btn"
+              onClick={() => navigate("/profileedit")}
+            >
               프로필 수정하기
             </button>
           </div>
