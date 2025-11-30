@@ -457,8 +457,8 @@ class RAGAgent:
     ) -> float:
         score = 0.0
 
-        user_tone = user_profile.get("tone", "").lower()
-        pref_tone = parsed_pref.get("tone", "").lower()
+        user_tone = (user_profile.get("tone") or "").lower()
+        pref_tone = (parsed_pref.get("tone") or "").lower()
         product_metadata = product.get("metadata", {})
         
         if isinstance(product_metadata, str):
@@ -471,7 +471,7 @@ class RAGAgent:
         
         # 1. 일반 키워드 점수 (기존 로직 유지)
         # rag_text는 VectorDB.search_products에서 NoneType 오류를 방지하도록 수정됨
-        rag_text_lower = product.get("rag_text", "").lower()
+        rag_text_lower = (product.get("rag_text") or "").lower()
         
         for keyword in parsed_pref.get("like_keywords", []):
             if keyword.lower() in rag_text_lower:
@@ -484,9 +484,9 @@ class RAGAgent:
         # 2. 🌟 핵심 수정: 선호 브랜드/명시적 브랜드 언급에 강력한 가산점 부여
         
         # 2-1. 사용자 프로필의 선호 브랜드
-        fav_brands = [b.lower() for b in user_profile.get("fav_brands", [])]
+        fav_brands = [b.lower() for b in user_profile.get("fav_brands", []) if b]
         # brand는 VectorDB.search_products에서 NoneType 오류를 방지하도록 수정됨
-        product_brand = product.get("brand", "").lower()
+        product_brand = (product.get("brand") or "").lower()
         
         if product_brand in fav_brands:
             score += 3.0 # 프로필 선호 브랜드에 높은 가산점
@@ -522,9 +522,9 @@ class RAGAgent:
             products_context = "\n".join([
                 f"""
 [제품 {idx+1}]
-- 브랜드: {p['brand']}
-- 이름: {p['product_name']} ({p['shade_name']})
-- 가격: {p['price']}원
+- 브랜드: {p.get('brand', '')}
+- 이름: {p.get('product_name', '')} ({p.get('shade_name', '')})
+- 가격: {p.get('price', 0)}원
 - 상세정보/리뷰요약: {p.get('rag_text', '정보 없음')}
 """ for idx, p in enumerate(top_candidates)
             ])
@@ -537,8 +537,8 @@ class RAGAgent:
 
 [사용자 프로필]
 - 퍼스널 컬러: {user_profile.get('tone', '알 수 없음')}
-- 선호 브랜드: {', '.join(user_profile.get('fav_brands', []))}
-- 선호 피니시: {', '.join(user_profile.get('finish_preference', []))}
+- 선호 브랜드: {', '.join([b for b in user_profile.get('fav_brands', []) if b])}
+- 선호 피니시: {', '.join([f for f in user_profile.get('finish_preference', []) if f])}
 
 [현재 대화에서 파악된 사용자 의도]
 - 원하는 톤: {parsed_pref.get('tone')}
