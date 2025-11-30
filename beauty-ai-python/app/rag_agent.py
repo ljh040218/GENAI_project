@@ -16,6 +16,24 @@ except ImportError:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+def normalize_category(value: str) -> str:
+    if not value:
+        return "unknown"
+
+    value = value.lower()
+
+    mapping = {
+        "lips": ["lip", "lips", "립", "립스틱", "틴트", "립밤", "글로스"],
+        "cheeks": ["cheek", "cheeks", "치크", "블러셔", "볼"],
+        "eyes": ["eye", "eyes", "아이", "섀도우", "팔레트", "눈"]
+    }
+
+    for k, aliases in mapping.items():
+        if value in aliases:
+            return k
+
+    return "unknown"
+    
 class VectorDB:
     def __init__(self):
         # 환경변수에서 로드
@@ -214,22 +232,23 @@ class FeedbackParser:
     def __init__(self, api_key: str):
         self.client = OpenAI(api_key=api_key)
 
-    def parse_preference(self, feedback_text: str) -> Dict:
+    def parse_preference(self, user_text: str) -> Dict[str, Any]:
+        """
+        user_text에서 톤/피니쉬/밝기/채도/좋아하는 키워드/싫어하는 키워드 추출 (LLM 사용)
+        """
         prompt = f"""
-        사용자 피드백: "{feedback_text}"
+        너는 K-뷰티 색조 분석가야.
         
-        위 피드백에서 다음 정보를 추출해:
-        1. tone: 쿨톤/웜톤/뉴트럴 여부 (cool/warm/neutral/unknown)
-        2. finish: 글로시/매트/벨벳/틴트 선호 (glossy/matte/velvet/tint/unknown)
-        3. brightness: 밝기 선호 (밝음/중간/어두움/unknown)
-        4. saturation: 채도 선호 (선명/은은/뮤트/unknown)
-        5. like_keywords: 좋아하는 키워드 리스트
-        6. dislike_keywords: 싫어하는 키워드 리스트
+        사용자 문장에서 취향 정보를 JSON으로 추출해줘.
         
-        반드시 아래 JSON 형식으로 출력:
+        사용자 문장:
+        "{user_text}"
+        
+        JSON 형식:
         {{
           "tone": "cool / warm / neutral / unknown 중 하나",
           "finish": "glossy / matte / velvet / tint / unknown 중 하나",
+          "category": "lips / cheeks / eyes / unknown 중 하나",
           "brightness": "밝음 / 중간 / 어두움 / unknown 중 하나",
           "saturation": "선명 / 은은 / 뮤트 / unknown 중 하나",
           "like_keywords": ["사용자가 선호한다고 언급한 키워드 목록"],
@@ -241,7 +260,7 @@ class FeedbackParser:
 
         try:
             res = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-4o-mini",  # gpt-4.1-mini는 존재하지 않으므로 gpt-4o-mini 사용
                 messages=[
                     {
                         "role": "system",
@@ -255,6 +274,7 @@ class FeedbackParser:
 
             raw = res.choices[0].message.content.strip()
             
+            # JSON 포맷팅 클린업 (```json ... ``` 제거)
             if raw.startswith("```json"):
                 raw = raw[7:]
             if raw.endswith("```"):
@@ -264,6 +284,7 @@ class FeedbackParser:
             try:
                 data = json.loads(raw)
             except Exception:
+                # 혹시 앞뒤 잡다한 텍스트가 섞였을 때 대비
                 start = raw.find("{")
                 end = raw.rfind("}")
                 if start != -1 and end != -1:
@@ -281,6 +302,7 @@ class FeedbackParser:
         return {
             "tone": data.get("tone", "unknown"),
             "finish": data.get("finish", "unknown"),
+            "category": normalize_category(data.get("category")), # <--- normalize_category 적용
             "brightness": data.get("brightness", "unknown"),
             "saturation": data.get("saturation", "unknown"),
             "like_keywords": data.get("like_keywords", []),
@@ -468,6 +490,7 @@ class RAGAgent:
 [현재 대화에서 파악된 사용자 의도]
 - 원하는 톤: {parsed_pref.get('tone')}
 - 원하는 피니시: {parsed_pref.get('finish')}
+- 원하는 카테고리 : {parsed_pref.get('category')}
 - 선호 키워드: {', '.join(parsed_pref.get('like_keywords', []))}
 
 [후보 제품 목록 (DB 기반)]
@@ -486,15 +509,15 @@ class RAGAgent:
    - 3단락: 추천 제품 2번(제품 1개)에 대해,
      - 2단락과는 조금 다른 포인트(예: 데일리/행사용, 채도 차이)를 중심으로 설명하고
      - 어떤 상황에서 2번을 더 추천하는지 정리해 줍니다.
-3) 후보 리스트에 **없는** 브랜드명이나 제품명은 절대 언급하지 마세요.
-4) 추천 제품은 최대 2개까지입니다.
+4) 후보 리스트에 **없는** 브랜드명이나 제품명은 절대 언급하지 마세요.
+5) 추천 제품은 최대 2개까지입니다.
    - 후보가 2개 이상이면, 상위 2개만 골라서 추천합니다.
    - 후보가 1개 뿐이라면, 2단락에서 그 제품만 자연스럽게 추천하고
      3단락에서는 "이 제품 하나만으로도 충분한 이유"나 활용 팁을 설명합니다.
-5) '추천 불가'라는 표현은 절대 사용하지 말고,
+6) '추천 불가'라는 표현은 절대 사용하지 말고,
    항상 후보 중에서 상대적으로 더 나은 선택지를 제안합니다.
-6) 제품 설명에는 위 [후보 제품 목록]에 포함된 정보(브랜드/제품명/컬러/요약 정보)를 중심으로만 사용합니다.
-7) 문단 사이에는 빈 줄(한 줄 개행)을 넣어 자연스럽게 구분해 주세요.
+7) 제품 설명에는 위 [후보 제품 목록]에 포함된 정보(브랜드/제품명/컬러/요약 정보)를 중심으로만 사용합니다.
+8) 문단 사이에는 빈 줄(한 줄 개행)을 넣어 자연스럽게 구분해 주세요.
 """
 
         try:
