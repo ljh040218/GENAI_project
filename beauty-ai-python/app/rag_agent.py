@@ -365,8 +365,10 @@ class RAGAgent:
         message: str,
         current_recommendations: List[Dict],
         user_profile: Dict,
-        category: str # <--- 이 인자는 기존 API의 기본값일 수 있음
+        category: str
     ) -> Dict:
+        logger.info(f"📥 Received user_profile: {user_profile}")
+        
         intent = self.intent_classifier.classify(message)
         logger.info(f"🤖 User Intent: {intent}")
 

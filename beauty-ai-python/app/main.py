@@ -132,8 +132,9 @@ async def health_check():
 async def agent_message(request: AgentRequest):
     try:
         logger.info(f"Agent message from user {request.user_id}: {request.message}")
+        logger.info(f"📥 Received user_profile in main.py: {request.user_profile}")
+        logger.info(f"📥 Received category in main.py: {request.category}")
         
-        # RAG Agent 실행
         result = rag_agent.process_message(
             user_id=request.user_id,
             message=request.message,
