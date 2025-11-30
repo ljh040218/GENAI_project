@@ -1,7 +1,7 @@
 @import '../setting/common';
 
 /* ===== 공통 레이아웃 ===== */
-.Login_wrap.container {
+.login_wrap.container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -16,7 +16,7 @@
 }
 
 /* ===== 로고 ===== */
-.Login_wrap .logo-box {
+.login_wrap .logo-box {
   text-align: center;
   margin: 80px 0 50px; /* 살짝 아래로 */
   
@@ -30,13 +30,13 @@
 
 /* 모바일에서도 작아지지 않게 고정 */
 @media screen and (max-width: 430px) {
-  .Login_wrap .logo-box img {
+  .login_wrap .logo-box img {
     width: 320px !important;
   }
 }
 
 /* ===== 입력 그룹 ===== */
-.Login_wrap .input-group {
+.login_wrap .input-group {
   width: 100%;
   max-width: 320px;
   margin: 0 auto 22px; /* 아이디/비밀번호 간격 통일 */
@@ -100,7 +100,7 @@
 }
 
 /* ===== 로그인 버튼 ===== */
-.Login_wrap .login-btn {
+.login_wrap .login-btn {
   display: block;
   width: 100%;
   max-width: 320px;
@@ -134,7 +134,7 @@
 }
 
 /* ===== 회원가입 링크 ===== */
-.Login_wrap .signup-link {
+.login_wrap .signup-link {
   margin-top: 50px;
   font-size: 14px;
   color: #b48c94;
@@ -153,20 +153,20 @@
 
 /* ===== 반응형 ===== */
 @media screen and (max-width: 430px) {
-  .Login_wrap.container {
+  .login_wrap.container {
     padding: 60px 20px 40px; /* 모바일에서 조금 덜 내려감 */
   }
 
-  .Login_wrap .logo-box {
+  .login_wrap .logo-box {
     margin: 20px 0 40px;
   }
 
-  .Login_wrap .input-group input {
+  .login_wrap .input-group input {
     height: 46px;
     font-size: 14px;
   }
 
-  .Login_wrap .login-btn {
+  .login_wrap .login-btn {
     height: 48px;
     font-size: 15px;
   }
