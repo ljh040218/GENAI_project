@@ -123,7 +123,8 @@ class VectorDB:
 
     def search_products(self, query_text: str, category: str, top_k: int = 5) -> List[Dict]:
         """
-        [핵심] 제품 벡터 DB 검색
+        제품 벡터 DB 검색 with JOIN
+        HNSW 인덱스를 활용한 벡터 유사도 검색 + products 테이블 JOIN으로 상세 정보 조회
         """
         try:
             conn = self.get_vector_connection()
@@ -131,47 +132,62 @@ class VectorDB:
             
             query_embedding = self.create_embedding(query_text)
             
-            # category가 'unknown'인 경우 WHERE 절에서 제외하여 검색 범위 넓힘 (선택적)
-            # 현재는 정확성을 위해 WHERE category = %s 유지
             if category == "unknown":
-                 logger.warning("Category is 'unknown'. Searching without category filter.")
-                 # 카테고리 필터 없이 검색하는 경우:
-                 cur.execute("""
-                    SELECT brand, product_name, color_name, price, text, metadata,
-                           embedding <=> %s::vector as distance
-                    FROM product_embeddings
+                logger.warning("Category is 'unknown'. Searching without category filter.")
+                cur.execute("""
+                    SELECT 
+                        pe.id,
+                        p.brand,
+                        p.name as product_name,
+                        p.color_name,
+                        p.price,
+                        p.finish,
+                        pe.text,
+                        pe.metadata,
+                        pe.embedding <=> %s::vector as distance
+                    FROM product_embeddings pe
+                    INNER JOIN products p ON pe.id = p.id
                     ORDER BY distance ASC
                     LIMIT %s
-                 """, (query_embedding, top_k))
+                """, (query_embedding, top_k))
             else:
                 cur.execute("""
-                    SELECT brand, product_name, color_name, price, text, metadata,
-                           embedding <=> %s::vector as distance
-                    FROM product_embeddings
-                    WHERE category = %s
+                    SELECT 
+                        pe.id,
+                        p.brand,
+                        p.name as product_name,
+                        p.color_name,
+                        p.price,
+                        p.finish,
+                        pe.text,
+                        pe.metadata,
+                        pe.embedding <=> %s::vector as distance
+                    FROM product_embeddings pe
+                    INNER JOIN products p ON pe.id = p.id
+                    WHERE pe.category = %s
                     ORDER BY distance ASC
                     LIMIT %s
                 """, (query_embedding, category, top_k))
             
             results = []
             for row in cur.fetchall():
-                meta = row[5] if row[5] else {}
+                meta = row[7] if row[7] else {}
                 
                 results.append({
-                    # NULL 값(NoneType)이 .lower()에서 오류를 일으키지 않도록 안전하게 변환
-                    "brand": str(row[0]) if row[0] is not None else "",
-                    "product_name": str(row[1]) if row[1] is not None else "",
-                    "shade_name": str(row[2]) if row[2] is not None else "",
-                    "price": row[3],
-                    "rag_text": str(row[4]) if row[4] is not None else "", 
+                    "product_id": str(row[0]) if row[0] is not None else "",
+                    "brand": str(row[1]) if row[1] is not None else "",
+                    "product_name": str(row[2]) if row[2] is not None else "",
+                    "shade_name": str(row[3]) if row[3] is not None else "",
+                    "price": row[4],
+                    "finish": str(row[5]) if row[5] is not None else "unknown",
+                    "rag_text": str(row[6]) if row[6] is not None else "",
                     "metadata": meta,
-                    "distance": float(row[6]),
-                    "finish": meta.get("texture", "unknown") 
+                    "distance": float(row[8])
                 })
             
             cur.close()
             conn.close()
-            logger.info(f"🔍 [DB Search] Found {len(results)} products for query: '{query_text}' in category: '{category}'")
+            logger.info(f"🔍 [DB Search with JOIN] Found {len(results)} products for query: '{query_text}' in category: '{category}'")
             return results
             
         except Exception as e:
@@ -375,7 +391,7 @@ class RAGAgent:
         parsed_pref = self.feedback_parser.parse_preference(message)
         logger.info(f"🧠 Parsed User Preference: {parsed_pref}")
         
-        # 🌟 핵심 수정: 사용자가 메시지에서 요청한 카테고리를 최우선으로 사용
+        # 사용자가 메시지에서 요청한 카테고리를 최우선으로 사용
         search_category = parsed_pref.get("category", "unknown")
         if search_category == "unknown":
             # 메시지에서 카테고리 파악이 안되면, API에 전달된 기본 category 인자 사용 (예: 'lips')
