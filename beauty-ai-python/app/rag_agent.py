@@ -264,23 +264,34 @@ class FeedbackParser:
         
         사용자 문장에서 취향 정보를 JSON으로 추출해줘.
         
-        **중요**: "겨울", "여름", "봄", "가을"은 계절이지 퍼스널컬러가 아니야.
-        - "겨울 트렌드", "여름 메이크업" 같은 표현은 tone을 "unknown"으로 설정해.
-        - 퍼스널컬러는 "쿨톤", "웜톤", "뉴트럴"처럼 명확히 언급된 경우에만 추출해.
+        **중요 규칙**:
+        1. "겨울", "여름", "봄", "가을"은 계절이지 퍼스널컬러가 아니야.
+        2. 퍼스널컬러는 "쿨톤", "웜톤", "뉴트럴"처럼 명확히 언급된 경우에만 추출해.
+        3. 색상 이름(핑크, 코랄, 레드 등)은 like_keywords에 포함해.
+        4. "~빛", "~색" 같은 표현에서 핵심 색상명만 추출해.
+           예: "핑크빛 나는" → like_keywords: ["핑크"]
+        5. like_keywords는 최대 5개까지만 추출해.
+        6. 톤 관련 키워드는 tone 필드와 like_keywords 모두에 넣어.
+           예: "웜톤 립" → tone: "warm", like_keywords: ["웜톤", "립"]
         
         사용자 문장:
         "{user_text}"
         
         JSON 형식:
         {{
-          "tone": "cool / warm / neutral / unknown 중 하나 (계절 != 퍼스널컬러)",
-          "finish": "glossy / matte / velvet / tint / unknown 중 하나",
+          "tone": "cool / warm / neutral / unknown 중 하나",
+          "finish": "glossy / matte / velvet / satin / unknown 중 하나 (틴트는 finish가 아님)",
           "category": "lips / cheeks / eyes / unknown 중 하나",
           "brightness": "밝음 / 중간 / 어두움 / unknown 중 하나",
           "saturation": "선명 / 은은 / 뮤트 / unknown 중 하나",
-          "like_keywords": ["사용자가 선호한다고 언급한 키워드 목록"],
-          "dislike_keywords": ["사용자가 피하고 싶다고 한 키워드 목록"]
+          "like_keywords": ["핵심 키워드만 명사로, 최대 5개"],
+          "dislike_keywords": ["부정 표현에 나온 키워드"]
         }}
+        
+        예시:
+        - "핑크색 기반의 웜톤립" → {{"tone": "warm", "like_keywords": ["핑크", "웜톤", "립"]}}
+        - "조금더 핑크색으로" → {{"like_keywords": ["핑크"]}}
+        - "틴트 추천" → {{"category": "lips", "like_keywords": ["틴트"]}}
         
         반드시 위 JSON 형식만 출력해.
         """
@@ -426,27 +437,38 @@ class RAGAgent:
                 memories=similar_feedbacks
             )
 
-        like_keywords_str = " ".join(parsed_pref.get('like_keywords', []))
+        like_keywords = parsed_pref.get('like_keywords', [])
         
         pref_tone = parsed_pref.get("tone", "")
         user_tone = user_profile.get("tone", "")
         
-        tone_keyword = ""
+        search_terms = []
+        
+        for keyword in like_keywords[:3]:
+            search_terms.append(keyword)
+        
         if pref_tone and pref_tone != "unknown":
             if pref_tone == "warm" or pref_tone == "웜":
-                tone_keyword = "웜톤 따뜻한 봄 가을"
+                search_terms.append("웜톤")
             elif pref_tone == "cool" or pref_tone == "쿨":
-                tone_keyword = "쿨톤 시원한 여름"
+                search_terms.append("쿨톤")
             logger.info(f"🎯 Using pref_tone for search: {pref_tone}")
         elif user_tone and user_tone != "unknown":
             if user_tone == "warm" or user_tone == "웜":
-                tone_keyword = "웜톤 따뜻한 봄 가을"
+                search_terms.append("웜톤")
             elif user_tone == "cool" or user_tone == "쿨":
-                tone_keyword = "쿨톤 시원한 여름"
+                search_terms.append("쿨톤")
             logger.info(f"🎯 Using user_tone for search: {user_tone}")
         
-        search_query = f"{message} {like_keywords_str} {tone_keyword}".strip()
-        logger.info(f"🔍 Final search query: '{search_query}'")
+        pref_finish = parsed_pref.get("finish", "")
+        if pref_finish and pref_finish not in ["unknown", "tint"]:
+            search_terms.append(pref_finish)
+        
+        search_query = " ".join(search_terms).strip()
+        if not search_query:
+            search_query = message[:20]
+        
+        logger.info(f"🔍 Final search query: '{search_query}' (from keywords: {like_keywords})")
         
         db_products = self.vector_db.search_products(
             query_text=search_query,
