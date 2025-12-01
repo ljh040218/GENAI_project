@@ -265,33 +265,51 @@ class FeedbackParser:
         사용자 문장에서 취향 정보를 JSON으로 추출해줘.
         
         **중요 규칙**:
-        1. "겨울", "여름", "봄", "가을"은 계절이지 퍼스널컬러가 아니야.
-        2. 퍼스널컬러는 "쿨톤", "웜톤", "뉴트럴"처럼 명확히 언급된 경우에만 추출해.
+        1. 문맥을 정확히 파악해서 사용자가 **원하는 제품의 톤**을 추출해.
+           - "쿨톤도 도전 가능한 웜톤 립" → tone: "warm" (원하는 건 웜톤)
+           - "웜톤이지만 쿨톤 립 추천" → tone: "cool" (원하는 건 쿨톤)
+           - "쿨톤에 어울리는 립스틱" → tone: "cool" (쿨톤 제품)
+        
+        2. "겨울", "여름", "봄", "가을"은 계절이지 퍼스널컬러가 아니야.
+        
         3. 색상 이름(핑크, 코랄, 레드 등)은 like_keywords에 포함해.
+        
         4. "~빛", "~색" 같은 표현에서 핵심 색상명만 추출해.
            예: "핑크빛 나는" → like_keywords: ["핑크"]
-        5. like_keywords는 최대 5개까지만 추출해.
-        6. 톤 관련 키워드는 tone 필드와 like_keywords 모두에 넣어.
-           예: "웜톤 립" → tone: "warm", like_keywords: ["웜톤", "립"]
+        
+        5. like_keywords는 **원하는 제품 특징**만 추출 (최대 5개).
+           - "쿨톤도 가능한 웜톤 립" → like_keywords: ["웜톤", "립"]
+           - "웜톤 말고 쿨톤" → like_keywords: ["쿨톤"], dislike_keywords: ["웜톤"]
+        
+        6. 부정 표현 감지:
+           - "~말고", "~아니고", "~제외하고" → dislike_keywords
         
         사용자 문장:
         "{user_text}"
         
         JSON 형식:
         {{
-          "tone": "cool / warm / neutral / unknown 중 하나",
-          "finish": "glossy / matte / velvet / satin / unknown 중 하나 (틴트는 finish가 아님)",
+          "tone": "cool / warm / neutral / unknown 중 하나 (사용자가 원하는 제품의 톤)",
+          "finish": "glossy / matte / velvet / satin / unknown 중 하나",
           "category": "lips / cheeks / eyes / unknown 중 하나",
           "brightness": "밝음 / 중간 / 어두움 / unknown 중 하나",
           "saturation": "선명 / 은은 / 뮤트 / unknown 중 하나",
-          "like_keywords": ["핵심 키워드만 명사로, 최대 5개"],
-          "dislike_keywords": ["부정 표현에 나온 키워드"]
+          "like_keywords": ["원하는 제품 특징만, 최대 5개"],
+          "dislike_keywords": ["싫어하는 특징"]
         }}
         
         예시:
-        - "핑크색 기반의 웜톤립" → {{"tone": "warm", "like_keywords": ["핑크", "웜톤", "립"]}}
-        - "조금더 핑크색으로" → {{"like_keywords": ["핑크"]}}
-        - "틴트 추천" → {{"category": "lips", "like_keywords": ["틴트"]}}
+        입력: "쿨톤도 도전 가능한 웜톤 립 추천해줘"
+        출력: {{"tone": "warm", "like_keywords": ["웜톤", "립"]}}
+        
+        입력: "핑크색 기반의 웜톤립"
+        출력: {{"tone": "warm", "like_keywords": ["핑크", "웜톤", "립"]}}
+        
+        입력: "조금더 핑크색으로"
+        출력: {{"like_keywords": ["핑크"]}}
+        
+        입력: "글로시 말고 매트로"
+        출력: {{"finish": "matte", "dislike_keywords": ["글로시"]}}
         
         반드시 위 JSON 형식만 출력해.
         """
