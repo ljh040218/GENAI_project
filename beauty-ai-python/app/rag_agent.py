@@ -122,10 +122,7 @@ class VectorDB:
             return []
 
     def search_products(self, query_text: str, category: str, top_k: int = 5) -> List[Dict]:
-        """
-        제품 벡터 DB 검색 with JOIN
-        HNSW 인덱스를 활용한 벡터 유사도 검색 + products 테이블 JOIN으로 상세 정보 조회
-        """
+        # 제품 벡터 DB 검색: HNSW 인덱스 사용
         try:
             conn = self.get_vector_connection()
             cur = conn.cursor()
@@ -136,42 +133,38 @@ class VectorDB:
                 logger.warning("Category is 'unknown'. Searching without category filter.")
                 cur.execute("""
                     SELECT 
-                        pe.id,
-                        p.brand,
-                        p.name as product_name,
-                        p.color_name,
-                        p.price,
-                        p.finish,
-                        pe.text,
-                        pe.metadata,
-                        pe.embedding <=> %s::vector as distance
-                    FROM product_embeddings pe
-                    INNER JOIN products p ON pe.id = p.id
+                        id,
+                        brand,
+                        product_name,
+                        color_name,
+                        price,
+                        text,
+                        metadata,
+                        embedding <=> %s::vector as distance
+                    FROM product_embeddings
                     ORDER BY distance ASC
                     LIMIT %s
                 """, (query_embedding, top_k))
             else:
                 cur.execute("""
                     SELECT 
-                        pe.id,
-                        p.brand,
-                        p.name as product_name,
-                        p.color_name,
-                        p.price,
-                        p.finish,
-                        pe.text,
-                        pe.metadata,
-                        pe.embedding <=> %s::vector as distance
-                    FROM product_embeddings pe
-                    INNER JOIN products p ON pe.id = p.id
-                    WHERE pe.category = %s
+                        id,
+                        brand,
+                        product_name,
+                        color_name,
+                        price,
+                        text,
+                        metadata,
+                        embedding <=> %s::vector as distance
+                    FROM product_embeddings
+                    WHERE category = %s
                     ORDER BY distance ASC
                     LIMIT %s
                 """, (query_embedding, category, top_k))
             
             results = []
             for row in cur.fetchall():
-                meta = row[7] if row[7] else {}
+                meta = row[6] if row[6] else {}
                 
                 results.append({
                     "product_id": str(row[0]) if row[0] is not None else "",
@@ -179,15 +172,15 @@ class VectorDB:
                     "product_name": str(row[2]) if row[2] is not None else "",
                     "shade_name": str(row[3]) if row[3] is not None else "",
                     "price": row[4],
-                    "finish": str(row[5]) if row[5] is not None else "unknown",
-                    "rag_text": str(row[6]) if row[6] is not None else "",
+                    "rag_text": str(row[5]) if row[5] is not None else "",
                     "metadata": meta,
-                    "distance": float(row[8])
+                    "distance": float(row[7]),
+                    "finish": meta.get("texture", "unknown")
                 })
             
             cur.close()
             conn.close()
-            logger.info(f"🔍 [DB Search with JOIN] Found {len(results)} products for query: '{query_text}' in category: '{category}'")
+            logger.info(f"🔍 [Vector DB Search] Found {len(results)} products for query: '{query_text}' in category: '{category}'")
             return results
             
         except Exception as e:
