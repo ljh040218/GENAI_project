@@ -12,7 +12,6 @@ try:
 except ImportError:
     DDGS = None
 
-# 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -20,12 +19,12 @@ def normalize_category(value: str) -> str:
     if not value:
         return "unknown"
 
-    value = value.lower()
+    value = value.lower().strip()
 
     mapping = {
-        "lips": ["lip", "lips", "립", "립스틱", "틴트", "립밤", "글로스"],
-        "cheeks": ["cheek", "cheeks", "치크", "블러셔", "볼"],
-        "eyes": ["eye", "eyes", "아이", "섀도우", "팔레트", "눈"]
+        "lips": ["lip", "lips", "립", "립스틱", "틴트", "립밤", "글로스", "립글로스"],
+        "cheeks": ["cheek", "cheeks", "치크", "블러셔", "볼", "블러쉬"],
+        "eyes": ["eye", "eyes", "아이", "섀도우", "팔레트", "눈", "아이섀도우"]
     }
 
     for k, aliases in mapping.items():
@@ -36,7 +35,6 @@ def normalize_category(value: str) -> str:
     
 class VectorDB:
     def __init__(self):
-        # 환경변수에서 로드
         self.vector_db_url = os.getenv("VECTOR_DATABASE_URL")
         self.general_db_url = os.getenv("DATABASE_URL")
         self.api_key = os.getenv("OPENAI_API_KEY")
@@ -49,11 +47,9 @@ class VectorDB:
         self.client = OpenAI(api_key=self.api_key)
     
     def get_vector_connection(self):
-        """Vector DB 연결"""
         return psycopg2.connect(self.vector_db_url)
 
     def create_embedding(self, text: str) -> List[float]:
-        """텍스트를 벡터로 변환"""
         try:
             response = self.client.embeddings.create(
                 model="text-embedding-3-small",
@@ -65,7 +61,6 @@ class VectorDB:
             return []
     
     def save_feedback(self, feedback_id: str, user_id: str, text: str, metadata: Dict):
-        """사용자 피드백(채팅) 저장"""
         try:
             conn = self.get_vector_connection()
             cur = conn.cursor()
@@ -91,7 +86,6 @@ class VectorDB:
             logger.error(f"Feedback save failed: {e}")
 
     def search_similar_feedbacks(self, query_text: str, user_id: str, top_k: int = 3) -> List[Dict]:
-        """유사한 과거 대화 검색"""
         try:
             conn = self.get_vector_connection()
             cur = conn.cursor()
@@ -122,15 +116,15 @@ class VectorDB:
             return []
 
     def search_products(self, query_text: str, category: str, top_k: int = 5) -> List[Dict]:
-        # 제품 벡터 DB 검색: HNSW 인덱스 사용
         try:
             conn = self.get_vector_connection()
             cur = conn.cursor()
             
             query_embedding = self.create_embedding(query_text)
             
-            if category == "unknown":
-                logger.warning("Category is 'unknown'. Searching without category filter.")
+            normalized_category = normalize_category(category)
+            
+            if normalized_category == "unknown":
                 cur.execute("""
                     SELECT 
                         id,
@@ -160,7 +154,7 @@ class VectorDB:
                     WHERE category = %s
                     ORDER BY distance ASC
                     LIMIT %s
-                """, (query_embedding, category, top_k))
+                """, (query_embedding, normalized_category, top_k))
             
             results = []
             for row in cur.fetchall():
@@ -180,7 +174,6 @@ class VectorDB:
             
             cur.close()
             conn.close()
-            logger.info(f"🔍 [Vector DB Search] Found {len(results)} products for query: '{query_text}' in category: '{category}'")
             return results
             
         except Exception as e:
@@ -241,96 +234,79 @@ class IntentClassifier:
                 else:
                     intent = "recommend"
 
-            if intent not in ["trend", "explain", "recommend"]:
-                intent = "recommend"
-
             return intent
 
         except Exception as e:
             logger.error(f"Intent classification failed: {e}")
             return "recommend"
 
-
-class FeedbackParser:
-    def __init__(self, api_key: str):
+class RAGAgent:
+    def __init__(self, vector_db: VectorDB):
+        self.vector_db = vector_db
+        api_key = os.getenv("OPENAI_API_KEY")
         self.client = OpenAI(api_key=api_key)
+        self.intent_classifier = IntentClassifier()
 
-    def parse_preference(self, user_text: str) -> Dict[str, Any]:
-        """
-        user_text에서 톤/피니쉬/밝기/채도/좋아하는 키워드/싫어하는 키워드 추출 (LLM 사용)
-        """
-        prompt = f"""
-        너는 K-뷰티 색조 분석가야.
-        
-        사용자 문장에서 취향 정보를 JSON으로 추출해줘.
-        
-        **중요 규칙**:
-        1. 문맥을 정확히 파악해서 사용자가 **원하는 제품의 톤**을 추출해.
-           - "쿨톤도 도전 가능한 웜톤 립" → tone: "warm" (원하는 건 웜톤)
-           - "웜톤이지만 쿨톤 립 추천" → tone: "cool" (원하는 건 쿨톤)
-           - "쿨톤에 어울리는 립스틱" → tone: "cool" (쿨톤 제품)
-        
-        2. "겨울", "여름", "봄", "가을"은 계절이지 퍼스널컬러가 아니야.
-        
-        3. 색상 이름(핑크, 코랄, 레드 등)은 like_keywords에 포함해.
-        
-        4. "~빛", "~색" 같은 표현에서 핵심 색상명만 추출해.
-           예: "핑크빛 나는" → like_keywords: ["핑크"]
-        
-        5. like_keywords는 **원하는 제품 특징**만 추출 (최대 5개).
-           - "쿨톤도 가능한 웜톤 립" → like_keywords: ["웜톤", "립"]
-           - "웜톤 말고 쿨톤" → like_keywords: ["쿨톤"], dislike_keywords: ["웜톤"]
-        
-        6. 부정 표현 감지:
-           - "~말고", "~아니고", "~제외하고" → dislike_keywords
-        
-        사용자 문장:
-        "{user_text}"
-        
-        JSON 형식:
-        {{
-          "tone": "cool / warm / neutral / unknown 중 하나 (사용자가 원하는 제품의 톤)",
-          "finish": "glossy / matte / velvet / satin / unknown 중 하나",
-          "category": "lips / cheeks / eyes / unknown 중 하나",
-          "brightness": "밝음 / 중간 / 어두움 / unknown 중 하나",
-          "saturation": "선명 / 은은 / 뮤트 / unknown 중 하나",
-          "like_keywords": ["원하는 제품 특징만, 최대 5개"],
-          "dislike_keywords": ["싫어하는 특징"]
-        }}
-        
-        예시:
-        입력: "쿨톤도 도전 가능한 웜톤 립 추천해줘"
-        출력: {{"tone": "warm", "like_keywords": ["웜톤", "립"]}}
-        
-        입력: "핑크색 기반의 웜톤립"
-        출력: {{"tone": "warm", "like_keywords": ["핑크", "웜톤", "립"]}}
-        
-        입력: "조금더 핑크색으로"
-        출력: {{"like_keywords": ["핑크"]}}
-        
-        입력: "글로시 말고 매트로"
-        출력: {{"finish": "matte", "dislike_keywords": ["글로시"]}}
-        
-        반드시 위 JSON 형식만 출력해.
-        """
+    def parse_user_preferences(self, user_text: str, memories: List[Dict]) -> Dict:
+        memory_context = ""
+        if memories:
+            memory_items = []
+            for i, mem in enumerate(memories[:3]):
+                memory_items.append(f"[기록 {i+1}] {mem.get('text', '')}")
+            memory_context = "\n".join(memory_items)
+
+        system_prompt = f"""
+당신은 사용자가 원하는 화장품 특성을 파악하는 전문가입니다.
+사용자의 메시지를 분석하여 다음 정보를 추출하세요:
+
+1. 선호하는 톤 (tone): "warm"(웜톤), "cool"(쿨톤), 또는 ""(언급 없음)
+   - "쿨톤", "cool", "차가운", "블루베이스" → cool
+   - "웜톤", "warm", "따뜻한", "옐로우베이스" → warm
+   - 퍼스널컬러와 무관한 "여름", "겨울", "봄", "가을"은 계절이므로 tone에 포함하지 마세요
+
+2. 카테고리 (category): "lips", "cheeks", "eyes", 또는 ""(언급 없음)
+   - "립", "립스틱", "틴트", "립밤", "글로스" → lips
+   - "치크", "블러셔", "블러쉬", "볼" → cheeks
+   - "아이", "섀도우", "팔레트", "눈" → eyes
+
+3. 피니시 (finish): "matte", "glossy", "satin", "shimmer", "glitter" 등 또는 ""(언급 없음)
+
+4. 선호 브랜드 (preferred_brand): 브랜드명 또는 ""
+
+5. 좋아하는 키워드 (like_keywords): ["자연스러운", "화사한", "생기있는", "데일리", "진한" 등] 또는 []
+
+6. 싫어하는 키워드 (dislike_keywords): ["과한", "촌스러운", "부담스러운" 등] 또는 []
+
+[과거 대화 기록]
+{memory_context}
+
+[사용자 메시지]
+"{user_text}"
+
+반드시 JSON 형식으로만 출력하세요:
+{{
+  "tone": "",
+  "category": "",
+  "finish": "",
+  "preferred_brand": "",
+  "like_keywords": [],
+  "dislike_keywords": []
+}}
+"""
 
         try:
-            res = self.client.chat.completions.create(
-                model="gpt-4o-mini",  # gpt-4.1-mini는 존재하지 않으므로 gpt-4o-mini 사용
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
                 messages=[
-                    {
-                        "role": "system",
-                        "content": "You must output ONLY valid JSON with the specified keys.",
-                    },
-                    {"role": "user", "content": prompt},
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_text}
                 ],
-                temperature=0.1,
-                max_tokens=200,
+                temperature=0.2,
+                max_tokens=300
             )
 
-            raw = res.choices[0].message.content.strip()
-            
-            # JSON 포맷팅 클린업 (```json ... ``` 제거)
+            raw = response.choices[0].message.content.strip()
+
             if raw.startswith("```json"):
                 raw = raw[7:]
             if raw.endswith("```"):
@@ -338,64 +314,113 @@ class FeedbackParser:
             raw = raw.strip()
 
             try:
-                data = json.loads(raw)
-            except Exception:
-                # 혹시 앞뒤 잡다한 텍스트가 섞였을 때 대비
+                parsed = json.loads(raw)
+            except:
                 start = raw.find("{")
                 end = raw.rfind("}")
                 if start != -1 and end != -1:
-                    try:
-                        data = json.loads(raw[start : end + 1])
-                    except Exception:
-                        data = {}
+                    parsed = json.loads(raw[start:end+1])
                 else:
-                    data = {}
+                    parsed = {}
+
+            result = {
+                "tone": parsed.get("tone", ""),
+                "category": normalize_category(parsed.get("category", "")),
+                "finish": parsed.get("finish", ""),
+                "preferred_brand": parsed.get("preferred_brand", ""),
+                "like_keywords": parsed.get("like_keywords", []),
+                "dislike_keywords": parsed.get("dislike_keywords", [])
+            }
+
+            return result
 
         except Exception as e:
             logger.error(f"Preference parsing failed: {e}")
-            data = {}
+            return {
+                "tone": "",
+                "category": "unknown",
+                "finish": "",
+                "preferred_brand": "",
+                "like_keywords": [],
+                "dislike_keywords": []
+            }
 
-        return {
-            "tone": data.get("tone", "unknown"),
-            "finish": data.get("finish", "unknown"),
-            "category": normalize_category(data.get("category")),
-            "brightness": data.get("brightness", "unknown"),
-            "saturation": data.get("saturation", "unknown"),
-            "like_keywords": data.get("like_keywords", []),
-            "dislike_keywords": data.get("dislike_keywords", []),
-        }
+    def translate_to_english(self, korean_text: str) -> str:
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "Translate the following Korean beauty-related text to English. Output ONLY the English translation, no explanations."},
+                    {"role": "user", "content": korean_text}
+                ],
+                temperature=0.3,
+                max_tokens=100
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            logger.error(f"Translation failed: {e}")
+            return korean_text
 
-class RAGAgent:
-    def __init__(self, vector_db: VectorDB):
-        self.vector_db = vector_db
-        self.intent_classifier = IntentClassifier()
-        
-        api_key = os.getenv("OPENAI_API_KEY")
-        self.client = OpenAI(api_key=api_key)
-        self.feedback_parser = FeedbackParser(api_key=api_key)
-
-    def perform_web_search(self, query: str) -> str:
-        if DDGS is None:
-            return "웹 검색 라이브러리(duckduckgo-search)가 설치되지 않아 검색할 수 없습니다."
+    def web_search(self, query: str, max_results: int = 3) -> str:
+        if not DDGS:
+            logger.warning("DuckDuckGo search is not available. Install: pip install duckduckgo-search")
+            return ""
 
         try:
-            logger.info(f"Web Searching for: {query}")
+            english_query = self.translate_to_english(query)
+            logger.info(f"Translated query: '{query}' → '{english_query}'")
+            
+            search_query = f"Korean beauty {english_query} 2024 2025"
+            logger.info(f"Searching for: {search_query}")
             
             with DDGS() as ddgs:
-                results = list(ddgs.text(query, max_results=3))
-            
-            if not results:
-                return "검색 결과가 없습니다."
-            
-            context_text = "\n".join([
-                f"- 제목: {r['title']}\n  내용: {r['body']}\n  링크: {r['href']}"
-                for r in results
-            ])
-            return context_text
-            
+                results = list(ddgs.text(search_query, max_results=max_results))
+                
+                if not results:
+                    logger.warning(f"No web search results found for query: {search_query}")
+                    return ""
+                
+                logger.info(f"Web search successful, found {len(results)} results")
+                context = ""
+                for i, result in enumerate(results):
+                    context += f"[결과 {i+1}]\n"
+                    context += f"제목: {result.get('title', 'N/A')}\n"
+                    context += f"내용: {result.get('body', 'N/A')}\n\n"
+                
+                return context
         except Exception as e:
-            logger.error(f"Web Search Failed: {e}")
-            return f"웹 검색 중 오류가 발생했습니다: {str(e)}"
+            logger.error(f"Web search failed: {type(e).__name__}: {str(e)}")
+            return ""
+
+    def detect_category_from_message(self, message: str) -> str:
+        message_lower = message.lower()
+        
+        lips_keywords = ["립", "틴트", "립스틱", "립밤", "글로스", "립글로스"]
+        cheeks_keywords = ["치크", "블러셔", "블러쉬", "볼"]
+        eyes_keywords = ["아이", "섀도우", "아이섀도우", "팔레트", "눈"]
+        
+        last_position = -1
+        last_category = "unknown"
+        
+        for keyword in lips_keywords:
+            pos = message_lower.rfind(keyword)
+            if pos > last_position:
+                last_position = pos
+                last_category = "lips"
+        
+        for keyword in cheeks_keywords:
+            pos = message_lower.rfind(keyword)
+            if pos > last_position:
+                last_position = pos
+                last_category = "cheeks"
+        
+        for keyword in eyes_keywords:
+            pos = message_lower.rfind(keyword)
+            if pos > last_position:
+                last_position = pos
+                last_category = "eyes"
+        
+        return last_category
 
     def process_message(
         self,
@@ -405,170 +430,146 @@ class RAGAgent:
         user_profile: Dict,
         category: str
     ) -> Dict:
-        logger.info(f"📥 Received user_profile: {user_profile}")
+        memories = self.vector_db.search_similar_feedbacks(message, user_id, top_k=3)
         
+        memory_category = "unknown"
+        if memories and len(memories) > 0:
+            latest_memory = memories[0]
+            if latest_memory.get("metadata"):
+                parsed_prefs = latest_memory["metadata"].get("parsed_preferences", {})
+                memory_category = parsed_prefs.get("category", "unknown")
+        
+        message_detected_category = self.detect_category_from_message(message)
+        
+        if message_detected_category != "unknown":
+            final_category = message_detected_category
+        elif memory_category != "unknown":
+            final_category = memory_category
+        else:
+            final_category = normalize_category(category)
+
+        parsed_pref = self.parse_user_preferences(message, memories)
+        
+        if parsed_pref.get("category") == "unknown" or not parsed_pref.get("category"):
+            parsed_pref["category"] = final_category
+
         intent = self.intent_classifier.classify(message)
-        logger.info(f"🤖 User Intent: {intent}")
-
-        parsed_pref = self.feedback_parser.parse_preference(message)
-        logger.info(f"🧠 Parsed User Preference: {parsed_pref}")
-        
-        # 사용자가 메시지에서 요청한 카테고리를 최우선으로 사용
-        search_category = parsed_pref.get("category", "unknown")
-        if search_category == "unknown":
-            # 메시지에서 카테고리 파악이 안되면, API에 전달된 기본 category 인자 사용 (예: 'lips')
-            search_category = category
-            
-        logger.info(f"🔎 Final Search Category determined: {search_category}")
-
-
-        feedback_id = str(uuid.uuid4())
-        self.vector_db.save_feedback(
-            feedback_id=feedback_id,
-            user_id=user_id,
-            text=message,
-            metadata={
-                "preferences": parsed_pref,
-                # DB 저장 시에는 메시지에서 파악된 카테고리 사용
-                "category": parsed_pref.get("category", "unknown"), 
-                "intent": intent,
-                "timestamp": str(uuid.uuid1())
-            }
-        )
-
-        similar_feedbacks = self.vector_db.search_similar_feedbacks(message, user_id, top_k=3)
 
         if intent == "trend":
-            search_context = self.perform_web_search(message)
-            return self.generate_trend_response(
+            search_context = self.web_search(message, max_results=3)
+            
+            result = self.generate_trend_response(
                 user_text=message,
                 user_profile=user_profile,
                 parsed_pref=parsed_pref,
                 search_context=search_context
             )
-
-        if intent == "explain":
-            return self.generate_explain_response(
+        
+        elif intent == "explain":
+            result = self.generate_explain_response(
                 user_text=message,
                 user_profile=user_profile,
                 parsed_pref=parsed_pref,
-                memories=similar_feedbacks
+                memories=memories
+            )
+        
+        else:
+            search_category = parsed_pref.get("category", "unknown")
+            
+            vector_products = self.vector_db.search_products(
+                query_text=message,
+                category=search_category,
+                top_k=20
             )
 
-        like_keywords = parsed_pref.get('like_keywords', [])
-        
-        pref_tone = parsed_pref.get("tone", "")
-        user_tone = user_profile.get("tone", "")
-        
-        search_terms = []
-        
-        for keyword in like_keywords[:3]:
-            search_terms.append(keyword)
-        
-        if pref_tone and pref_tone != "unknown":
-            if pref_tone == "warm" or pref_tone == "웜":
-                search_terms.append("웜톤")
-            elif pref_tone == "cool" or pref_tone == "쿨":
-                search_terms.append("쿨톤")
-            logger.info(f"🎯 Using pref_tone for search: {pref_tone}")
-        elif user_tone and user_tone != "unknown":
-            if user_tone == "warm" or user_tone == "웜":
-                search_terms.append("웜톤")
-            elif user_tone == "cool" or user_tone == "쿨":
-                search_terms.append("쿨톤")
-            logger.info(f"🎯 Using user_tone for search: {user_tone}")
-        
-        pref_finish = parsed_pref.get("finish", "")
-        if pref_finish and pref_finish not in ["unknown", "tint"]:
-            search_terms.append(pref_finish)
-        
-        search_query = " ".join(search_terms).strip()
-        if not search_query:
-            search_query = message[:20]
-        
-        logger.info(f"🔍 Final search query: '{search_query}' (from keywords: {like_keywords})")
-        
-        db_products = self.vector_db.search_products(
-            query_text=search_query,
-            category=search_category,
-            top_k=20
-        )
+            scored_products = []
+            for product in vector_products:
+                score = self.calculate_product_score(
+                    product=product,
+                    user_profile=user_profile,
+                    parsed_pref=parsed_pref,
+                    message=message
+                )
+                scored_products.append((score, product))
 
-        for p in db_products:
-            p["score"] = self.score_product(
-                product=p,
-                parsed_pref=parsed_pref,
+            scored_products.sort(key=lambda x: x[0], reverse=True)
+
+            candidate_products = [p for _, p in scored_products[:5]]
+
+            result = self.generate_recommend_response(
+                user_text=message,
                 user_profile=user_profile,
+                parsed_pref=parsed_pref,
+                memories=memories,
+                candidate_products=candidate_products
             )
 
-        db_products.sort(key=lambda x: x.get("score", 0.0), reverse=True)
-        final_candidates = db_products[:5]
+        feedback_metadata = {
+            "intent": result.get("intent", "unknown"),
+            "parsed_preferences": parsed_pref,
+            "user_profile": user_profile
+        }
+        
+        feedback_id = str(uuid.uuid4())
+        self.vector_db.save_feedback(feedback_id, user_id, message, feedback_metadata)
 
-        if not final_candidates and current_recommendations:
-            for item in current_recommendations:
-                final_candidates.append({
-                    "brand": item.get("brand", ""),
-                    "product_name": item.get("product_name", ""),
-                    "shade_name": item.get("shade_name", ""),
-                    "rag_text": f"{item.get('brand')} {item.get('product_name')}. 기존 추천 제품입니다.",
-                    "price": item.get("price", 0),
-                    "finish": item.get("finish", "unknown")
-                })
+        return result
 
-        return self.generate_recommend_response(
-            user_text=message,
-            user_profile=user_profile,
-            parsed_pref=parsed_pref,
-            memories=similar_feedbacks,
-            candidate_products=final_candidates
-        )
-
-    def score_product(
+    def calculate_product_score(
         self,
         product: Dict,
+        user_profile: Dict,
         parsed_pref: Dict,
-        user_profile: Dict
+        message: str
     ) -> float:
         score = 0.0
 
-        user_tone = (user_profile.get("tone") or "").lower()
-        pref_tone = (parsed_pref.get("tone") or "").lower()
-        product_metadata = product.get("metadata", {})
-        
-        if isinstance(product_metadata, str):
-            try:
-                product_metadata = json.loads(product_metadata)
-            except:
-                product_metadata = {}
+        base_score = 10.0 - min(product.get("distance", 5.0), 5.0) * 2
+        score += base_score
 
-        product_pc = (product_metadata.get("personal_color") or "").lower()
-        
-        rag_text_lower = (product.get("rag_text") or "").lower()
-        
-        for keyword in parsed_pref.get("like_keywords", []):
-            if keyword.lower() in rag_text_lower:
+        pref_finish = parsed_pref.get("finish", "").lower()
+        product_finish = product.get("finish", "").lower()
+
+        if pref_finish and product_finish:
+            if pref_finish == product_finish:
+                score += 3.0
+            else:
+                score -= 1.0
+
+        like_kw = [kw.lower() for kw in parsed_pref.get("like_keywords", [])]
+        dislike_kw = [kw.lower() for kw in parsed_pref.get("dislike_keywords", [])]
+
+        product_text = (product.get("rag_text", "") + " " + product.get("shade_name", "")).lower()
+
+        for kw in like_kw:
+            if kw in product_text:
                 score += 1.5
-        
-        for keyword in parsed_pref.get("dislike_keywords", []):
-            if keyword.lower() in rag_text_lower:
+
+        for kw in dislike_kw:
+            if kw in product_text:
                 score -= 2.0
 
-        fav_brands = [b.lower() for b in user_profile.get("fav_brands", []) if b]
-        product_brand = (product.get("brand") or "").lower()
-        
+        pref_brand = parsed_pref.get("preferred_brand", "").lower()
+        product_brand = product.get("brand", "").lower()
+
+        if pref_brand and pref_brand in product_brand:
+            score += 5.0
+
+        fav_brands = [b.lower() for b in user_profile.get("fav_brands", [])]
         if product_brand in fav_brands:
-            score += 3.0
-            logger.info(f"💰 Brand match: {product_brand} → +3.0")
-            
-        brand_keywords = ["크리니크", "맥", "샤넬", "롬앤", "3ce", "헤라", "에뛰드", "클리오"]
-        explicit_keywords = parsed_pref.get("like_keywords", [])
-        
-        for keyword in explicit_keywords:
+            score += 2.5
+
+        message_lower = message.lower()
+        brand_keywords = ["클리오", "롬앤", "페리페라", "에뛰드", "미샤", "더샘"]
+        for keyword in brand_keywords:
             keyword_lower = keyword.lower()
-            if keyword_lower in brand_keywords or keyword_lower == product_brand:
-                score += 5.0 
-                logger.info(f"🎯 Explicit brand keyword: {keyword_lower} → +5.0")
+            if keyword_lower in message_lower and keyword_lower in product_brand:
+                score += 5.0
                 break
+        
+        user_tone = user_profile.get("tone", "").lower()
+        pref_tone = parsed_pref.get("tone", "").lower()
+        product_pc = product.get("rag_text", "").lower()
         
         if pref_tone and pref_tone != "unknown":
             final_tone = pref_tone
@@ -577,25 +578,17 @@ class RAGAgent:
         else:
             final_tone = ""
         
-        logger.info(f"🎨 Tone scoring: user_tone={user_tone}, pref_tone={pref_tone}, final_tone={final_tone}, product_pc={product_pc}")
-        
         if final_tone and product_pc:
             if final_tone == "warm" or final_tone == "웜":
                 if "웜" in product_pc or "warm" in product_pc or "봄" in product_pc or "가을" in product_pc:
                     score += 2.0
-                    logger.info(f"✅ Warm match: {product_pc} → +2.0")
                 elif "쿨" in product_pc or "cool" in product_pc or "여름" in product_pc or "겨울" in product_pc:
                     score -= 3.0
-                    logger.info(f"❌ Cool penalty for warm user: {product_pc} → -3.0")
             elif final_tone == "cool" or final_tone == "쿨":
                 if "쿨" in product_pc or "cool" in product_pc or "여름" in product_pc or "겨울" in product_pc:
                     score += 2.0
-                    logger.info(f"✅ Cool match: {product_pc} → +2.0")
                 elif "웜" in product_pc or "warm" in product_pc or "봄" in product_pc or "가을" in product_pc:
                     score -= 3.0
-                    logger.info(f"❌ Warm penalty for cool user: {product_pc} → -3.0")
-        
-        logger.info(f"📊 Final score for {product.get('brand')} {product.get('shade_name')}: {score}")
         
         return score
 
@@ -762,23 +755,37 @@ class RAGAgent:
         parsed_pref: Dict,
         search_context: str
     ) -> Dict:
+        if search_context and search_context != "":
+            web_info = f"""
+[웹 검색 결과]
+{search_context}
+
+위 검색 결과를 바탕으로 최신 트렌드를 설명합니다.
+"""
+        else:
+            web_info = """
+[참고]
+웹 검색 결과가 없으므로, 일반적인 K-Beauty 트렌드 지식을 바탕으로 답변합니다.
+최신 정보가 아닐 수 있으니 참고용으로만 활용해주세요.
+"""
+
         system_prompt = f"""
 당신은 최신 K-Beauty 트렌드를 설명하는 전문가입니다.
 
 [사용자 프로필]
 - 퍼스널 컬러: {user_profile.get('tone', '알 수 없음')}
 
-[웹 검색 결과]
-{search_context}
+{web_info}
 
 [사용자 질문]
 "{user_text}"
 
 [답변 규칙]
 1) 반드시 한국어(해요체)로 답변합니다.
-2) 웹 검색 결과를 바탕으로 최신 트렌드를 설명합니다.
+2) 웹 검색 결과가 있으면 이를 바탕으로, 없으면 일반적인 K-Beauty 트렌드 지식으로 설명합니다.
 3) 구체적인 제품명보다는 트렌드 경향(색상, 텍스처, 스타일 등)에 집중합니다.
 4) 친근하고 정보성 있는 톤으로 작성합니다.
+5) 웹 검색 결과가 없는 경우, "참고용 정보"라고 짧게 언급하고 일반적인 트렌드를 설명합니다.
 """
 
         try:

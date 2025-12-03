@@ -26,23 +26,27 @@ router.post(
       .isIn(['warm', 'cool', 'neutral'])
       .withMessage('Skin undertone must be warm, cool, or neutral'),
     body('skinType')
+      .optional({ checkFalsy: true })
       .isIn(['oily', 'dry', 'combination', 'sensitive'])
       .withMessage('Invalid skin type'),
     body('contrastLevel')
+      .optional({ checkFalsy: true })
       .isIn(['high', 'medium', 'low'])
       .withMessage('Contrast level must be high, medium, or low'),
     body('preferredFinish')
+      .optional({ checkFalsy: true })
       .isIn(['matte', 'glossy', 'satin', 'velvet', 'dewy'])
       .withMessage('Invalid preferred finish'),
     body('preferredStore')
+      .optional({ checkFalsy: true })
       .isIn(['roadshop', 'department', 'online', 'luxury'])
       .withMessage('Invalid preferred store'),
     body('priceRangeMin')
-      .optional()
+      .optional({ checkFalsy: true })
       .isInt({ min: 0 })
       .withMessage('Price range min must be a positive number'),
     body('priceRangeMax')
-      .optional()
+      .optional({ checkFalsy: true })
       .isInt({ min: 0 })
       .withMessage('Price range max must be a positive number')
   ],
@@ -62,17 +66,25 @@ router.put(
       .optional()
       .isIn(['warm', 'cool', 'neutral']),
     body('skinType')
-      .optional()
+      .optional({ checkFalsy: true })
       .isIn(['oily', 'dry', 'combination', 'sensitive']),
     body('contrastLevel')
-      .optional()
+      .optional({ checkFalsy: true })
       .isIn(['high', 'medium', 'low']),
     body('preferredFinish')
-      .optional()
+      .optional({ checkFalsy: true })
       .isIn(['matte', 'glossy', 'satin', 'velvet', 'dewy']),
     body('preferredStore')
-      .optional()
-      .isIn(['roadshop', 'department', 'online', 'luxury'])
+      .optional({ checkFalsy: true })
+      .isIn(['roadshop', 'department', 'online', 'luxury']),
+    body('priceRangeMin')
+      .optional({ checkFalsy: true })
+      .isInt({ min: 0 })
+      .withMessage('Price range min must be a positive number'),
+    body('priceRangeMax')
+      .optional({ checkFalsy: true })
+      .isInt({ min: 0 })
+      .withMessage('Price range max must be a positive number')
   ],
   updateBeautyProfile
 );
